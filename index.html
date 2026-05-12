@@ -439,7 +439,7 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
   <div class="panel panel-bubble">
     <div class="panel-header">
       <div class="panel-title">风险收益矩阵</div>
-      <div class="panel-hint">X = 最大回撤 &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 规模 &nbsp;·&nbsp; 颜色 = 投资大类</div>
+      <div class="panel-hint">X = 近一月收益 &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 规模 &nbsp;·&nbsp; 颜色 = 投资大类</div>
     </div>
     <div id="chartBubble" class="chart-box"></div>
   </div>
@@ -469,8 +469,6 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
           <th data-sort="w1" class="num" title="近 5 个交易日涨跌（来自 pingzhongdata 净值序列计算）">近一周(%)</th>
           <th data-sort="m1" class="num" title="近一月收益率（pingzhongdata · syl_1y）">近一月(%)</th>
           <th data-sort="y1" class="num" title="近一年收益率（pingzhongdata · syl_1n）">近一年(%)</th>
-          <th data-sort="maxDrawdown" class="num">最大回撤(%)</th>
-          <th data-sort="sharpe" class="num">夏普</th>
           <th data-sort="l3">三级细分</th>
         </tr>
       </thead>
@@ -637,18 +635,6 @@ const STATUS_META = {
   closed:{color:'#7A8294',label:'暂停申购'}
 };
 
-function genNav(annualReturn, vol, seed){
-  const monthlyMean = annualReturn/100/12;
-  const monthlyVol = vol/100/Math.sqrt(12);
-  let nav = 1.0; const out = [nav]; let s = seed||42;
-  for(let i=0;i<12;i++){
-    s = (s*9301+49297)%233280;
-    const r = (s/233280)*2-1;
-    nav = nav*(1 + monthlyMean + monthlyVol*r);
-    out.push(+nav.toFixed(4));
-  }
-  return out;
-}
 function deriveAttribution(p){
   if(!p.annualReturn) return null;
   const ret = +(p.annualReturn/4).toFixed(2);
@@ -692,55 +678,11 @@ function deriveAttribution(p){
     {key:'other',label:'其他',value:other,color:'#7A8294'}]};
 }
 
-const PRODUCTS = [
-  // 主动权益
-  {code:'001938',name:'中欧时代先锋A',manager:'周蔚文',category:'主动权益',subCategory:'全市场成长',scale:168.5,annualReturn:16.8,maxDrawdown:-28.5,sharpe:1.18,calmar:0.59,inception:'2015-11-03',benchmark:'沪深300',tags:['进攻型','明星基金经理','长跑选手'],isFlagship:true,description:'周蔚文长期管理，全市场选股，偏成长风格，注重产业趋势与公司治理。',style:'成长 / 中盘 / 全市场',managerInfo:{tenure:9.2,masterpiece:'中欧新蓝筹、中欧时代先锋',philosophy:'以产业演进视角自下而上选股'}},
-  {code:'003095',name:'中欧医疗健康A',manager:'葛兰',category:'主动权益',subCategory:'医药行业',scale:285.3,annualReturn:14.2,maxDrawdown:-42.6,sharpe:0.78,calmar:0.33,inception:'2016-09-29',benchmark:'中证医药',tags:['进攻型','明星基金经理'],isFlagship:true,description:'医药赛道旗舰，重仓创新药、医疗服务、CXO 龙头。',style:'成长 / 行业 / 医药',managerInfo:{tenure:8.5,masterpiece:'中欧医疗健康、中欧研究精选',philosophy:'坚定看好医药长期景气，配置创新药 + 医疗服务双主线'}},
-  {code:'166006',name:'中欧价值发现A',manager:'曹名长',category:'主动权益',subCategory:'深度价值',scale:56.8,annualReturn:11.2,maxDrawdown:-18.4,sharpe:1.05,calmar:0.61,inception:'2009-08-20',benchmark:'中证800',tags:['底仓配置','风格稳定','长跑选手'],isFlagship:true,description:'深度价值派代表，低估值蓝筹+周期股配置，回撤控制突出。',style:'价值 / 大盘 / 红利',managerInfo:{tenure:14.7,masterpiece:'中欧价值发现、中欧潜力价值',philosophy:'严格价值投资，安全边际优先'}},
-  {code:'004812',name:'中欧明睿新常态A',manager:'王健',category:'主动权益',subCategory:'消费成长',scale:42.1,annualReturn:13.6,maxDrawdown:-26.2,sharpe:0.96,calmar:0.52,inception:'2017-08-15',benchmark:'沪深300',tags:['进攻型','风格稳定'],isFlagship:false,description:'聚焦消费、医药、科技等成长赛道，行业均衡配置。',style:'成长 / 中盘 / 均衡',managerInfo:{tenure:7.0,masterpiece:'中欧明睿新常态、中欧消费主题',philosophy:'GARP 策略，合理估值买入优质成长'}},
-  {code:'001938B',name:'中欧潜力价值A',manager:'王培',category:'主动权益',subCategory:'价值成长',scale:38.6,annualReturn:12.8,maxDrawdown:-21.4,sharpe:1.02,calmar:0.60,inception:'2014-03-18',benchmark:'沪深300',tags:['底仓配置','风格稳定'],isFlagship:false,description:'价值与成长兼顾，行业相对均衡，回撤控制良好。',style:'均衡 / 大中盘 / 兼顾',managerInfo:{tenure:10.1,masterpiece:'中欧潜力价值、中欧行业成长',philosophy:'估值与质地并重，逆向布局'}},
-  {code:'002621',name:'中欧消费主题A',manager:'王健',category:'主动权益',subCategory:'消费行业',scale:48.9,annualReturn:15.4,maxDrawdown:-32.5,sharpe:0.88,calmar:0.47,inception:'2016-08-26',benchmark:'中证主要消费',tags:['进攻型'],isFlagship:false,description:'聚焦大消费板块，白酒、家电、零售等龙头配置。',style:'成长 / 行业 / 消费',managerInfo:{tenure:7.0,masterpiece:'中欧消费主题',philosophy:'长期持有具品牌护城河的消费龙头'}},
-  {code:'004233',name:'中欧创新成长A',manager:'王健',category:'主动权益',subCategory:'科技成长',scale:32.4,annualReturn:14.8,maxDrawdown:-35.8,sharpe:0.72,calmar:0.41,inception:'2017-04-19',benchmark:'中证500',tags:['进攻型'],isFlagship:false,description:'科技、新能源、先进制造方向集中布局。',style:'成长 / 中小盘 / 科技',managerInfo:{tenure:7.0,masterpiece:'中欧创新成长',philosophy:'聚焦技术革新与产业升级机会'}},
-  {code:'166019',name:'中欧恒利三年定开',manager:'蓝小康',category:'主动权益',subCategory:'价值红利',scale:78.5,annualReturn:13.2,maxDrawdown:-16.8,sharpe:1.32,calmar:0.79,inception:'2018-11-09',benchmark:'中证红利',tags:['底仓配置','稳健回报','长跑选手'],isFlagship:true,description:'三年封闭运作，红利价值风格，回撤控制行业领先。',style:'价值 / 红利 / 大盘',managerInfo:{tenure:6.5,masterpiece:'中欧恒利、中欧红利优享',philosophy:'股息率与盈利稳定性优先'}},
-  {code:'009776',name:'中欧多元价值',manager:'袁维德',category:'主动权益',subCategory:'中小盘价值',scale:65.2,annualReturn:17.6,maxDrawdown:-23.5,sharpe:1.28,calmar:0.75,inception:'2020-08-18',benchmark:'中证500',tags:['进攻型','长跑选手'],isFlagship:true,description:'中小盘价值挖掘，行业分散，长期超额突出。',style:'价值 / 中小盘 / 分散',managerInfo:{tenure:4.5,masterpiece:'中欧多元价值',philosophy:'逆向 + 价值，行业分散持仓'}},
-  {code:'001955',name:'中欧明睿新起点',manager:'王健',category:'主动权益',subCategory:'均衡配置',scale:28.6,annualReturn:11.8,maxDrawdown:-22.3,sharpe:0.92,calmar:0.53,inception:'2015-12-28',benchmark:'沪深300',tags:['风格稳定'],isFlagship:false,description:'行业均衡配置，注重估值合理性。',style:'均衡 / 全市场',managerInfo:{tenure:7.0,masterpiece:'中欧明睿系列',philosophy:'合理估值的成长机会'}},
-  {code:'004908',name:'中欧行业成长',manager:'王培',category:'主动权益',subCategory:'行业成长',scale:45.8,annualReturn:14.5,maxDrawdown:-27.2,sharpe:0.95,calmar:0.53,inception:'2017-09-21',benchmark:'中证800',tags:['进攻型'],isFlagship:false,description:'行业景气度优选，成长板块为主。',style:'成长 / 行业景气',managerInfo:{tenure:7.0,masterpiece:'中欧行业成长',philosophy:'行业景气 + 个股精选'}},
-  {code:'163417',name:'中欧瑾通灵活配置',manager:'李帅',category:'主动权益',subCategory:'灵活配置',scale:22.4,annualReturn:10.5,maxDrawdown:-19.8,sharpe:0.85,calmar:0.53,inception:'2017-06-09',benchmark:'沪深300',tags:['底仓配置'],isFlagship:false,description:'股债灵活配置，攻守兼备。',style:'混合 / 灵活',managerInfo:{tenure:5.2,masterpiece:'中欧瑾通',philosophy:'股债平衡，控制波动'}},
-  // 固收+
-  {code:'166009',name:'中欧聚利债券A',manager:'黄华',category:'固收+',subCategory:'二级债基',scale:82.3,annualReturn:7.2,maxDrawdown:-4.8,sharpe:1.85,calmar:1.50,inception:'2013-09-25',benchmark:'中债综合',tags:['稳健回报','底仓配置','长跑选手'],isFlagship:true,description:'二级债基代表作，长期年化7%+，回撤极小。',style:'债 / 信用 + 转债',managerInfo:{tenure:11.5,masterpiece:'中欧聚利、中欧瑞丰',philosophy:'信用甄选 + 久期择时 + 转债增强'}},
-  {code:'210008',name:'中欧增强回报债券A',manager:'李波',category:'固收+',subCategory:'二级债基',scale:56.8,annualReturn:6.8,maxDrawdown:-3.2,sharpe:1.92,calmar:2.13,inception:'2010-11-09',benchmark:'中债综合',tags:['稳健回报','底仓配置'],isFlagship:true,description:'回撤控制极佳的固收+产品，机构投资者偏爱。',style:'债 / 转债增强',managerInfo:{tenure:9.8,masterpiece:'中欧增强回报、中欧颐利',philosophy:'稳健票息打底，权益弹性增强'}},
-  {code:'004718',name:'中欧瑞丰',manager:'黄华',category:'固收+',subCategory:'偏债混合',scale:38.5,annualReturn:6.5,maxDrawdown:-5.6,sharpe:1.42,calmar:1.16,inception:'2017-08-09',benchmark:'中债+沪深300',tags:['稳健回报','底仓配置'],isFlagship:false,description:'偏债混合，权益仓位灵活。',style:'偏债 / 转债 + 权益',managerInfo:{tenure:7.0,masterpiece:'中欧聚利、中欧瑞丰',philosophy:'偏债平衡'}},
-  {code:'003090',name:'中欧添益A',manager:'王慧杰',category:'固收+',subCategory:'一级债基',scale:26.4,annualReturn:5.4,maxDrawdown:-2.8,sharpe:1.68,calmar:1.93,inception:'2016-08-03',benchmark:'中债综合',tags:['稳健回报','底仓配置'],isFlagship:false,description:'一级债基，纯债增强为主，波动小。',style:'债 / 信用债为主',managerInfo:{tenure:8.2,masterpiece:'中欧添益、中欧纯债',philosophy:'严格信用研究'}},
-  {code:'004811',name:'中欧颐利A',manager:'李波',category:'固收+',subCategory:'二级债基',scale:32.1,annualReturn:6.2,maxDrawdown:-3.5,sharpe:1.72,calmar:1.77,inception:'2017-08-02',benchmark:'中债综合',tags:['稳健回报','底仓配置'],isFlagship:false,description:'稳健型二级债基，权益仓位审慎。',style:'偏债 / 信用债 + 权益',managerInfo:{tenure:9.8,masterpiece:'中欧增强回报、中欧颐利',philosophy:'稳健票息 + 权益弹性'}},
-  {code:'009098',name:'中欧融恒平衡混合',manager:'蓝小康',category:'固收+',subCategory:'偏债混合',scale:18.6,annualReturn:7.8,maxDrawdown:-6.2,sharpe:1.55,calmar:1.26,inception:'2020-06-09',benchmark:'中债+沪深300',tags:['稳健回报'],isFlagship:false,description:'股债平衡型产品，红利权益打底。',style:'平衡 / 红利 + 信用债',managerInfo:{tenure:6.5,masterpiece:'中欧恒利、中欧融恒',philosophy:'股债再平衡'}},
-  // 纯债
-  {code:'003936',name:'中欧纯债A',manager:'王慧杰',category:'纯债',subCategory:'中长期纯债',scale:65.4,annualReturn:4.6,maxDrawdown:-1.5,sharpe:2.15,calmar:3.07,inception:'2016-12-22',benchmark:'中债综合',tags:['底仓配置','稳健回报'],isFlagship:true,description:'纯债代表，久期择时与信用甄选并重。',style:'纯债 / 中长久期',managerInfo:{tenure:8.2,masterpiece:'中欧纯债、中欧添益',philosophy:'严守信用底线'}},
-  {code:'004417',name:'中欧短债A',manager:'董超',category:'纯债',subCategory:'短债',scale:88.7,annualReturn:3.8,maxDrawdown:-0.8,sharpe:2.45,calmar:4.75,inception:'2017-07-15',benchmark:'中债短融',tags:['底仓配置'],isFlagship:true,description:'短债工具型产品，流动性好，机构现金管理利器。',style:'短债 / 高流动性',managerInfo:{tenure:6.8,masterpiece:'中欧短债、中欧鼎利',philosophy:'短久期高流动'}},
-  {code:'003465',name:'中欧鼎利A',manager:'李波',category:'纯债',subCategory:'中长期纯债',scale:42.6,annualReturn:4.4,maxDrawdown:-1.2,sharpe:2.08,calmar:3.67,inception:'2016-11-08',benchmark:'中债综合',tags:['底仓配置','稳健回报'],isFlagship:false,description:'纯债产品，配置利率债+高等级信用。',style:'纯债 / 中长久期',managerInfo:{tenure:9.8,masterpiece:'中欧鼎利、中欧增强回报',philosophy:'组合久期管理'}},
-  {code:'004854',name:'中欧瑞泽纯债',manager:'李波',category:'纯债',subCategory:'中长期纯债',scale:35.2,annualReturn:4.2,maxDrawdown:-1.4,sharpe:1.98,calmar:3.00,inception:'2017-09-15',benchmark:'中债综合',tags:['底仓配置'],isFlagship:false,description:'纯债产品，机构定制风格。',style:'纯债 / 利率 + 信用',managerInfo:{tenure:9.8,masterpiece:'中欧瑞泽、中欧鼎利',philosophy:'稳健票息 + 久期择时'}},
-  {code:'166025',name:'中欧货币A',manager:'姚鹏',category:'纯债',subCategory:'货币',scale:156.4,annualReturn:2.4,maxDrawdown:0.0,sharpe:8.50,calmar:99.0,inception:'2014-06-25',benchmark:'7日通知存款',tags:['底仓配置'],isFlagship:false,description:'货币基金，T+0 流动性。',style:'货币 / 现金管理',managerInfo:{tenure:5.5,masterpiece:'中欧货币',philosophy:'流动性优先'}},
-  {code:'007589',name:'中欧融益债券A',manager:'董超',category:'纯债',subCategory:'中短债',scale:24.6,annualReturn:3.9,maxDrawdown:-0.9,sharpe:2.32,calmar:4.33,inception:'2019-08-09',benchmark:'中债短融',tags:['底仓配置'],isFlagship:false,description:'中短债配置为主。',style:'短债 / 中短久期',managerInfo:{tenure:6.8,masterpiece:'中欧短债、中欧融益',philosophy:'短久期高等级'}},
-  // 指数&量化
-  {code:'003318',name:'中欧沪深300指数增强A',manager:'曲径',category:'指数&量化',subCategory:'指数增强',scale:38.2,annualReturn:9.6,maxDrawdown:-25.4,sharpe:0.65,calmar:0.38,inception:'2016-12-28',benchmark:'沪深300',tags:['波段工具','风格稳定'],isFlagship:true,description:'沪深300指数增强，长期超额稳定。',style:'量化 / 大盘',managerInfo:{tenure:7.5,masterpiece:'中欧量化驱动、中欧500指增',philosophy:'多因子模型 + 风险约束'}},
-  {code:'004999',name:'中欧中证500指数增强A',manager:'曲径',category:'指数&量化',subCategory:'指数增强',scale:28.5,annualReturn:11.2,maxDrawdown:-28.6,sharpe:0.72,calmar:0.39,inception:'2017-12-05',benchmark:'中证500',tags:['波段工具'],isFlagship:false,description:'中证500指数增强，超额稳定。',style:'量化 / 中盘',managerInfo:{tenure:7.5,masterpiece:'中欧500指增',philosophy:'量化多因子'}},
-  {code:'002980',name:'中欧量化驱动',manager:'曲径',category:'指数&量化',subCategory:'主动量化',scale:18.6,annualReturn:12.8,maxDrawdown:-26.5,sharpe:0.85,calmar:0.48,inception:'2016-09-08',benchmark:'中证800',tags:['波段工具','风格稳定'],isFlagship:false,description:'主动量化产品，多因子选股。',style:'量化 / 全市场',managerInfo:{tenure:7.5,masterpiece:'中欧量化驱动',philosophy:'多因子 + 行业中性'}},
-  {code:'008893',name:'中欧创业板两年定开',manager:'曲径',category:'指数&量化',subCategory:'创业板',scale:12.4,annualReturn:13.5,maxDrawdown:-38.2,sharpe:0.62,calmar:0.35,inception:'2020-04-29',benchmark:'创业板指',tags:['进攻型','波段工具'],isFlagship:false,description:'创业板主题产品。',style:'指数 / 创业板',managerInfo:{tenure:7.5,masterpiece:'中欧创业板系列',philosophy:'行业 + 风格暴露管理'}},
-  {code:'008286',name:'中欧科创主题3年',manager:'王培',category:'指数&量化',subCategory:'科创板',scale:22.8,annualReturn:11.5,maxDrawdown:-36.4,sharpe:0.58,calmar:0.32,inception:'2019-06-21',benchmark:'科创50',tags:['进攻型','波段工具'],isFlagship:false,description:'科创板主题封闭运作。',style:'主题 / 科创',managerInfo:{tenure:10.1,masterpiece:'中欧科创主题',philosophy:'硬科技长期布局'}},
-  {code:'501010',name:'中欧上证180ETF',manager:'宋巍巍',category:'指数&量化',subCategory:'ETF',scale:8.6,annualReturn:8.4,maxDrawdown:-22.5,sharpe:0.58,calmar:0.37,inception:'2018-01-19',benchmark:'上证180',tags:['波段工具'],isFlagship:false,description:'上证180 ETF，宽基工具。',style:'指数 / 大盘 / ETF',managerInfo:{tenure:4.5,masterpiece:'中欧 ETF 系列',philosophy:'紧密跟踪'}},
-  // QDII
-  {code:'002230',name:'中欧丰泓沪港深A',manager:'罗佳明',category:'QDII',subCategory:'港股',scale:32.6,annualReturn:8.6,maxDrawdown:-38.4,sharpe:0.42,calmar:0.22,inception:'2016-04-07',benchmark:'恒生指数+沪深300',tags:['进攻型','波段工具'],isFlagship:false,description:'聚焦港股优质成长 + A 股龙头。',style:'港股 / 全市场',managerInfo:{tenure:8.2,masterpiece:'中欧丰泓沪港深',philosophy:'港股价值挖掘'}},
-  {code:'004158',name:'中欧远见两年定开',manager:'周蔚文',category:'QDII',subCategory:'全球',scale:24.5,annualReturn:12.8,maxDrawdown:-28.6,sharpe:0.85,calmar:0.45,inception:'2017-06-29',benchmark:'MSCI全球',tags:['进攻型','明星基金经理'],isFlagship:true,description:'全球视野选股，A股+港股+美股。',style:'全球 / 成长',managerInfo:{tenure:9.2,masterpiece:'中欧时代先锋、中欧远见',philosophy:'全球资产配置'}},
-  {code:'004834',name:'中欧全球聚焦',manager:'李雪琴',category:'QDII',subCategory:'全球',scale:12.8,annualReturn:9.5,maxDrawdown:-32.4,sharpe:0.55,calmar:0.29,inception:'2017-08-09',benchmark:'MSCI全球',tags:['波段工具'],isFlagship:false,description:'全球科技与消费龙头。',style:'QDII / 成长',managerInfo:{tenure:5.5,masterpiece:'中欧全球聚焦',philosophy:'全球龙头投资'}},
-  {code:'161126',name:'中欧香港优势精选',manager:'罗佳明',category:'QDII',subCategory:'港股',scale:8.4,annualReturn:7.8,maxDrawdown:-42.6,sharpe:0.32,calmar:0.18,inception:'2018-04-25',benchmark:'恒生指数',tags:['波段工具'],isFlagship:false,description:'港股精选。',style:'港股 / 中大盘',managerInfo:{tenure:8.2,masterpiece:'中欧港股系列',philosophy:'港股价值股挖掘'}},
-  // FOF & 养老
-  {code:'006580',name:'中欧汇选混合FOF',manager:'桑磊',category:'FOF&养老',subCategory:'混合FOF',scale:18.5,annualReturn:8.4,maxDrawdown:-12.5,sharpe:1.05,calmar:0.67,inception:'2018-12-19',benchmark:'中证混合基金',tags:['底仓配置','稳健回报'],isFlagship:false,description:'主动+被动多基金配置。',style:'FOF / 混合',managerInfo:{tenure:6.5,masterpiece:'中欧汇选FOF、预见养老系列',philosophy:'基金研究 + 资产配置'}},
-  {code:'006860',name:'中欧预见养老2035三年A',manager:'桑磊',category:'FOF&养老',subCategory:'目标日期',scale:22.8,annualReturn:7.8,maxDrawdown:-10.6,sharpe:1.12,calmar:0.74,inception:'2019-03-15',benchmark:'养老FOF基准',tags:['底仓配置','稳健回报'],isFlagship:true,description:'目标 2035 年退休的下滑曲线产品。',style:'养老 / 目标日期',managerInfo:{tenure:6.5,masterpiece:'中欧预见养老系列',philosophy:'生命周期下滑曲线'}},
-  {code:'008145',name:'中欧预见养老2045三年A',manager:'桑磊',category:'FOF&养老',subCategory:'目标日期',scale:12.5,annualReturn:9.2,maxDrawdown:-14.8,sharpe:1.02,calmar:0.62,inception:'2019-12-23',benchmark:'养老FOF基准',tags:['稳健回报'],isFlagship:false,description:'目标 2045 退休，权益占比更高。',style:'养老 / 目标日期',managerInfo:{tenure:6.5,masterpiece:'中欧预见养老系列',philosophy:'远期退休账户'}},
-  {code:'009342',name:'中欧汇优精选FOF',manager:'桑磊',category:'FOF&养老',subCategory:'混合FOF',scale:8.6,annualReturn:8.8,maxDrawdown:-11.4,sharpe:1.08,calmar:0.77,inception:'2020-08-04',benchmark:'中证混合基金',tags:['稳健回报'],isFlagship:false,description:'精选优质基金组合。',style:'FOF / 混合',managerInfo:{tenure:6.5,masterpiece:'中欧汇优、中欧汇选',philosophy:'优中选优'}}
-];
-
-// 默认主份额
-PRODUCTS.forEach(p=>{ p.isPrimary = true; });
+// ============================================================
+// PRODUCTS 数组 —— 完全从 window.ZO_FUND_POOL（天天基金离线提取）构建
+// 不再使用任何人工录入的"精选数据"，避免代码错配 / 虚构产品 / 内部演示口径
+// ============================================================
+const PRODUCTS = [];
 
 // 合并中欧基金完整产品池（来自 window.ZO_FUND_POOL，共 ~530 只）
 (function mergeZoFundPool(){
@@ -788,56 +730,11 @@ PRODUCTS.forEach(p=>{
   p.l3 = r.l3;
 });
 
-PRODUCTS.forEach((p,i)=>{ p.navHistory = genNav(p.annualReturn||0, Math.max(2,Math.abs(p.maxDrawdown||0)*0.6), i*17+7); });
-
-// ---------- 销售作战包 ----------
-const ENRICHMENT = {
-  '001938':{status:{code:'limited',label:'暂停大额申购（单笔 100 万以内）'},pitch:{opening:'中欧全市场选股代表作，周蔚文 9 年长期管理，年化收益跑赢沪深300超 8 个百分点。',highlights:['基金经理任职 9.2 年，操作风格连续，无团队人员变更风险','前十大重仓覆盖高端制造、新能源、医药三大主线，单一行业暴露低于 25%','穿越 2018/2022 两轮系统性熊市，规模始终稳定在 150 亿+ 区间'],cta:'建议：作为客户权益底仓的"长跑型"配置，单一产品占比建议 5%~10%。'},qa:[{q:'近期成长风格回调，组合如何应对？',a:'产业链龙头基本面未变，估值已落入合理区间，已分批加仓优质标的。我们看 3-5 年维度，短期波动不改长期判断。'},{q:'基金规模 168 亿是否过大、影响操作？',a:'中欧已为周总配备 6 人投研支持团队，重仓股流动性测试显示 3 个交易日可清仓 50% 头寸，规模仍在舒适区。'}],flags:[{level:'warn',text:'2025Q4 加仓 AI 算力板块至 14% 仓位，注意短期波动放大'}],competitors:[{name:'蓝筹精选混合',company:'易方达',mgr:'张坤',win:'本基金行业更分散，不依赖单一赛道；管理规模 168 vs 600+ 亿，操作灵活度更高'},{name:'天惠精选成长',company:'富国',mgr:'朱少醒',win:'近 3 年最大回撤 -28% vs 对手 -32%，回撤控制更优'}]},
-  '003095':{status:{code:'limited',label:'暂停大额申购（单笔 50 万以内）'},pitch:{opening:'中欧医药赛道旗舰，葛兰 8.5 年专注医药投研，覆盖创新药+医疗服务+CXO 全产业链。',highlights:['医药行业研究员 10+ 人，是国内医药投研覆盖最深的团队之一','当前重仓股中创新药占 35%、医疗器械 22%、CXO 18%，结构均衡','医药板块估值已回到历史 30% 分位以下，性价比凸显'],cta:'建议：适合对医药长期景气有信心、可承受行业 30%+ 回撤的客户左侧布局。'},qa:[{q:'产品已回撤 -42%，如何向客户解释？',a:'医药板块系统性回调（中证医药同期 -38%），叠加集采政策预期。组合重仓股盈利仍在增长，时间会消化估值压力。'},{q:'葛兰是否会被替换？',a:'公司明确表态葛总团队是医药投资核心，团队建制稳定，葛兰个人持有本基金超 200 万元。'},{q:'医药板块还有多少下行空间？',a:'当前 PE 分位 28%，处于近 10 年低位；如果集采政策不进一步加码，下行空间有限。'}],flags:[{level:'warn',text:'注意：客户多对葛兰敏感，需提前准备业绩归因话术'},{level:'info',text:'路演口径：强调医药长期赛道+估值底部，淡化短期排名'}],competitors:[{name:'前沿医疗股票',company:'工银瑞信',mgr:'赵蓓',win:'本基金规模 285 vs 65 亿，但持股集中度更低，单股最大权重 8% vs 9.5%'},{name:'医疗保健混合',company:'广发',mgr:'吴兴武',win:'本基金研究覆盖更全（含 CXO/医疗器械），对标的纯医药制造仓位 60% vs 75%'}]},
-  '166006':{status:{code:'open'},pitch:{opening:'深度价值派代表作，曹名长 14 年管理经验，最大回撤仅 -18.4%，回撤控制行业前 5%。',highlights:['严格价值投资，组合平均 PE 9.5x、股息率 4.2%，高股息属性突出','行业分布在金融、地产、公用事业、消费等防御板块','成立 16 年穿越 4 轮牛熊，年化 11.2% 且夏普 1.05'],cta:'建议：作为险资/银行理财子绝对收益打底，IFRS9 项下推荐 FVOCI 计量。'},qa:[{q:'价值风格近年表现一般，是否会切换风格？',a:'曹总坚守深度价值 14 年从未漂移，正是这种纪律性让产品在 2018/2022 大跌中相对抗跌。'},{q:'组合是否过度暴露金融地产？',a:'当前金融+地产合计 32%，符合价值派常态。组合分散度高，前十大占比仅 38%。'}],flags:[{level:'info',text:'高股息特征对险资特别友好，可强调久期匹配优势'}],competitors:[{name:'价值优势混合',company:'富国',mgr:'李巍',win:'本基金最大回撤 -18% vs 对手 -23%，更适合机构绝对收益诉求'},{name:'大盘股票',company:'汇丰晋信',mgr:'陆彬',win:'本基金风格更稳定（深度价值 vs 价值轮动），可预期性更强'}]},
-  '004812':{status:{code:'open'},pitch:{opening:'王健代表作之一，GARP 策略捕捉合理估值的成长机会，近 3 年年化 13.6%。',highlights:['GARP 估值约束严格','消费+医药+科技均衡','王健中欧任职 7 年风格稳定'],cta:'建议：作为权益均衡配置，与价值派/纯成长派形成互补。'},qa:[{q:'GARP 策略在极致行情下是否会跑输？',a:'是。但中长期看，估值约束让组合避免了 2021 年抱团瓦解时的大幅回撤。'}],flags:[{level:'info',text:'可强调与中欧时代先锋(纯成长)、价值发现(纯价值)形成产品矩阵'}],competitors:[{name:'策略增长',company:'嘉实',mgr:'邵秋涛',win:'本基金近 3 年夏普 0.96 vs 0.81，风险调整后表现更优'},{name:'价值精选',company:'汇添富',mgr:'劳杰男',win:'本基金行业暴露更分散，对单一行业冲击的抵御力更强'}]},
-  '001938B':{status:{code:'open'},pitch:{opening:'王培管理 10 年，价值与成长兼顾，近 3 年最大回撤仅 -21%。',highlights:['估值与质地并重','行业相对均衡','逆向布局，左侧建仓擅长'],cta:'建议：作为权益底仓配置，回撤控制对机构友好。'},qa:[{q:'逆向布局是否容易左侧深套？',a:'王培严守估值底线，过往左侧建仓时点准确性高于行业均值。'}],flags:[{level:'info',text:'王培产品线多，注意区分本款与中欧行业成长的风格差异'}],competitors:[{name:'合润混合',company:'兴证全球',mgr:'谢治宇',win:'本基金规模 38 vs 200+ 亿，调仓灵活度更高'},{name:'均衡增长',company:'汇添富',mgr:'胡昕炜',win:'本基金在熊市的回撤控制更突出（-21% vs -28%）'}]},
-  '002621':{status:{code:'open'},pitch:{opening:'王健消费旗舰，聚焦白酒+家电+零售龙头，捕捉消费升级长期红利。',highlights:['消费板块研究覆盖深入','前十大消费白马占 65%','近 3 年年化 15.4%'],cta:'建议：消费配置工具，搭配科技/医药形成行业平衡。'},qa:[{q:'消费板块还有多少空间？',a:'PMI 数据显示消费复苏初期，板块估值分位 35%，中长期空间充足。'}],flags:[{level:'warn',text:'近期白酒板块波动大，建议路演时主动提及而非回避'}],competitors:[{name:'消费行业',company:'易方达',mgr:'萧楠',win:'本基金规模 48 vs 300+ 亿，对中小消费股的覆盖灵活度更高'},{name:'中证白酒',company:'招商',mgr:'侯昊',win:'本基金行业分散（白酒+家电+零售）vs 单一白酒，回撤更小'}]},
-  '004233':{status:{code:'open'},pitch:{opening:'聚焦科技+新能源+先进制造，捕捉中国产业升级浪潮。',highlights:['中小盘成长风格','新能源/半导体/AI 三大主线','王健第二代表作'],cta:'建议：进攻型仓位配置，与稳健底仓搭配使用。'},qa:[{q:'中小盘风格波动大，机构是否能接受？',a:'建议作为权益组合的卫星仓位，配置比例 3-5%。'}],flags:[{level:'warn',text:'最大回撤 -35.8%，向风险偏好低的客户推荐前需评估'}],competitors:[{name:'创新成长',company:'银河',mgr:'郑巍山',win:'本基金对新能源敞口更分散，不集中赌单一细分'},{name:'科技先锋',company:'广发',mgr:'刘格菘',win:'本基金管理规模 32 vs 400+ 亿，操作灵活度优势明显'}]},
-  '166019':{status:{code:'limited',label:'三年封闭运作，下一开放期 2026-11'},pitch:{opening:'蓝小康代表作，红利价值风格，三年封闭运作，最大回撤 -16.8%，夏普 1.32。',highlights:['三年封闭让基金经理免受短期申赎扰动，可执行长期价值策略','组合股息率 5.1%，高股息属性突出','近 3 年年化 13.2%，夏普 1.32 同类前 5%'],cta:'建议：险资/银行理财子绝对收益首选，FVOCI 计量+久期匹配双重适配。'},qa:[{q:'三年封闭，客户流动性如何处理？',a:'产品定位为机构核心配置，三年期对应长期资金诉求。客户如需中短期流动性，可推荐中欧颐利。'},{q:'蓝小康风格漂移风险？',a:'近 6 年红利风格持续不变，团队对此有书面确认。'}],flags:[{level:'info',text:'★ 险资客户首推产品，可强调"高股息+久期匹配+FVOCI 友好"三重利好'}],competitors:[{name:'红利配置',company:'大成',mgr:'徐彦',win:'本基金有三年封闭锁定优势，可避免短期申赎冲击'},{name:'红利成长',company:'汇添富',mgr:'黄家诚',win:'本基金股息率 5.1% vs 4.3%，分红强度更高'}]},
-  '009776':{status:{code:'limited',label:'暂停大额申购（单笔 200 万以内）'},pitch:{opening:'袁维德"小而美"代表作，中小盘价值挖掘，近 3 年年化 17.6%、夏普 1.28。',highlights:['中小盘价值股深度挖掘，行业分散，前十大持仓占比仅 32%','基金经理调研频次行业领先，年均个股调研 200+ 次','规模控制 65 亿，保留小盘股操作灵活度'],cta:'建议：作为权益组合的 Alpha 增强工具，配置比例建议 3~5%。'},qa:[{q:'小盘股流动性风险？',a:'组合平均日均成交额 8 亿元，3 个交易日可处置 30% 头寸，流动性可控。'},{q:'袁维德是否会扩规模？',a:'团队明确把规模上限控制在 80 亿以内，保护现有持有人利益。'}],flags:[{level:'warn',text:'★ 优秀但有规模上限，路演需提前确认额度'}],competitors:[{name:'中小盘混合',company:'大成',mgr:'魏庆国',win:'本基金调研深度更强，年均覆盖标的 200+ 只'},{name:'合宜混合',company:'兴证全球',mgr:'谢治宇',win:'本基金规模 65 vs 250+ 亿，对小盘股覆盖更深'}]},
-  '001955':{status:{code:'open'},pitch:{opening:'王健均衡型产品，行业均衡配置，注重估值合理性。',highlights:['全市场行业均衡配置','估值约束严格','回撤可控'],cta:'建议：风险偏好中等的底仓配置。'},qa:[{q:'与中欧明睿新常态的差异？',a:'本基金更偏均衡，新常态偏成长一些；可视客户偏好选择。'}],flags:[{level:'info',text:'与中欧明睿新常态同一经理，注意区分话术'}],competitors:[{name:'均衡成长',company:'易方达',mgr:'陈皓',win:'本基金行业暴露更均衡，单一行业上限 18% vs 25%'},{name:'价值精选',company:'嘉实',mgr:'谭丽',win:'本基金风险调整后收益夏普 0.92 vs 0.85'}]},
-  '004908':{status:{code:'open'},pitch:{opening:'王培聚焦行业景气度，成长板块为主，近 3 年年化 14.5%。',highlights:['行业景气优选','中观研究突出','王培另一代表作'],cta:'建议：行业轮动型配置工具。'},qa:[{q:'行业轮动是否会买在山顶？',a:'王培以景气度向上 6 个月以上为筛选标准，避免追逐短期主题。'}],flags:[{level:'info',text:'当前重仓 AI/新能源/创新药三大行业'}],competitors:[{name:'成长动力',company:'富国',mgr:'何如',win:'本基金行业切换基于基本面而非主题，胜率更高'},{name:'主题行业',company:'博时',mgr:'黄继晨',win:'本基金 3 年期最大回撤 -27% vs -34%'}]},
-  '163417':{status:{code:'open'},pitch:{opening:'股债灵活配置，攻守兼备，回撤 -19.8%。',highlights:['股债再平衡策略','回撤控制','适合稳健型权益配置'],cta:'建议：风险偏好偏稳健的客户，作为半权益底仓。'},qa:[{q:'股债比例如何决定？',a:'基于宏观与估值信号，股票仓位在 40%~75% 区间动态调整。'}],flags:[],competitors:[{name:'新趋势混合',company:'汇添富',mgr:'劳杰男',win:'本基金回撤控制 -19.8% vs -25%，机构友好度更高'},{name:'睿元三年',company:'东方红',mgr:'林鹏',win:'本基金为开放式，流动性优势显著'}]},
-  '166009':{status:{code:'open'},pitch:{opening:'黄华 11 年管理代表作，二级债基长跑选手，年化 7.2% 夏普 1.85，机构投资者口碑产品。',highlights:['11.5 年管理经验，穿越多轮债市牛熊周期','信用甄选+久期择时+转债增强三大策略协同','最大回撤仅 -4.8%，回撤恢复期平均 45 天'],cta:'建议：险资/银行理财子绝对收益首推，IFRS9 项下推荐 FVOCI 计量。'},qa:[{q:'7.2% 年化，下沉信用了吗？',a:'组合 AAA 级信用债占 65%，AA+ 占 25%，无 AA 及以下。'},{q:'转债仓位风险？',a:'转债维持 10%~15% 仓位，单券集中度上限 2%，纯债底仓为主。'}],flags:[{level:'info',text:'★ 险资必推，FVOCI 友好+绝对收益+久期可选'}],competitors:[{name:'稳健收益债券',company:'易方达',mgr:'张清华',win:'本基金最大回撤 -4.8% vs -6.5%，信用控制更严格'},{name:'安心收益债券',company:'招商',mgr:'马龙',win:'本基金转债增强能力突出，长期年化超 1pct'}]},
-  '210008':{status:{code:'open'},pitch:{opening:'李波 10 年管理，最大回撤 -3.2%，夏普 1.92，回撤控制极致。',highlights:['稳健票息打底','权益弹性增强','同类回撤控制 Top 5%'],cta:'建议：保守型机构客户首选，IFRS9 项下推荐 FVOCI。'},qa:[{q:'权益占比多少？',a:'股票+转债合计 18%~22%，纯债底仓约 78%。'}],flags:[{level:'info',text:'险资+理财子双重适配，FVOCI 友好'}],competitors:[{name:'稳健收益债券',company:'易方达',mgr:'张清华',win:'本基金回撤 -3.2% vs -5.4%，控制更严'},{name:'集利债券',company:'广发',mgr:'张芊',win:'本基金成立 14 年穿越多轮周期，长期可预期性强'}]},
-  '004718':{status:{code:'open'},pitch:{opening:'黄华另一代表作，偏债混合，权益仓位灵活。',highlights:['偏债混合策略','权益仓位 25%~35%','黄华团队管理'],cta:'建议：偏债配置补充，与聚利形成产品矩阵。'},qa:[{q:'与中欧聚利的差异？',a:'权益仓位略高，进攻性更强，回撤稍大。'}],flags:[],competitors:[{name:'瑞丰混合',company:'招商',mgr:'王垠',win:'本基金转债策略突出，黄华信用甄选能力业内领先'},{name:'增强回报',company:'易方达',mgr:'张清华',win:'本基金权益仓位上限更高，进攻性更强'}]},
-  '003090':{status:{code:'open'},pitch:{opening:'一级债基，纯债增强为主，波动小、收益稳。',highlights:['一级债基策略','波动率仅 1.8%','现金管理替代'],cta:'建议：财务公司/银行理财子的中短期资金配置工具。'},qa:[{q:'与货币基金的差异？',a:'收益更高（5.4% vs 2.4%），但久期略长，流动性 T+1 vs T+0。'}],flags:[],competitors:[{name:'招华纯债',company:'招商',mgr:'马龙',win:'本基金可少量参与新股申购，收益增强 0.5pct'},{name:'信用债纯债',company:'博时',mgr:'魏桢',win:'本基金信用研究团队规模行业领先'}]},
-  '004811':{status:{code:'open'},pitch:{opening:'李波旗下二级债基，权益仓位审慎，回撤极小。',highlights:['二级债基稳健','权益仓位 10%~15%','回撤 -3.5%'],cta:'建议：稳健型机构客户的中长期配置。'},qa:[{q:'与增强回报的差异？',a:'颐利权益仓位略低，更加保守。'}],flags:[],competitors:[{name:'安泰平衡',company:'招商',mgr:'尹晓红',win:'本基金回撤更小（-3.5% vs -5.2%）'},{name:'集利债券',company:'广发',mgr:'张芊',win:'本基金机构持有比例 80%+，认可度高'}]},
-  '009098':{status:{code:'open'},pitch:{opening:'蓝小康偏债混合，红利权益打底，股债再平衡策略。',highlights:['股债平衡策略','红利股权益增强','蓝小康团队管理'],cta:'建议：寻求稳健回报的客户配置。'},qa:[{q:'股债比例？',a:'股票 30%~40%，债券 60%~70%，动态再平衡。'}],flags:[],competitors:[{name:'稳健收益',company:'易方达',mgr:'张清华',win:'本基金红利权益策略与蓝小康一致风格'},{name:'债券A',company:'大成',mgr:'周梅',win:'本基金权益弹性更突出，年化高 1.5pct'}]},
-  '003936':{status:{code:'open'},pitch:{opening:'王慧杰中长期纯债代表，年化 4.6%、最大回撤 -1.5%、夏普 2.15。',highlights:['久期主动管理 1.5~3.5 年区间','严守 AA+ 以上信用底线','险资/财务公司高契合'],cta:'建议：险资久期匹配+财务公司日常配置首选。'},qa:[{q:'当前久期？',a:'组合久期 2.8 年，处于近 3 年中性偏长水平。'}],flags:[{level:'info',text:'★ 险资 FVOCI 标准配置'}],competitors:[{name:'招华纯债',company:'招商',mgr:'马龙',win:'本基金久期管理更主动，2025 年捕捉两次债牛超额'},{name:'信用债',company:'博时',mgr:'魏桢',win:'本基金信用资质更严格，AA+ 以上占 100%'}]},
-  '004417':{status:{code:'limited',label:'日限申购上限 1000 万'},pitch:{opening:'董超短债代表作，机构现金管理利器，规模 88 亿+，T+1 流动性。',highlights:['组合久期 0.6 年，对利率敏感度极低','最大回撤 -0.8%，回撤恢复期平均 12 天','机构持有比例 85%+，专为机构定制设计'],cta:'建议：财务公司/银行理财子的现金管理替代工具。'},qa:[{q:'与货币基金的差异？',a:'收益高 1.4pct（3.8% vs 2.4%），但 T+1 赎回，适合非日常流动性资金。'}],flags:[{level:'warn',text:'当前限购，路演前需确认额度'}],competitors:[{name:'超短债',company:'嘉实',mgr:'王亚洲',win:'本基金久期管理更主动，超额收益更稳定'},{name:'合臻短债',company:'博时',mgr:'陈凯杨',win:'本基金机构持有比例 85% vs 60%，定位更清晰'}]},
-  '003465':{status:{code:'open'},pitch:{opening:'李波纯债产品，配置利率债+高等级信用债。',highlights:['中长期纯债','利率+信用双轮驱动','夏普 2.08'],cta:'建议：纯债底仓配置。'},qa:[{q:'与中欧纯债差异？',a:'风格类似，鼎利略偏利率债，纯债略偏信用债。'}],flags:[],competitors:[{name:'安瑞纯债',company:'招商',mgr:'马龙',win:'本基金管理规模适中，操作灵活度好'},{name:'安心收益',company:'招商',mgr:'马龙',win:'本基金收益略优，李波信用研究突出'}]},
-  '004854':{status:{code:'open'},pitch:{opening:'李波纯债，机构定制风格突出。',highlights:['纯债稳健','机构定制','回撤可控'],cta:'建议：机构纯债配置。'},qa:[{q:'机构占比？',a:'机构持有比例 90%+，操作完全围绕机构需求设计。'}],flags:[],competitors:[{name:'招华纯债',company:'招商',mgr:'马龙',win:'本基金机构定制度更高'},{name:'稳健收益',company:'易方达',mgr:'张清华',win:'本基金费率更低，机构友好'}]},
-  '166025':{status:{code:'open'},pitch:{opening:'中欧货币基金，T+0 流动性，财务公司日常资金管理。',highlights:['T+0 申赎','7日年化 2.4%','严守流动性纪律'],cta:'建议：财务公司/企业活期资金替代。'},qa:[{q:'收益是否会大幅波动？',a:'货币基金收益跟随央行政策利率，波动有限。'}],flags:[],competitors:[{name:'余额宝',company:'天弘',mgr:'王登峰',win:'本基金机构 share 占比更高，收益更稳定'},{name:'活期宝',company:'嘉实',mgr:'李金灿',win:'本基金为机构定制，收益略优'}]},
-  '007589':{status:{code:'open'},pitch:{opening:'董超另一代表作，中短债配置为主。',highlights:['中短债策略','高等级信用为主','回撤极小'],cta:'建议：与中欧短债形成久期梯度配置。'},qa:[{q:'与中欧短债差异？',a:'融益久期略长（1.2 vs 0.6 年），收益略高、波动略大。'}],flags:[],competitors:[{name:'安瑞短债',company:'招商',mgr:'马龙',win:'本基金费率更优'},{name:'合臻短债',company:'博时',mgr:'陈凯杨',win:'本基金董超管理一致性强'}]},
-  '003318':{status:{code:'open'},pitch:{opening:'曲径量化代表作，沪深300 指增长期超额稳定，3 年累计超额 12pct。',highlights:['多因子模型 + 风险约束','行业偏离不超过基准 ±5%','机构定制可定制 Smart Beta'],cta:'建议：作为银行理财子/养老金的 Beta 增强工具。'},qa:[{q:'量化超额还能维持吗？',a:'团队持续迭代因子，2025 年新增另类数据因子，超额贡献稳定。'}],flags:[],competitors:[{name:'沪深300量化',company:'易方达',mgr:'官泽帆',win:'本基金行业暴露更小，跟踪误差控制更优'},{name:'沪深300指增',company:'华夏',mgr:'孙蒙',win:'本基金费率更低（管理费 1.0% vs 1.2%）'}]},
-  '004999':{status:{code:'open'},pitch:{opening:'中证500指增，超额稳定，捕捉中盘 alpha。',highlights:['中盘 Alpha 捕捉','量化多因子','超额 3pct/年'],cta:'建议：与沪深300指增形成宽基组合。'},qa:[{q:'中证500 风格波动较大？',a:'指增产品聚焦超额，对绝对收益波动接受度较高的客户更适配。'}],flags:[],competitors:[{name:'中证500指增',company:'富国',mgr:'王乐乐',win:'本基金超额稳定性 IR 0.85 vs 0.7'},{name:'500指增',company:'申万菱信',mgr:'刘敦',win:'本基金跟踪误差更小'}]},
-  '002980':{status:{code:'open'},pitch:{opening:'主动量化产品，多因子选股+行业中性。',highlights:['主动量化','多因子驱动','行业中性'],cta:'建议：相对收益型机构配置。'},qa:[{q:'与指增的差异？',a:'量化驱动跟踪基准约束更弱，可以追求绝对收益。'}],flags:[],competitors:[{name:'量化先锋',company:'长信',mgr:'左金保',win:'本基金团队规模更大，模型迭代更快'},{name:'量化先行',company:'华泰柏瑞',mgr:'田汉卿',win:'本基金费率更低'}]},
-  '008893':{status:{code:'closing',label:'即将进入封闭期，2026-Q3 截止申购'},pitch:{opening:'创业板主题封闭运作，行业+风格暴露管理。',highlights:['创业板成长机会','两年封闭','主题进攻型'],cta:'建议：风险偏好高的客户左侧布局。'},qa:[{q:'创业板回撤会不会很大？',a:'历史回撤可达 -38%，仅适合长期资金。'}],flags:[{level:'warn',text:'即将封闭，路演需提示申购截止时点'}],competitors:[{name:'创业板ETF',company:'易方达',mgr:'余海燕',win:'本基金为指增，长期超额可期'},{name:'创业板50',company:'华安',mgr:'苏卿云',win:'本基金两年封闭可执行长期策略'}]},
-  '008286':{status:{code:'closing',label:'3 年封闭，2026 年 Q2 进入开放期'},pitch:{opening:'科创板主题封闭运作，硬科技长期布局。',highlights:['科创板硬科技','3 年封闭','主题进攻型'],cta:'建议：科技长期信徒型客户。'},qa:[{q:'科创板流动性？',a:'组合精选龙头，单股日均成交 2 亿+，流动性可控。'}],flags:[{level:'info',text:'即将开放，可提前与客户对接资金'}],competitors:[{name:'科创主题3年',company:'易方达',mgr:'蔡荣成',win:'本基金王培行业研究覆盖更广'},{name:'创新趋势',company:'富国',mgr:'李元博',win:'本基金封闭运作可执行长期策略'}]},
-  '501010':{status:{code:'open'},pitch:{opening:'上证180 ETF，宽基工具型产品。',highlights:['上证180 跟踪','低费率','机构波段工具'],cta:'建议：机构波段交易+定投工具。'},qa:[{q:'与沪深300ETF差异？',a:'上证180 偏蓝筹，沪深300 更均衡。'}],flags:[],competitors:[{name:'沪深300ETF',company:'华泰柏瑞',mgr:'柳军',win:'本基金跟踪上证180，蓝筹属性更纯'},{name:'上证50ETF',company:'华夏',mgr:'徐猛',win:'本基金成分股更分散（180 vs 50）'}]},
-  '002230':{status:{code:'open'},pitch:{opening:'罗佳明港股精选，聚焦港股优质成长+A 股龙头。',highlights:['港股价值挖掘','互联网+消费+医药主线','8 年管理经验'],cta:'建议：寻求港股配置的客户。'},qa:[{q:'港股流动性差？',a:'聚焦恒生指数成分股，流动性可控。'}],flags:[{level:'warn',text:'港股波动较大，建议 5 年以上持有'}],competitors:[{name:'沪港深价值精选',company:'富国',mgr:'汪孟海',win:'本基金 A+H 双重视角，估值套利机会更多'},{name:'沪港深精选',company:'嘉实',mgr:'张金涛',win:'本基金近 3 年港股回撤控制更优'}]},
-  '004158':{status:{code:'closing',label:'两年封闭，2026-Q4 进入开放期'},pitch:{opening:'周蔚文 QDII 产品，全球视野选股，A 股+港股+美股。',highlights:['全球资产配置','周蔚文管理','两年封闭'],cta:'建议：寻求全球分散的客户。'},qa:[{q:'美股仓位？',a:'当前美股 25%、港股 35%、A 股 40%。'}],flags:[{level:'info',text:'可作为客户美元配置入口'}],competitors:[{name:'全球成长',company:'易方达',mgr:'范冰',win:'本基金周蔚文成长选股能力突出'},{name:'全球医疗',company:'汇添富',mgr:'杨瑨',win:'本基金行业更分散'}]},
-  '004834':{status:{code:'open'},pitch:{opening:'全球科技与消费龙头投资。',highlights:['全球龙头精选','科技+消费主线','QDII 配置'],cta:'建议：全球资产配置工具。'},qa:[{q:'美股汇率风险？',a:'不做汇率对冲，建议作为美元资产长期配置。'}],flags:[],competitors:[{name:'全球聚焦',company:'华夏',mgr:'李湘杰',win:'本基金费率更优'},{name:'全球美元',company:'易方达',mgr:'张颖芝',win:'本基金组合波动更可控'}]},
-  '161126':{status:{code:'open'},pitch:{opening:'罗佳明港股精选系列。',highlights:['纯港股配置','价值+成长平衡','罗佳明系列'],cta:'建议：纯港股配置补充。'},qa:[{q:'与丰泓沪港深差异？',a:'本基金纯港股，丰泓有 A 股仓位。'}],flags:[{level:'warn',text:'最大回撤 -42.6%，仅适合高风险偏好'}],competitors:[{name:'港股通精选',company:'富国',mgr:'汪孟海',win:'本基金罗佳明港股研究深度更突出'},{name:'港股优势',company:'嘉实',mgr:'张金涛',win:'本基金费率更低'}]},
-  '006580':{status:{code:'open'},pitch:{opening:'桑磊 FOF 代表作，主动+被动多基金配置。',highlights:['基金研究 + 资产配置','混合型 FOF','夏普 1.05'],cta:'建议：寻求一站式配置的机构客户。'},qa:[{q:'是否会买中欧自己的基金？',a:'会基于纯客观筛选标准，外部基金占比 60%+，避免利益冲突。'}],flags:[],competitors:[{name:'安泰FOF',company:'兴证全球',mgr:'林国怀',win:'本基金外部基金筛选标准更严'},{name:'积极投资FOF',company:'汇添富',mgr:'杨柳',win:'本基金费率更优'}]},
-  '006860':{status:{code:'open'},pitch:{opening:'中欧养老目标日期 2035 旗舰，下滑曲线设计。',highlights:['目标 2035 退休','下滑曲线动态调整','养老 Y 份额可税延'],cta:'建议：35-45 岁客户养老账户配置首选。'},qa:[{q:'什么是下滑曲线？',a:'权益仓位随退休时点临近逐步下降，年轻时高权益、临近退休偏债。'}],flags:[{level:'info',text:'★ 可作为养老金/年金账户标配'}],competitors:[{name:'养老目标2035',company:'华夏',mgr:'许利明',win:'本基金桑磊团队 FOF 研究深入'},{name:'汇诚养老2043',company:'易方达',mgr:'林伟斌',win:'本基金 2035 目标日期更精准对应主流退休年龄'}]},
-  '008145':{status:{code:'open'},pitch:{opening:'远期退休账户，权益占比更高。',highlights:['目标 2045','权益占比 70%+','长期增值'],cta:'建议：25-35 岁客户养老账户。'},qa:[{q:'权益高，回撤会不会大？',a:'20 年期视角，权益资产是养老金最佳来源。'}],flags:[],competitors:[{name:'养老目标2045',company:'华夏',mgr:'许利明',win:'本基金桑磊系列管理一致'},{name:'养老目标2045',company:'招商',mgr:'章鸽武',win:'本基金权益占比更激进'}]},
-  '009342':{status:{code:'open'},pitch:{opening:'精选优质基金组合。',highlights:['优中选优','混合型 FOF','桑磊系列'],cta:'建议：FOF 配置补充。'},qa:[{q:'与汇选 FOF 差异？',a:'汇优更精简（持有基金数 8-12 vs 15-20），集中度略高。'}],flags:[],competitors:[{name:'精选FOF',company:'工银瑞信',mgr:'蒋华安',win:'本基金桑磊基金研究覆盖更全'},{name:'FOF精选',company:'海富通',mgr:'杜晓海',win:'本基金费率更优'}]}
-};
-
-// 应用 ENRICHMENT（仅保留客观字段：status 和归因；删除路演话术/客户适配/竞品硬编码）
+// 申购状态：默认全部"正常申购"（实际状态需从基金公告获取，公开接口未直接提供，此字段保留兼容性）
 PRODUCTS.forEach(p => {
-  const e = ENRICHMENT[p.code] || {};
-  p.status = e.status || { code:'open', label:'正常申购' };
-  if (!p.status.label) p.status.label = STATUS_META[p.status.code].label;
-  p.attribution = e.attribution || deriveAttribution(p);
+  p.status = { code:'open', label:'正常申购' };
+  // 默认从公开年化数据推导归因（pingzhongdata 拉到后会自动重算）
+  p.attribution = deriveAttribution(p);
 });
 
 // ============================================================
@@ -910,7 +807,12 @@ async function loadPerformance(code){
   const m3 = parseFloat(raw.syl_3y); // syl_3y = 近三月
   const m6 = parseFloat(raw.syl_6y); // syl_6y = 近六月
   const y1 = parseFloat(raw.syl_1n); // syl_1n = 近一年
-  const scale = parseFloat(raw.sScale);
+  // 规模：pingzhongdata 没有 sScale 字段，要从 Data_fluctuationScale.series 末项的 y 取（单位：亿）
+  let scale = null;
+  if(raw.Data_fluctuationScale && Array.isArray(raw.Data_fluctuationScale.series) && raw.Data_fluctuationScale.series.length){
+    const last = raw.Data_fluctuationScale.series[raw.Data_fluctuationScale.series.length-1];
+    if(last && typeof last.y === 'number') scale = last.y;
+  }
   const mgrArr = raw.Data_currentFundManager;
   const mgr = (Array.isArray(mgrArr) && mgrArr[0] && mgrArr[0].name) || null;
   // 最新净值日期 / 单位净值（用于抽屉头展示）
@@ -932,31 +834,43 @@ async function loadPerformance(code){
   return DS.perfMap[code];
 }
 
-// ③ 批量加载所有主份额业绩（10 并发，逐批刷新 UI）
+// ③ 批量加载所有主份额业绩（滑动窗口，20 并发，每完成 8 只刷新一次 UI）
 async function loadAllPerformance(codes){
-  const batchSize = 10;
+  const concurrency = 20;
   let ok = 0, fail = 0;
-  for(let i=0;i<codes.length;i+=batchSize){
-    const batch = codes.slice(i, i+batchSize);
-    const results = await Promise.all(batch.map(c =>
-      loadPerformance(c).catch(()=>null)
-    ));
-    results.forEach((r, idx)=>{
-      const code = batch[idx];
-      if(r){
-        ok++;
-        // 回填到 PRODUCTS（仅当原字段为空/0 时）
-        const prod = PRODUCTS.find(x=>x.code===code);
-        if(prod){
-          if((!prod.scale || prod.scale===0) && r.scale) prod.scale = r.scale;
-          if((!prod.manager || prod.manager==='-') && r.manager) prod.manager = r.manager;
-          if((!prod.annualReturn || prod.annualReturn===0) && r.y1!=null) prod.annualReturn = r.y1;
-        }
-      } else fail++;
-    });
+  let cursor = 0;
+  let sinceLastRefresh = 0;
+  const refreshUI = () => {
     updateDataSourceUI(ok, fail, codes.length);
     if(typeof window.__refreshAfterPerf === 'function') window.__refreshAfterPerf();
+  };
+  const codeIndex = new Map(PRODUCTS.map(p=>[p.code, p]));
+  async function worker(){
+    while(cursor < codes.length){
+      const i = cursor++;
+      const code = codes[i];
+      try {
+        const r = await loadPerformance(code);
+        if(r){
+          ok++;
+          const prod = codeIndex.get(code);
+          if(prod){
+            if((!prod.scale || prod.scale===0) && r.scale) prod.scale = r.scale;
+            if((!prod.manager || prod.manager==='-') && r.manager) prod.manager = r.manager;
+            if((!prod.annualReturn || prod.annualReturn===0) && r.y1!=null) prod.annualReturn = r.y1;
+          }
+        } else fail++;
+      } catch(_) { fail++; }
+      sinceLastRefresh++;
+      if(sinceLastRefresh >= 8){
+        sinceLastRefresh = 0;
+        refreshUI();
+      }
+    }
   }
+  const workers = Array(Math.min(concurrency, codes.length)).fill(0).map(worker);
+  await Promise.all(workers);
+  refreshUI();
   return { success: ok, fail };
 }
 
@@ -1039,22 +953,14 @@ function updateDataSourceUI(success, fail, total){
                         String(now.getSeconds()).padStart(2,'0');
 }
 
-// ④ 数据合理性自检（仅对真正异常的字段报警，避免噪音）
+// ④ 数据合理性自检（仅对真正异常的公开字段报警）
 function runSanityChecks(){
   PRODUCTS.forEach(p=>{
     const issues = [];
-    // 取真实可用数据（perfMap 优先）
     const pf = DS.perfMap[p.code] || {};
-    const ar = pf.y1!=null ? pf.y1 : p.annualReturn;
-    const scale = pf.scale!=null ? pf.scale : p.scale;
-
-    if(p.sharpe!==0 && p.sharpe!=null && (p.sharpe<-5 || p.sharpe>15)) issues.push('Sharpe='+p.sharpe+' 超出常规区间[-5,15]');
-    if((p.maxDrawdown||0) > 0) issues.push('最大回撤为正值（应为负数）');
-    if(p.calmar < -10 || p.calmar > 500) issues.push('Calmar 异常');
-    if(scale!=null && scale < 0) issues.push('规模为负');
-    // 真极端的年化才报警：[-80, 300]
-    if(ar != null && (ar > 300 || ar < -80)) issues.push('近一年收益超出极端区间 [-80%, 300%]');
-    // 「规模缺失」不再当作异常 —— pingzhongdata 的 sScale 字段对被动 ETF / 部分基金不披露，是常态
+    if(pf.scale!=null && pf.scale < 0) issues.push('规模为负');
+    if(pf.y1 != null && (pf.y1 > 300 || pf.y1 < -80)) issues.push('近一年收益超出极端区间 [-80%, 300%]');
+    if(pf.d1 != null && Math.abs(pf.d1) > 12) issues.push('昨日涨跌超过 ±12%（疑似数据异常）');
     p._sanityIssues = issues;
   });
 }
@@ -1307,6 +1213,9 @@ function renderKpi(){
   document.getElementById('kpiScale').textContent = sumScale>0 ? (sumScale>=10000?fmt.num(sumScale/10000,2):fmt.num(sumScale,0)) : '--';
   document.getElementById('kpiCount').textContent = list.length;
   document.getElementById('kpiSharpe').textContent = avgY1!=null ? fmt.signed(avgY1,1)+'%' : '--';
+  document.getElementById('kpiSharpeSub').textContent = withY1.length
+    ? '基于 '+withY1.length+' 只已加载产品的近一年收益均值'
+    : '业绩数据加载中…';
   document.getElementById('kpiHealth').textContent = healthRate;
 
   const allFilt = STATE.l1!=='ALL' || STATE.l2!=='ALL' || STATE.l3!=='ALL';
@@ -1324,36 +1233,38 @@ function renderKpi(){
   document.getElementById('kpiHealthSub').textContent = '已加载近期业绩 '+loadedCnt+' / '+list.length;
 }
 
-function bubbleSize(s){ return 12 + Math.sqrt(s)*2.6; }
+function bubbleSize(s){ return s>0 ? (10 + Math.sqrt(s)*2.0) : 8; }
 function renderBubble(){
-  // 用 perfMap.y1 作为 Y 轴年化收益（更可靠），perfMap.scale 兜底
+  // X = 近一月、Y = 近一年（均来自 pingzhongdata 公开数据），气泡大小 = 规模（缺规模给固定小气泡）
   const data = filteredProducts().map(p=>{
     const pf = DS.perfMap[p.code]||{};
-    const scale = pf.scale!=null?pf.scale:p.scale;
-    const y1 = pf.y1!=null?pf.y1:(p.annualReturn||0);
-    const dd = p.maxDrawdown||0;
-    return { p, scale, y1, dd };
-  }).filter(x=>x.scale>0 && (x.y1 || x.dd));
-  let xMax = 0;
-  data.forEach(x=>{ const v=Math.abs(x.dd); if(v>xMax) xMax=v; });
-  xMax = Math.ceil(Math.max(xMax,20)/5)*5;
-  // Y 轴上限：取中位数附近的 1.5×95 分位，避免被极端值拉伸；最大不超过 60%
+    const scale = pf.scale!=null?pf.scale:(p.scale||0);
+    const y1 = pf.y1!=null?pf.y1:null;
+    const m1 = pf.m1!=null?pf.m1:null;
+    return { p, scale: scale||0, y1, m1, mgr: pf.manager||p.manager };
+  }).filter(x=>x.y1!=null && x.m1!=null);
+
   const ys = data.map(x=>x.y1).sort((a,b)=>a-b);
-  const p95 = ys.length ? ys[Math.floor(ys.length*0.95)] : 0;
-  const yMax = Math.min(60, Math.max(25, Math.ceil(p95/5)*5 + 5));
-  const yMin = Math.min(-5, Math.floor((ys[0]||0)/5)*5);
+  const ms = data.map(x=>x.m1).sort((a,b)=>a-b);
+  const p95y = ys.length ? ys[Math.floor(ys.length*0.95)] : 30;
+  const p05y = ys.length ? ys[Math.floor(ys.length*0.05)] : -10;
+  const p95m = ms.length ? ms[Math.floor(ms.length*0.95)] : 10;
+  const p05m = ms.length ? ms[Math.floor(ms.length*0.05)] : -5;
+  const yMax = Math.min(80, Math.max(25, Math.ceil(p95y/5)*5 + 5));
+  const yMin = Math.max(-30, Math.min(-5, Math.floor(p05y/5)*5));
+  const xMax = Math.min(30, Math.max(8, Math.ceil(p95m/2)*2 + 2));
+  const xMin = Math.max(-15, Math.min(-3, Math.floor(p05m/2)*2));
 
   const series = INVEST_HIERARCHY.map(h=>{
     const items = data.filter(x=>x.p.l1===h.l1).map(x=>{
       const isLimit = x.p.status.code !== 'open';
-      const ddAbs = Math.abs(x.dd);
       return {
         name: x.p.name,
-        value: [ddAbs, x.y1, x.scale, x.p.sharpe||0, x.p.code, x.p.manager, x.p.status.code, x.dd],
+        value: [x.m1, x.y1, x.scale, x.p.code, x.mgr, x.p.status.code, x.p.l1, x.p.l2, x.p.l3],
         symbolSize: bubbleSize(x.scale),
         itemStyle: {
           borderColor: isLimit ? STATUS_META[x.p.status.code].color : 'rgba(255,255,255,0.15)',
-          borderWidth: isLimit?2:1, opacity:1
+          borderWidth: isLimit?2:1, opacity:0.85
         }
       };
     });
@@ -1364,32 +1275,31 @@ function renderBubble(){
     backgroundColor:'transparent',
     grid:{ left:56, right:22, top:24, bottom:50, containLabel:true },
     legend:{ bottom:4, left:'center', itemWidth:10, itemHeight:10, textStyle:{color:'#B4BAC8',fontSize:12}, icon:'circle' },
-    xAxis:{ type:'value', name:'最大回撤（绝对值）→ 右侧波动更大', nameLocation:'middle', nameGap:32,
+    xAxis:{ type:'value', name:'近一月收益 →', nameLocation:'middle', nameGap:32,
       nameTextStyle:{color:'#7A8294',fontSize:11},
       axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
-      splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:0, max:xMax },
-    yAxis:{ type:'value', name:'↑ 近一年收益（>60% 截断显示）', nameTextStyle:{color:'#7A8294',fontSize:11,padding:[0,0,0,-30]},
+      splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:xMin, max:xMax },
+    yAxis:{ type:'value', name:'↑ 近一年收益', nameTextStyle:{color:'#7A8294',fontSize:11,padding:[0,0,0,-30]},
       axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
       splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:yMin, max:yMax },
     tooltip:{ backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', borderWidth:1,
       textStyle:{color:'#E5E7EB',fontSize:12}, padding:12,
       formatter: p=>{
-        const [ddAbs,ar,sc,sh,code,mgr,statusCode,ddRaw]=p.value;
+        const [m1,y1,sc,code,mgr,statusCode,l1,l2,l3]=p.value;
         const sm = STATUS_META[statusCode];
         return '<div style="font-weight:600;margin-bottom:4px">'+p.name+
           '<span style="color:#7A8294;font-size:11px;font-weight:400;margin-left:6px">'+code+'</span></div>'+
-          '<div style="color:#B4BAC8;font-size:11px;margin-bottom:6px">'+p.seriesName+' · '+mgr+' · <span style="color:'+sm.color+'">●'+sm.label+'</span></div>'+
+          '<div style="color:#B4BAC8;font-size:11px;margin-bottom:6px">'+l1+' · '+l2+' · '+l3+' · '+(mgr||'--')+'</div>'+
           '<table style="font-size:12px;color:#B4BAC8;border-collapse:collapse">'+
-          '<tr><td style="padding:1px 12px 1px 0">规模</td><td style="color:#E5E7EB;font-weight:600">'+fmt.scale(sc)+' 亿</td></tr>'+
-          '<tr><td style="padding:1px 12px 1px 0">近一年</td><td style="color:#00C853;font-weight:600">'+fmt.signed(ar)+'%</td></tr>'+
-          '<tr><td style="padding:1px 12px 1px 0">最大回撤</td><td style="color:#FF5C5C;font-weight:600">-'+fmt.num(ddAbs)+'%</td></tr>'+
-          '<tr><td style="padding:1px 12px 1px 0">夏普</td><td style="color:#E5E7EB;font-weight:600">'+fmt.num(sh,2)+'</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">规模</td><td style="color:#E5E7EB;font-weight:600">'+(sc>0?fmt.scale(sc)+' 亿':'<span style=\"color:#7A8294\">未披露</span>')+'</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">近一月</td><td style="color:'+(m1>=0?'#FF5C5C':'#00C853')+';font-weight:600">'+fmt.signed(m1,2)+'%</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">近一年</td><td style="color:'+(y1>=0?'#FF5C5C':'#00C853')+';font-weight:600">'+fmt.signed(y1,2)+'%</td></tr>'+
           '</table><div style="color:#7A8294;font-size:11px;margin-top:6px;border-top:1px solid #232B3F;padding-top:6px">点击查看详情</div>';
       } },
     series: series
   }, true);
   bubbleChart.off('click');
-  bubbleChart.on('click', params=>{ const code=params.value && params.value[4]; if (code) openDrawer(code); });
+  bubbleChart.on('click', params=>{ const code=params.value && params.value[3]; if (code) openDrawer(code); });
 }
 
 function renderTree(){
@@ -1511,8 +1421,6 @@ function renderTable(){
       ? '<span class="sanity-flag" title="数据合理性自检：&#10;'+p._sanityIssues.map(x=>'· '+x).join('&#10;')+'">!</span>' : '';
     const hasScale = (effScale||0) > 0;
     const scaleCell = hasScale ? fmt.scale(effScale) : '<span style="color:var(--text-4)">--</span>';
-    const ddCell  = p.maxDrawdown ? '<span class="cell-neg">'+fmt.num(p.maxDrawdown)+'</span>' : '<span style="color:var(--text-4)">--</span>';
-    const shCell  = p.sharpe      ? fmt.num(p.sharpe,2) : '<span style="color:var(--text-4)">--</span>';
     const mgrCell = (effMgr && effMgr!=='-') ? escapeHtml(effMgr) : '<span style="color:var(--text-4)">--</span>';
     const shareTag = (p.shareClass && p.shareClass!=='_' && p.shareClass!=='A')
       ? '<span class="src-badge q" title="份额变体">'+p.shareClass+'</span>' : '';
@@ -1527,8 +1435,6 @@ function renderTable(){
       '<td class="num">'+rCell(pf.w1,true)+'</td>'+
       '<td class="num">'+rCell(pf.m1,true)+'</td>'+
       '<td class="num">'+rCell(pf.y1,true)+'</td>'+
-      '<td class="num">'+ddCell+'</td>'+
-      '<td class="num">'+shCell+'</td>'+
       '<td>'+l3Tag+'</td></tr>';
   }).join('');
   document.querySelectorAll('#ptable thead th').forEach(th=>{
@@ -1589,12 +1495,13 @@ function tabOverviewHtml(p){
     '<div class="event-meta">'+ev.meta+'</div></div></div>'
   ).join('')+'</div>' : '<div class="dr-desc" style="color:var(--text-3)">暂无近期动态</div>';
 
+  const mPos = v => v==null||isNaN(v) ? 'neutral' : (v>0?'pos':'neg');
   return perfBar +
-    '<div class="dr-section"><div class="dr-section-title">核心指标</div><div class="dr-metrics">'+
-    '<div class="dr-metric pos"><div class="dr-metric-label">近一年收益</div><div class="dr-metric-value">'+fmt.signed(pf.y1!=null?pf.y1:p.annualReturn)+'%</div></div>'+
-    '<div class="dr-metric neg"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+fmt.num(p.maxDrawdown)+'%</div></div>'+
-    '<div class="dr-metric neutral"><div class="dr-metric-label">夏普比率</div><div class="dr-metric-value">'+fmt.num(p.sharpe,2)+'</div></div>'+
-    '<div class="dr-metric neutral"><div class="dr-metric-label">卡玛比率</div><div class="dr-metric-value">'+fmt.num(p.calmar,2)+'</div></div>'+
+    '<div class="dr-section"><div class="dr-section-title">公开业绩指标</div><div class="dr-metrics">'+
+    '<div class="dr-metric '+mPos(pf.m1)+'"><div class="dr-metric-label">近一月</div><div class="dr-metric-value">'+fmt.signed(pf.m1,2)+'%</div></div>'+
+    '<div class="dr-metric '+mPos(pf.m3)+'"><div class="dr-metric-label">近三月</div><div class="dr-metric-value">'+fmt.signed(pf.m3,2)+'%</div></div>'+
+    '<div class="dr-metric '+mPos(pf.m6)+'"><div class="dr-metric-label">近六月</div><div class="dr-metric-value">'+fmt.signed(pf.m6,2)+'%</div></div>'+
+    '<div class="dr-metric '+mPos(pf.y1)+'"><div class="dr-metric-label">近一年</div><div class="dr-metric-value">'+fmt.signed(pf.y1,2)+'%</div></div>'+
     '</div>'+sanityHtml+'</div>'+
     (effMgr && effMgr!=='-' ? (
       '<div class="dr-section"><div class="dr-section-title">基金经理</div><div class="dr-mgr">'+
@@ -1761,9 +1668,8 @@ function tabCompetitorHtml(p){
           '<div class="alt-reason">'+escapeHtml(a._altReason)+'</div>'+
           '<div class="alt-stats">'+
           '<span>规模 <b>'+fmt.scale(ascale)+'亿</b></span>'+
-          '<span>近一年 <b style="color:'+(ay1>=0?'#00C853':'#FF5C5C')+'">'+fmt.signed(ay1)+'%</b></span>'+
-          '<span>回撤 <b style="color:#FF5C5C">'+fmt.num(a.maxDrawdown)+'%</b></span>'+
-          '<span>夏普 <b>'+fmt.num(a.sharpe,2)+'</b></span>'+
+          '<span>近一年 <b style="color:'+(ay1>=0?'#FF5C5C':'#00C853')+'">'+fmt.signed(ay1)+'%</b></span>'+
+          '<span>近一月 <b style="color:'+((apf.m1||0)>=0?'#FF5C5C':'#00C853')+'">'+fmt.signed(apf.m1)+'%</b></span>'+
           '</div></div>';
       }).join('')+'</div>'
     : '<div class="dr-desc" style="color:var(--text-3)">该投资类型内未发现可推荐的非限购替代款。</div>';
@@ -1871,15 +1777,14 @@ function drawRivalCompare(p, rivals){
     const indicators = [
       { name:'近一年收益(%)', max: Math.max(20, ...allY1.map(Math.abs))*1.2 },
       { name:'近一月收益(%)', max: Math.max(5,  ...allM1.map(Math.abs))*1.2 },
-      { name:'规模(亿)',       max: Math.max(100, ...allSc.map(v=>v||0))*1.2 },
-      { name:'夏普',           max: 3 }
+      { name:'规模(亿)',       max: Math.max(100, ...allSc.map(v=>v||0))*1.2 }
     ];
-    const valFor = (y1, m1, sc, sh) => [Math.max(0,y1||0), Math.max(0,m1||0), sc||0, sh||0];
+    const valFor = (y1, m1, sc) => [Math.max(0,y1||0), Math.max(0,m1||0), sc||0];
     const data = [
-      { name:p.name, value: valFor(myY1, myM1, myScale, p.sharpe), areaStyle:{opacity:0.18}, lineStyle:{color:colors[0]}, itemStyle:{color:colors[0]} }
+      { name:p.name, value: valFor(myY1, myM1, myScale), areaStyle:{opacity:0.18}, lineStyle:{color:colors[0]}, itemStyle:{color:colors[0]} }
     ].concat(rivals.map((r,i)=>({
       name: r.name,
-      value: valFor(r.y1, r.m1, r.scale, 0),
+      value: valFor(r.y1, r.m1, r.scale),
       lineStyle:{color:colors[i+1]}, itemStyle:{color:colors[i+1]}
     })));
     radarChart.setOption({
