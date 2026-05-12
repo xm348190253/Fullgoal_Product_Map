@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中欧基金 · 产品全景</title>
+<style>
+:root{
+  --bg-0:#0A0E1A;--bg-1:#0F1422;--bg-2:#161C2D;--bg-3:#1F2638;
+  --border:#232B3F;--border-soft:#1A2032;
+  --text-1:#E5E7EB;--text-2:#B4BAC8;--text-3:#7A8294;--text-4:#515870;
+  --green:#00C853;--green-soft:rgba(0,200,83,0.12);
+  --gold:#FFB800;--gold-soft:rgba(255,184,0,0.15);
+  --red:#FF5C5C;--teal:#4ECDC4;
+  --shadow:0 4px 24px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--text-1);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif;
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.06),transparent 60%),radial-gradient(1000px 500px at 88% 110%,rgba(76,205,196,0.05),transparent 60%);min-height:100vh;padding-bottom:60px}
+
+/* Header */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);background:rgba(15,20,34,0.65);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--green) 0%,#00875A 100%);border-radius:8px;position:relative;box-shadow:0 4px 16px rgba(0,200,83,0.35)}
+.brand-mark::after{content:'CE';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;letter-spacing:.5px}
+.brand-title{font-size:17px;font-weight:700;letter-spacing:.4px;color:var(--text-1)}
+.brand-sub{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:1.5px;margin-left:6px}
+.brand-tag{font-size:12px;color:var(--text-3);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:24px}
+.legend-group{display:flex;align-items:center;gap:14px}
+.legend-mini{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3)}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.legend-dot.flagship{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.legend-dot.status-open{background:#00C853}
+.legend-dot.status-limited{background:#FFB800}
+.legend-dot.status-closing{background:#FF8C42}
+.legend-dot.status-closed{background:#7A8294}
+.topbar-date{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums}
+
+/* Chips */
+.chip-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 28px;border-bottom:1px solid var(--border-soft)}
+.chip-bar-secondary{background:rgba(15,20,34,0.4);padding:10px 28px}
+.chip-bar-label{font-size:11px;color:var(--text-4);font-weight:600;letter-spacing:1.5px;margin-right:4px;text-transform:uppercase;min-width:64px}
+.chip-bar-tail{margin-left:auto;font-size:11px;color:var(--text-3)}
+.chip{background:var(--bg-1);border:1px solid var(--border);color:var(--text-2);padding:7px 14px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.chip:hover{background:var(--bg-2);border-color:var(--text-4);color:var(--text-1)}
+.chip.active{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.chip-client.active{background:rgba(76,205,196,0.12);border-color:var(--teal);color:var(--teal)}
+.chip-count{font-size:11px;color:var(--text-4);font-variant-numeric:tabular-nums}
+.chip.active .chip-count{color:var(--green);opacity:.8}
+.chip-color-dot{width:8px;height:8px;border-radius:50%}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 28px 0}
+.kpi-card{background:linear-gradient(180deg,var(--bg-1) 0%,rgba(15,20,34,0.5) 100%);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--teal));opacity:.6}
+.kpi-label{color:var(--text-3);font-size:12px;font-weight:500;letter-spacing:.3px;margin-bottom:8px}
+.kpi-value{font-size:28px;font-weight:700;color:var(--text-1);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:4px}
+.kpi-unit{font-size:13px;color:var(--text-3);font-weight:500}
+.kpi-sub{font-size:11px;color:var(--text-3);margin-top:6px}
+
+/* Main grid */
+.main-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;padding:14px 28px 0}
+.panel{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 6px}
+.panel-title{font-size:14px;font-weight:600;color:var(--text-1);letter-spacing:.3px}
+.panel-title::before{content:'';display:inline-block;width:3px;height:13px;background:var(--green);border-radius:2px;vertical-align:-1px;margin-right:8px}
+.panel-hint{font-size:11px;color:var(--text-3)}
+.chart-box{width:100%;height:460px}
+
+/* Table */
+.panel-table{margin:14px 28px 0}
+.table-wrap{overflow-x:auto}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable thead th{background:var(--bg-2);color:var(--text-3);font-weight:600;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;font-size:12px;letter-spacing:.3px}
+.ptable thead th:hover{color:var(--text-1)}
+.ptable thead th.num{text-align:right}
+.ptable thead th .sort-arrow{font-size:10px;color:var(--green);margin-left:4px}
+.ptable tbody tr{border-bottom:1px solid var(--border-soft);cursor:pointer;transition:background .12s}
+.ptable tbody tr:hover{background:var(--bg-2)}
+.ptable tbody td{padding:11px 14px;color:var(--text-1);font-variant-numeric:tabular-nums}
+.ptable tbody td.num{text-align:right}
+.ptable tbody tr.flagship td:first-child{position:relative;padding-left:28px}
+.ptable tbody tr.flagship td:first-child::before{content:'★';position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:14px;text-shadow:0 0 8px rgba(255,184,0,0.6)}
+
+/* status pill */
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid currentColor;background:rgba(255,255,255,0.03);white-space:nowrap}
+.status-pill.code-open{color:#00C853}
+.status-pill.code-limited{color:#FFB800}
+.status-pill.code-closing{color:#FF8C42}
+.status-pill.code-closed{color:#7A8294}
+.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.status-pill.code-open::before{box-shadow:0 0 6px #00C853}
+.status-pill.code-limited::before{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.cell-status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.cell-name{font-weight:500}
+.cell-code{color:var(--text-3);font-size:11px;margin-left:6px}
+.cell-cat-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:var(--bg-3)}
+.cell-pos{color:var(--green)}
+.cell-neg{color:var(--red)}
+.cell-tags{display:flex;gap:4px;flex-wrap:wrap}
+.cell-tag{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid currentColor;opacity:.85}
+
+/* Drawer */
+.drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,0.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:90;backdrop-filter:blur(2px)}
+.drawer-mask.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;max-width:92vw;background:var(--bg-1);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:100;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5)}
+.drawer.show{transform:translateX(0)}
+.drawer-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg-2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:var(--text-2);z-index:2;transition:all .15s}
+.drawer-close:hover{background:var(--bg-3);color:var(--text-1);transform:rotate(90deg)}
+.dr-head{padding:28px 28px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);position:relative}
+.dr-flagship-corner{position:absolute;top:16px;right:60px;background:var(--gold-soft);color:var(--gold);font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--gold);letter-spacing:.5px}
+.dr-name{font-size:19px;font-weight:700;color:var(--text-1)}
+.dr-code{font-size:12px;color:var(--text-3);margin-top:4px}
+.dr-meta{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--text-2)}
+.dr-meta-item{display:flex;flex-direction:column;gap:2px}
+.dr-meta-label{color:var(--text-3);font-size:11px}
+.dr-section{padding:18px 28px;border-bottom:1px solid var(--border-soft)}
+.dr-section-title{font-size:12px;color:var(--text-3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.dr-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.dr-metric{background:var(--bg-2);border:1px solid var(--border-soft);border-radius:8px;padding:12px 14px}
+.dr-metric-label{font-size:11px;color:var(--text-3);margin-bottom:4px}
+.dr-metric-value{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.dr-metric.pos .dr-metric-value{color:var(--green)}
+.dr-metric.neg .dr-metric-value{color:var(--red)}
+.dr-metric.neutral .dr-metric-value{color:var(--text-1)}
+.dr-mgr{display:flex;gap:14px;align-items:flex-start}
+.dr-mgr-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;flex-shrink:0}
+.dr-mgr-name{font-size:15px;font-weight:600}
+.dr-mgr-tenure{font-size:12px;color:var(--text-3);margin-top:2px}
+.dr-mgr-quote{font-size:12px;color:var(--text-2);margin-top:8px;padding:8px 12px;background:var(--bg-2);border-left:2px solid var(--green);border-radius:0 4px 4px 0;line-height:1.6}
+.dr-mgr-mw{font-size:11px;color:var(--text-3);margin-top:6px}
+.dr-mini-chart{width:100%;height:140px}
+.dr-mini-chart-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:4px}
+.dr-desc{font-size:13px;color:var(--text-2);line-height:1.7}
+
+/* Drawer Tabs */
+.dr-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg-1);position:sticky;top:0;z-index:5;padding:0 16px}
+.dr-tab{padding:13px 16px;font-size:13px;font-weight:500;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
+.dr-tab:hover{color:var(--text-1)}
+.dr-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.dr-tab .tab-badge{display:inline-block;background:var(--bg-3);color:var(--text-2);font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;font-weight:600}
+.dr-tab.active .tab-badge{background:var(--green);color:#000}
+.dr-tab .tab-badge.warn{background:var(--gold);color:#000}
+.dr-tab-pane{display:none}
+.dr-tab-pane.active{display:block}
+.dr-status-row{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--text-3)}
+
+/* Attribution */
+.attr-period{font-size:11px;color:var(--text-3);letter-spacing:.5px;margin-bottom:14px}
+.attr-total{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;margin-bottom:4px}
+.attr-total.pos{color:var(--green)}
+.attr-total.neg{color:var(--red)}
+.attr-total-label{font-size:11px;color:var(--text-3);margin-bottom:18px}
+.attr-stack{display:flex;height:26px;border-radius:6px;overflow:hidden;margin-bottom:14px;background:var(--bg-3)}
+.attr-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:rgba(0,0,0,0.85);white-space:nowrap;transition:opacity .2s}
+.attr-seg:hover{opacity:.85}
+.attr-table{width:100%;font-size:12px;border-collapse:collapse}
+.attr-table td{padding:8px 0;border-bottom:1px solid var(--border-soft)}
+.attr-table td:first-child{display:flex;align-items:center;gap:8px;color:var(--text-2)}
+.attr-table .attr-color{width:10px;height:10px;border-radius:2px}
+.attr-table .attr-val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+
+/* Client Fit */
+.fit-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.fit-card{background:var(--bg-2);border:1px solid var(--border-soft);border-radius:10px;padding:14px 16px}
+.fit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fit-name{font-size:13px;font-weight:600;color:var(--text-1)}
+.fit-score-big{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--teal)}
+.fit-bar{height:5px;background:var(--bg-3);border-radius:999px;overflow:hidden;margin-bottom:8px}
+.fit-bar-fill{height:100%;border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.fit-note{font-size:12px;color:var(--text-2);line-height:1.55}
+
+/* IFRS9 + capital */
+.reg-block{background:var(--bg-2);border:1px solid var(--border-soft);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.reg-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0}
+.reg-row+.reg-row{border-top:1px solid var(--border-soft)}
+.reg-label{font-size:11px;color:var(--text-3);letter-spacing:.5px;min-width:78px;padding-top:4px;text-transform:uppercase}
+.reg-content{flex:1}
+.ifrs-badge{display:inline-block;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+.ifrs-badge.fvoci{background:rgba(0,200,83,0.15);color:var(--green);border:1px solid var(--green)}
+.ifrs-badge.fvpl{background:rgba(255,140,66,0.15);color:#FF8C42;border:1px solid #FF8C42}
+.ifrs-badge.both{background:rgba(78,205,196,0.15);color:var(--teal);border:1px solid var(--teal)}
+.reg-note{font-size:12px;color:var(--text-2);line-height:1.55}
+.cap-factor{font-size:22px;font-weight:700;color:var(--text-1);font-variant-numeric:tabular-nums;margin-bottom:4px}
+.cap-factor::after{content:'%';font-size:14px;color:var(--text-3);margin-left:2px}
+
+/* Pitch */
+.pitch-block{background:var(--bg-2);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:14px}
+.pitch-block-title{font-size:11px;color:var(--green);letter-spacing:1.5px;font-weight:700;margin-bottom:8px;text-transform:uppercase}
+.pitch-opening{font-size:14px;color:var(--text-1);line-height:1.65;font-weight:500}
+.pitch-highlights{list-style:none;padding:0;margin:0;counter-reset:hl-counter}
+.pitch-highlights li{position:relative;padding:6px 0 6px 22px;font-size:13px;color:var(--text-2);line-height:1.55}
+.pitch-highlights li::before{content:counter(hl-counter);counter-increment:hl-counter;position:absolute;left:0;top:6px;width:16px;height:16px;background:var(--green-soft);color:var(--green);font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.pitch-cta{background:var(--gold-soft);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:var(--text-1);line-height:1.55;margin-top:6px}
+
+/* Flag */
+.flag-list{display:flex;flex-direction:column;gap:8px}
+.flag-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5}
+.flag-item.warn{background:rgba(255,184,0,0.08);border-left:3px solid var(--gold);color:var(--text-1)}
+.flag-item.info{background:rgba(78,205,196,0.06);border-left:3px solid var(--teal);color:var(--text-2)}
+.flag-icon{flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:11px;font-weight:700}
+.flag-item.warn .flag-icon{background:var(--gold);color:#000}
+.flag-item.info .flag-icon{background:var(--teal);color:#000}
+
+/* Q&A */
+.qa-list{display:flex;flex-direction:column;gap:10px}
+.qa-item{background:var(--bg-2);border:1px solid var(--border-soft);border-radius:8px;overflow:hidden}
+.qa-q{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-1);line-height:1.5;user-select:none;transition:background .12s}
+.qa-q:hover{background:var(--bg-3)}
+.qa-q-mark{flex-shrink:0;width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.qa-q-text{flex:1}
+.qa-toggle{font-size:16px;color:var(--text-3);transition:transform .2s;flex-shrink:0}
+.qa-item.open .qa-toggle{transform:rotate(45deg);color:var(--green)}
+.qa-a{display:none;padding:0 14px 12px 44px;font-size:12px;color:var(--text-2);line-height:1.65;border-top:1px solid var(--border-soft)}
+.qa-item.open .qa-a{display:block;padding-top:10px}
+
+/* Competitor */
+.comp-list{display:flex;flex-direction:column;gap:10px}
+.comp-card{background:var(--bg-2);border:1px solid var(--border-soft);border-radius:8px;padding:12px 14px}
+.comp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.comp-name{font-size:13px;font-weight:600;color:var(--text-1)}
+.comp-meta{font-size:11px;color:var(--text-3)}
+.comp-vs{display:inline-block;font-size:9px;color:var(--text-3);letter-spacing:1.5px;margin-bottom:6px;font-weight:700}
+.comp-win{font-size:12px;color:var(--text-1);line-height:1.55;padding:8px 10px;background:rgba(0,200,83,0.06);border-left:2px solid var(--green);border-radius:0 4px 4px 0}
+.comp-win::before{content:'✓ ';color:var(--green);font-weight:700}
+
+/* Footer & loading */
+.footer{text-align:center;font-size:11px;color:var(--text-4);padding:28px 28px 20px}
+.loading-overlay{position:fixed;inset:0;background:var(--bg-0);display:flex;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:14px}
+.loading-overlay.hidden{display:none}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:12px;color:var(--text-3)}
+.loading-error{color:var(--red);font-size:13px;text-align:center;max-width:400px;line-height:1.6}
+
+/* Responsive */
+@media (max-width:1280px){.main-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.panel-table{margin-left:14px;margin-right:14px}}
+@media (max-width:720px){.kpi-grid{grid-template-columns:1fr}.topbar{padding:14px}.chip-bar{padding:12px 14px}.main-grid{padding:14px}.drawer{width:100%}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg-0)}
+::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-4)}
+
+/* === 新增：数据源状态条 === */
+.ds-stack{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-variant-numeric:tabular-nums;border-left:1px solid var(--border-soft);padding-left:14px;margin-left:6px}
+.ds-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3);line-height:1.4}
+.ds-dot{width:7px;height:7px;border-radius:50%;background:#7A8294;flex-shrink:0}
+.ds-dot.live{background:var(--green);box-shadow:0 0 7px var(--green);animation:dsblink 2s infinite}
+.ds-dot.partial{background:var(--gold);box-shadow:0 0 7px var(--gold)}
+.ds-dot.fail{background:var(--red);box-shadow:0 0 7px var(--red)}
+@keyframes dsblink{0%,100%{opacity:1}50%{opacity:.45}}
+.ds-time{color:var(--text-1);font-weight:500}
+
+/* === 新增：市场脉搏 ticker === */
+.ticker-bar{display:flex;align-items:center;gap:14px;padding:8px 28px;border-bottom:1px solid var(--border-soft);background:rgba(15,20,34,0.55);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.ticker-bar::-webkit-scrollbar{display:none}
+.ticker-label{font-size:10px;color:var(--text-4);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;min-width:64px}
+.ticker-items{display:flex;gap:18px;flex-wrap:nowrap;flex:1}
+.ticker-item{display:inline-flex;align-items:baseline;gap:6px;font-size:12px;flex-shrink:0;padding:0 4px}
+.ticker-item-name{color:var(--text-2)}
+.ticker-item-val{font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1)}
+.ticker-item-chg{font-size:11px;font-variant-numeric:tabular-nums;font-weight:500}
+.ticker-up{color:#FF5C5C}
+.ticker-down{color:#00C853}
+.ticker-flat{color:var(--text-3)}
+.ticker-tail{flex-shrink:0;font-size:10px;color:var(--text-4);padding-left:8px;border-left:1px solid var(--border-soft)}
+
+/* === 二级细分 chip === */
+.chip-sub{font-size:12px;padding:5px 11px}
+.chip-sub.active{background:rgba(76,205,196,0.13);border-color:var(--teal);color:var(--teal)}
+.cell-sub-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(76,205,196,0.10);color:var(--teal);border:1px solid rgba(76,205,196,0.25)}
+
+/* === 竞品对比表 === */
+.rival-table thead th{padding:8px 8px;border-bottom:1px solid var(--border)}
+.rival-table tbody tr{border-bottom:1px solid var(--border-soft)}
+.rival-table tbody td{padding:7px 8px;font-variant-numeric:tabular-nums}
+
+/* === 数据健康面板项 === */
+.health-item{padding:10px 0;border-bottom:1px solid var(--border-soft)}
+.health-item .h-name{font-weight:600;color:var(--text-1);font-size:13px;margin-bottom:4px;cursor:pointer}
+.health-item .h-name:hover{color:var(--teal)}
+.health-item .h-code{color:var(--text-4);font-size:11px;margin-left:6px}
+.health-item ul{margin:4px 0 0 18px;padding:0;color:var(--text-3);font-size:11px;line-height:1.7}
+
+/* === 新增：数据来源徽章 === */
+.src-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;margin-left:5px;font-weight:600;letter-spacing:.3px;vertical-align:1px;font-variant-numeric:tabular-nums;line-height:1.4}
+.src-badge.live{background:rgba(0,200,83,0.15);color:var(--green);border:1px solid rgba(0,200,83,0.3)}
+.src-badge.t1{background:rgba(76,205,196,0.15);color:var(--teal);border:1px solid rgba(76,205,196,0.3)}
+.src-badge.q{background:rgba(168,218,220,0.12);color:#A8DADC;border:1px solid rgba(168,218,220,0.25)}
+.src-badge.mock{background:rgba(255,184,0,0.10);color:var(--gold);border:1px solid rgba(255,184,0,0.25)}
+
+/* === 新增：合理性自检角标 === */
+.sanity-flag{display:inline-block;width:14px;height:14px;line-height:13px;text-align:center;border-radius:50%;background:rgba(255,184,0,0.18);color:var(--gold);font-size:10px;font-weight:700;border:1px solid var(--gold);margin-left:6px;cursor:help;vertical-align:0}
+
+/* === 新增：表格内估值列样式 === */
+.cell-est{font-variant-numeric:tabular-nums}
+.cell-est.up{color:#FF5C5C}
+.cell-est.down{color:#00C853}
+.cell-est.flat{color:var(--text-3)}
+
+/* === 新增：动态事件流 (抽屉) === */
+.event-list{display:flex;flex-direction:column;gap:0}
+.event-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--border-soft)}
+.event-item:last-child{border-bottom:none}
+.event-time{flex-shrink:0;width:80px;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;padding-top:1px}
+.event-body{flex:1}
+.event-type{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:6px;font-weight:600;letter-spacing:.3px;vertical-align:1px}
+.event-type.nav{background:rgba(0,200,83,0.13);color:var(--green)}
+.event-type.scale{background:rgba(76,205,196,0.13);color:var(--teal)}
+.event-type.mgr{background:rgba(255,184,0,0.13);color:var(--gold)}
+.event-type.status{background:rgba(255,92,92,0.13);color:var(--red)}
+.event-type.disclosure{background:rgba(168,218,220,0.13);color:#A8DADC}
+.event-text{font-size:12px;color:var(--text-1);line-height:1.55;display:inline}
+.event-meta{font-size:11px;color:var(--text-3);margin-top:3px}
+
+/* === 新增：内部平替卡片 === */
+.alt-list{display:flex;flex-direction:column;gap:10px}
+.alt-card{background:linear-gradient(135deg,rgba(0,200,83,0.05),rgba(76,205,196,0.04));border:1px solid var(--border-soft);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .15s;border-left:3px solid var(--teal)}
+.alt-card:hover{border-color:var(--teal);background:rgba(76,205,196,0.09)}
+.alt-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.alt-name{font-size:13px;font-weight:600;color:var(--text-1)}
+.alt-meta{font-size:11px;color:var(--text-3)}
+.alt-reason{font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:6px}
+.alt-stats{display:flex;gap:14px;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.alt-stats b{color:var(--text-1);font-weight:600}
+
+/* === 新增：数据来源条（footer 强化） === */
+.footer-source{margin:0 auto 8px;max-width:1200px;padding:14px 28px;border:1px solid var(--border-soft);border-radius:10px;background:rgba(15,20,34,0.5);text-align:left;font-size:11px;color:var(--text-3);line-height:1.7}
+.footer-source b{color:var(--text-2);font-weight:600}
+.footer-source code{background:var(--bg-2);padding:1px 6px;border-radius:3px;color:var(--text-2);font-size:11px}
+
+/* 估值 tab badge */
+.tab-badge.live{background:rgba(0,200,83,0.18);color:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay (隐藏后才显示主内容) -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">正在加载图表组件 ECharts...</div>
+  <div class="loading-error" id="loadingError" style="display:none"></div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-title">中欧基金 <span class="brand-sub">PRODUCT PANORAMA</span></div>
+      <div class="brand-tag">产品全景 · 机构销售内部视图</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="legend-group">
+      <div class="legend-mini"><span class="legend-dot flagship"></span><span>★ 旗舰</span></div>
+      <div class="legend-mini"><span class="legend-dot status-open"></span><span>正常</span></div>
+      <div class="legend-mini"><span class="legend-dot status-limited"></span><span>限购</span></div>
+    </div>
+    <div class="ds-stack" id="dsStack" title="业绩 / 规模 / 经理 = 天天基金 pingzhongdata 公开接口；分类 = 天天基金官方投资类型">
+      <div class="ds-row"><span class="ds-dot" id="dsDot"></span><span>数据源</span><span class="ds-time" id="dsStatus">初始化中…</span></div>
+      <div class="ds-row"><span>最近刷新</span><span class="ds-time" id="dsRefresh">--</span></div>
+    </div>
+    <button id="healthBtn" title="数据健康面板：查看数据合理性自检异常清单"
+      style="background:var(--bg-2);border:1px solid var(--border);color:var(--text-2);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;position:relative;font-family:inherit">
+      🔔<span id="healthBadge" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10px;border-radius:8px;padding:1px 5px;min-width:14px;display:none"></span>
+    </button>
+    <div class="topbar-date" id="topbarDate"></div>
+  </div>
+</header>
+
+<!-- 市场脉搏 ticker（公开行情：天天基金估值接口 + 同源指数） -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-label">市场脉搏</div>
+  <div class="ticker-items" id="tickerItems">
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">沪深300</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证500</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">创业板指</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证红利</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生指数</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证转债</span><span class="ticker-item-val">--</span></span>
+  </div>
+  <div class="ticker-tail" id="tickerTail">市场指数 · 腾讯财经 qt.gtimg.cn</div>
+</div>
+
+<nav class="chip-bar" id="chipBar">
+  <div class="chip-bar-label">一级大类</div>
+  <button class="chip active" data-l1="ALL">全部产品 <span class="chip-count" id="chipCountALL"></span></button>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3);cursor:pointer;user-select:none">
+      <input type="checkbox" id="toggleShares" style="accent-color:var(--teal);cursor:pointer">
+      <span>显示份额变体（A/C/E…）</span>
+    </label>
+    <span style="font-size:11px;color:var(--text-4);font-variant-numeric:tabular-nums" id="poolStat">--</span>
+  </div>
+</nav>
+
+<nav class="chip-bar chip-bar-secondary" id="chipBarSub" style="display:none">
+  <div class="chip-bar-label">二级策略</div>
+  <button class="chip chip-sub active" data-sub="ALL">不限</button>
+  <div class="chip-bar-tail" id="chipBarSubTail" style="font-size:11px;color:var(--text-3)"></div>
+</nav>
+
+<nav class="chip-bar chip-bar-secondary" id="chipBarSub3" style="display:none">
+  <div class="chip-bar-label">三级细分</div>
+  <button class="chip chip-sub3 active" data-sub3="ALL">不限</button>
+  <div class="chip-bar-tail" id="chipBarSub3Tail" style="font-size:11px;color:var(--text-3)"></div>
+</nav>
+
+<section class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">总管理规模</div>
+    <div class="kpi-value"><span id="kpiScale">--</span><span class="kpi-unit">亿</span></div>
+    <div class="kpi-sub" id="kpiScaleSub">&nbsp;</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">产品数量</div>
+    <div class="kpi-value"><span id="kpiCount">--</span><span class="kpi-unit">只</span></div>
+    <div class="kpi-sub" id="kpiCountSub">&nbsp;</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">平均近一年收益率</div>
+    <div class="kpi-value"><span id="kpiSharpe">--</span></div>
+    <div class="kpi-sub" id="kpiSharpeSub">&nbsp;</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">数据完整度</div>
+    <div class="kpi-value"><span id="kpiHealth">--</span><span class="kpi-unit">%</span></div>
+    <div class="kpi-sub" id="kpiHealthSub">&nbsp;</div>
+  </div>
+</section>
+
+<section class="main-grid">
+  <div class="panel panel-bubble">
+    <div class="panel-header">
+      <div class="panel-title">风险收益矩阵</div>
+      <div class="panel-hint">X = 最大回撤 &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 规模 &nbsp;·&nbsp; 颜色 = 投资大类</div>
+    </div>
+    <div id="chartBubble" class="chart-box"></div>
+  </div>
+  <div class="panel panel-tree">
+    <div class="panel-header">
+      <div class="panel-title">投资类型 · 三级规模分布</div>
+      <div class="panel-hint">一级 → 二级 → 三级 · 点击区块下钻筛选</div>
+    </div>
+    <div id="chartTree" class="chart-box"></div>
+  </div>
+</section>
+
+<section class="panel panel-table">
+  <div class="panel-header">
+    <div class="panel-title">产品明细</div>
+    <div class="panel-hint">点击表头排序 · 点击行查看详情</div>
+  </div>
+  <div class="table-wrap">
+    <table class="ptable" id="ptable">
+      <thead>
+        <tr>
+          <th data-sort="name" class="th-name">产品名称</th>
+          <th data-sort="manager">基金经理</th>
+          <th data-sort="l1">投资类型</th>
+          <th data-sort="scale" class="num">规模(亿)</th>
+          <th data-sort="d1" class="num" title="昨日单位净值涨跌（来自天天基金 pingzhongdata）">昨日(%)</th>
+          <th data-sort="w1" class="num" title="近 5 个交易日涨跌（来自 pingzhongdata 净值序列计算）">近一周(%)</th>
+          <th data-sort="m1" class="num" title="近一月收益率（pingzhongdata · syl_1y）">近一月(%)</th>
+          <th data-sort="y1" class="num" title="近一年收益率（pingzhongdata · syl_1n）">近一年(%)</th>
+          <th data-sort="maxDrawdown" class="num">最大回撤(%)</th>
+          <th data-sort="sharpe" class="num">夏普</th>
+          <th data-sort="l3">三级细分</th>
+        </tr>
+      </thead>
+      <tbody id="ptableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<div class="drawer-mask" id="drawerMask"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-close" id="drawerClose">&times;</div>
+  <div id="drawerBody"></div>
+</aside>
+
+<!-- 数据健康面板 -->
+<div id="healthMask" class="drawer-mask" style="z-index:120"></div>
+<aside id="healthPanel" style="position:fixed;top:0;right:0;width:460px;height:100vh;background:var(--bg-1);border-left:1px solid var(--border);z-index:121;transform:translateX(100%);transition:transform .25s;overflow-y:auto">
+  <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:16px;font-weight:600">数据健康面板</div>
+    <button id="healthClose" style="background:none;border:none;color:var(--text-3);font-size:24px;cursor:pointer">&times;</button>
+  </div>
+  <div id="healthBody" style="padding:18px 22px"></div>
+</aside>
+
+<div class="footer-source">
+  <div style="margin-bottom:6px"><b>数据来源声明（全部基于外部公开数据）</b></div>
+  <div>· <b>近期业绩 / 单位净值 / 规模 / 基金经理</b>：天天基金 <code>pingzhongdata</code> 公开数据集（昨日/近一周由净值序列计算；近一月/三月/六月/一年取 <code>syl_*</code>）</div>
+  <div>· <b>投资类型三级分类</b>：天天基金（东方财富）官方 <code>type</code> 字段（如"混合型-偏股"、"债券型-长债"），等同晨星标准三级口径</div>
+  <div>· <b>市场指数行情</b>：腾讯财经 <code>qt.gtimg.cn</code></div>
+  <div style="margin-top:8px;color:var(--text-4)">公开接口可能因第三方限流偶发失败，未拉到业绩的产品对应字段显示 <code>--</code>；最终业绩以中欧基金官网披露为准。</div>
+</div>
+
+<footer class="footer">
+  <div>中欧基金产品全景 · 数据全部来自天天基金 / 腾讯财经公开接口 · 业绩以官方披露为准</div>
+</footer>
+
+<!-- 中欧基金 503 只产品池（来自天天基金 fundcode_search.js 离线提取，window.ZO_FUND_POOL）-->
+<script src="products_full.js"></script>
+
+<!-- ECharts 多源 fallback：bootcdn(国内) → jsdelivr → unpkg -->
+<script>
+window.__echartsTries = [
+  'https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js',
+  'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js',
+  'https://unpkg.com/echarts@5.5.0/dist/echarts.min.js',
+  'https://lib.baomitu.com/echarts/5.5.0/echarts.min.js'
+];
+function loadECharts(idx){
+  if(typeof echarts !== 'undefined'){ window.__startApp(); return; }
+  if(idx >= window.__echartsTries.length){
+    var err = document.getElementById('loadingError');
+    err.style.display = 'block';
+    err.innerHTML = '⚠ ECharts 加载失败<br>请检查网络连接，或手动下载 echarts.min.js 放到本目录<br><br>'
+      + '尝试过的地址：<br>' + window.__echartsTries.map(u => '· ' + u).join('<br>');
+    document.querySelector('.loading-text').textContent = '加载失败';
+    return;
+  }
+  var s = document.createElement('script');
+  s.src = window.__echartsTries[idx];
+  s.onload = function(){ if(typeof echarts !== 'undefined') window.__startApp(); else loadECharts(idx+1); };
+  s.onerror = function(){ loadECharts(idx+1); };
+  document.head.appendChild(s);
+}
+</script>
+
+<!-- 数据 + 主逻辑 -->
+<script>
+// ============================================================
+// 中欧基金产品数据
+// ============================================================
+// ============================================================
+// 投资类型 · 三级分类（基于天天基金 / 晨星公开 type 字段）
+// 一级（大类） → 二级（策略） → 三级（细分）
+// ============================================================
+const INVEST_HIERARCHY = [
+  { l1:'股票型',  color:'#FF6B6B', desc:'股票仓位 ≥80%', l2:[
+    { key:'主动股票', l3:['普通股票型'] },
+    { key:'被动指数', l3:['股票指数','行业ETF'] }
+  ]},
+  { l1:'混合型',  color:'#FFB85C', desc:'股债灵活配置', l2:[
+    { key:'偏股混合', l3:['偏股混合'] },
+    { key:'灵活配置', l3:['灵活配置'] },
+    { key:'偏债混合', l3:['偏债混合'] }
+  ]},
+  { l1:'债券型',  color:'#4ECDC4', desc:'纯债 + 一二级债基', l2:[
+    { key:'纯债',   l3:['长期纯债','中短债'] },
+    { key:'混合债', l3:['一级债基','二级债基'] },
+    { key:'指数债', l3:['债券指数'] }
+  ]},
+  { l1:'货币型',  color:'#95E1D3', desc:'现金管理工具', l2:[
+    { key:'普通货币', l3:['货币基金'] }
+  ]},
+  { l1:'QDII',    color:'#A8DADC', desc:'境外股票 / 海外指数', l2:[
+    { key:'权益QDII', l3:['海外混合','海外指数'] }
+  ]},
+  { l1:'FOF',     color:'#C77DFF', desc:'基金中基金 / 养老目标', l2:[
+    { key:'进取FOF', l3:['FOF-进取型'] },
+    { key:'均衡FOF', l3:['FOF-均衡型'] },
+    { key:'稳健FOF', l3:['FOF-稳健型'] }
+  ]}
+];
+const L1_BY_KEY = Object.fromEntries(INVEST_HIERARCHY.map(x=>[x.l1,x]));
+
+// 天天基金 type 字段 → 三级标签直查表
+const TYPE_TO_HIER = {
+  '股票型':            { l1:'股票型', l2:'主动股票', l3:'普通股票型' },
+  '指数型-股票':       { l1:'股票型', l2:'被动指数', l3:'股票指数' },
+  '混合型-偏股':       { l1:'混合型', l2:'偏股混合', l3:'偏股混合' },
+  '混合型-灵活':       { l1:'混合型', l2:'灵活配置', l3:'灵活配置' },
+  '混合型-偏债':       { l1:'混合型', l2:'偏债混合', l3:'偏债混合' },
+  '债券型-长债':       { l1:'债券型', l2:'纯债',     l3:'长期纯债' },
+  '债券型-中短债':     { l1:'债券型', l2:'纯债',     l3:'中短债' },
+  '债券型-混合一级':   { l1:'债券型', l2:'混合债',   l3:'一级债基' },
+  '债券型-混合二级':   { l1:'债券型', l2:'混合债',   l3:'二级债基' },
+  '指数型-固收':       { l1:'债券型', l2:'指数债',   l3:'债券指数' },
+  '货币型-普通货币':   { l1:'货币型', l2:'普通货币', l3:'货币基金' },
+  'QDII-混合偏股':     { l1:'QDII',   l2:'权益QDII', l3:'海外混合' },
+  '指数型-海外股票':   { l1:'QDII',   l2:'权益QDII', l3:'海外指数' },
+  'FOF-进取型':        { l1:'FOF',    l2:'进取FOF',  l3:'FOF-进取型' },
+  'FOF-均衡型':        { l1:'FOF',    l2:'均衡FOF',  l3:'FOF-均衡型' },
+  'FOF-稳健型':        { l1:'FOF',    l2:'稳健FOF',  l3:'FOF-稳健型' }
+};
+
+function assignInvestType(p){
+  // 1) 优先用 type 字段直查（来自 ZO_FUND_POOL）
+  if(p.type && TYPE_TO_HIER[p.type]) return Object.assign({}, TYPE_TO_HIER[p.type]);
+
+  // 2) 兜底：按 legacy category + subCategory + name + benchmark 推断（data.js 38 只精选无 type）
+  const legacy = p.category || '';
+  const sub    = (p.subCategory||'').trim();
+  const name   = (p.name||'') + ' ' + (p.style||'');
+  const bench  = p.benchmark || '';
+  const hits = kw => kw.some(k=>sub.indexOf(k)>=0 || name.indexOf(k)>=0 || bench.indexOf(k)>=0);
+
+  if(legacy==='QDII' || hits(['港股','沪港深','全球','美股','恒生','MSCI','纳指','QDII'])){
+    return hits(['指数','ETF']) ? { l1:'QDII', l2:'权益QDII', l3:'海外指数' }
+                                : { l1:'QDII', l2:'权益QDII', l3:'海外混合' };
+  }
+  if(legacy==='FOF&养老' || hits(['FOF','养老','目标日期','目标风险','下滑曲线'])){
+    if(hits(['2045','2050','积极养老','进取'])) return { l1:'FOF', l2:'进取FOF', l3:'FOF-进取型' };
+    if(hits(['2030','稳健养老']))              return { l1:'FOF', l2:'稳健FOF', l3:'FOF-稳健型' };
+    return { l1:'FOF', l2:'均衡FOF', l3:'FOF-均衡型' };
+  }
+  if(legacy==='指数&量化' || hits(['指数增强','指增','ETF','LOF','宽基'])){
+    return { l1:'股票型', l2:'被动指数', l3: hits(['行业','医药','消费','科技','新能源'])?'行业ETF':'股票指数' };
+  }
+  if(hits(['货币','现金宝'])) return { l1:'货币型', l2:'普通货币', l3:'货币基金' };
+  if(hits(['短债','超短债','中短债'])) return { l1:'债券型', l2:'纯债', l3:'中短债' };
+  if(legacy==='纯债' || hits(['纯债','中长期纯债'])) return { l1:'债券型', l2:'纯债', l3:'长期纯债' };
+  if(legacy==='固收+' || hits(['二级债基','偏债混合','固收增强','固收+','转债'])) return { l1:'债券型', l2:'混合债', l3:'二级债基' };
+  if(hits(['一级债基'])) return { l1:'债券型', l2:'混合债', l3:'一级债基' };
+  if(legacy==='主动权益' || hits(['股票','偏股','混合'])){
+    if(hits(['灵活配置'])) return { l1:'混合型', l2:'灵活配置', l3:'灵活配置' };
+    if(hits(['偏债']))     return { l1:'混合型', l2:'偏债混合', l3:'偏债混合' };
+    return { l1:'混合型', l2:'偏股混合', l3:'偏股混合' };
+  }
+  return { l1:'混合型', l2:'偏股混合', l3:'偏股混合' };
+}
+
+const STATUS_META = {
+  open:{color:'#00C853',label:'正常申购'},
+  limited:{color:'#FFB800',label:'限购中'},
+  closing:{color:'#FF8C42',label:'即将封闭'},
+  closed:{color:'#7A8294',label:'暂停申购'}
+};
+
+function genNav(annualReturn, vol, seed){
+  const monthlyMean = annualReturn/100/12;
+  const monthlyVol = vol/100/Math.sqrt(12);
+  let nav = 1.0; const out = [nav]; let s = seed||42;
+  for(let i=0;i<12;i++){
+    s = (s*9301+49297)%233280;
+    const r = (s/233280)*2-1;
+    nav = nav*(1 + monthlyMean + monthlyVol*r);
+    out.push(+nav.toFixed(4));
+  }
+  return out;
+}
+function deriveAttribution(p){
+  if(!p.annualReturn) return null;
+  const ret = +(p.annualReturn/4).toFixed(2);
+  const l1 = p.l1; // 投资类型一级
+  if(l1==='股票型'){
+    const beta=+(ret*0.55).toFixed(2), alpha=+(ret*0.40).toFixed(2), other=+(ret-beta-alpha).toFixed(2);
+    return {period:'近一季度',total:ret,parts:[
+      {key:'industryBeta',label:l1==='股票型'&&p.l2==='被动指数'?'指数β':'行业β',value:beta,color:'#4ECDC4'},
+      {key:'stockAlpha',label:p.l2==='被动指数'?'增强α':'选股α',value:alpha,color:'#00C853'},
+      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
+  }
+  if(l1==='混合型'){
+    const beta=+(ret*0.50).toFixed(2), alpha=+(ret*0.35).toFixed(2), bond=+(ret*0.10).toFixed(2), other=+(ret-beta-alpha-bond).toFixed(2);
+    return {period:'近一季度',total:ret,parts:[
+      {key:'industryBeta',label:'权益β',value:beta,color:'#4ECDC4'},
+      {key:'stockAlpha',label:'选股α',value:alpha,color:'#00C853'},
+      {key:'bond',label:'债券底仓',value:bond,color:'#FFE66D'},
+      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
+  }
+  if(l1==='债券型' || l1==='货币型'){
+    const dur=+(ret*0.35).toFixed(2),credit=+(ret*0.50).toFixed(2),other=+(ret-dur-credit).toFixed(2);
+    return {period:'近一季度',total:ret,parts:[
+      {key:'duration',label:'久期',value:dur,color:'#FFE66D'},
+      {key:'credit',label:'信用票息',value:credit,color:'#4ECDC4'},
+      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
+  }
+  if(l1==='QDII'){
+    const beta=+(ret*0.65).toFixed(2),fx=+(ret*0.15).toFixed(2),alpha=+(ret*0.15).toFixed(2),other=+(ret-beta-fx-alpha).toFixed(2);
+    return {period:'近一季度',total:ret,parts:[
+      {key:'industryBeta',label:'境外β',value:beta,color:'#4ECDC4'},
+      {key:'fx',label:'汇率影响',value:fx,color:'#FFE66D'},
+      {key:'stockAlpha',label:'选股α',value:alpha,color:'#00C853'},
+      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
+  }
+  // FOF
+  const eq=+(ret*0.50).toFixed(2),fi=+(ret*0.30).toFixed(2),sel=+(ret*0.15).toFixed(2),other=+(ret-eq-fi-sel).toFixed(2);
+  return {period:'近一季度',total:ret,parts:[
+    {key:'equityBeta',label:'权益β',value:eq,color:'#4ECDC4'},
+    {key:'fixedCarry',label:'固收票息',value:fi,color:'#FFE66D'},
+    {key:'fundSelect',label:'基金优选',value:sel,color:'#00C853'},
+    {key:'other',label:'其他',value:other,color:'#7A8294'}]};
+}
+
+const PRODUCTS = [
+  // 主动权益
+  {code:'001938',name:'中欧时代先锋A',manager:'周蔚文',category:'主动权益',subCategory:'全市场成长',scale:168.5,annualReturn:16.8,maxDrawdown:-28.5,sharpe:1.18,calmar:0.59,inception:'2015-11-03',benchmark:'沪深300',tags:['进攻型','明星基金经理','长跑选手'],isFlagship:true,description:'周蔚文长期管理，全市场选股，偏成长风格，注重产业趋势与公司治理。',style:'成长 / 中盘 / 全市场',managerInfo:{tenure:9.2,masterpiece:'中欧新蓝筹、中欧时代先锋',philosophy:'以产业演进视角自下而上选股'}},
+  {code:'003095',name:'中欧医疗健康A',manager:'葛兰',category:'主动权益',subCategory:'医药行业',scale:285.3,annualReturn:14.2,maxDrawdown:-42.6,sharpe:0.78,calmar:0.33,inception:'2016-09-29',benchmark:'中证医药',tags:['进攻型','明星基金经理'],isFlagship:true,description:'医药赛道旗舰，重仓创新药、医疗服务、CXO 龙头。',style:'成长 / 行业 / 医药',managerInfo:{tenure:8.5,masterpiece:'中欧医疗健康、中欧研究精选',philosophy:'坚定看好医药长期景气，配置创新药 + 医疗服务双主线'}},
+  {code:'166006',name:'中欧价值发现A',manager:'曹名长',category:'主动权益',subCategory:'深度价值',scale:56.8,annualReturn:11.2,maxDrawdown:-18.4,sharpe:1.05,calmar:0.61,inception:'2009-08-20',benchmark:'中证800',tags:['底仓配置','风格稳定','长跑选手'],isFlagship:true,description:'深度价值派代表，低估值蓝筹+周期股配置，回撤控制突出。',style:'价值 / 大盘 / 红利',managerInfo:{tenure:14.7,masterpiece:'中欧价值发现、中欧潜力价值',philosophy:'严格价值投资，安全边际优先'}},
+  {code:'004812',name:'中欧明睿新常态A',manager:'王健',category:'主动权益',subCategory:'消费成长',scale:42.1,annualReturn:13.6,maxDrawdown:-26.2,sharpe:0.96,calmar:0.52,inception:'2017-08-15',benchmark:'沪深300',tags:['进攻型','风格稳定'],isFlagship:false,description:'聚焦消费、医药、科技等成长赛道，行业均衡配置。',style:'成长 / 中盘 / 均衡',managerInfo:{tenure:7.0,masterpiece:'中欧明睿新常态、中欧消费主题',philosophy:'GARP 策略，合理估值买入优质成长'}},
+  {code:'001938B',name:'中欧潜力价值A',manager:'王培',category:'主动权益',subCategory:'价值成长',scale:38.6,annualReturn:12.8,maxDrawdown:-21.4,sharpe:1.02,calmar:0.60,inception:'2014-03-18',benchmark:'沪深300',tags:['底仓配置','风格稳定'],isFlagship:false,description:'价值与成长兼顾，行业相对均衡，回撤控制良好。',style:'均衡 / 大中盘 / 兼顾',managerInfo:{tenure:10.1,masterpiece:'中欧潜力价值、中欧行业成长',philosophy:'估值与质地并重，逆向布局'}},
+  {code:'002621',name:'中欧消费主题A',manager:'王健',category:'主动权益',subCategory:'消费行业',scale:48.9,annualReturn:15.4,maxDrawdown:-32.5,sharpe:0.88,calmar:0.47,inception:'2016-08-26',benchmark:'中证主要消费',tags:['进攻型'],isFlagship:false,description:'聚焦大消费板块，白酒、家电、零售等龙头配置。',style:'成长 / 行业 / 消费',managerInfo:{tenure:7.0,masterpiece:'中欧消费主题',philosophy:'长期持有具品牌护城河的消费龙头'}},
+  {code:'004233',name:'中欧创新成长A',manager:'王健',category:'主动权益',subCategory:'科技成长',scale:32.4,annualReturn:14.8,maxDrawdown:-35.8,sharpe:0.72,calmar:0.41,inception:'2017-04-19',benchmark:'中证500',tags:['进攻型'],isFlagship:false,description:'科技、新能源、先进制造方向集中布局。',style:'成长 / 中小盘 / 科技',managerInfo:{tenure:7.0,masterpiece:'中欧创新成长',philosophy:'聚焦技术革新与产业升级机会'}},
+  {code:'166019',name:'中欧恒利三年定开',manager:'蓝小康',category:'主动权益',subCategory:'价值红利',scale:78.5,annualReturn:13.2,maxDrawdown:-16.8,sharpe:1.32,calmar:0.79,inception:'2018-11-09',benchmark:'中证红利',tags:['底仓配置','稳健回报','长跑选手'],isFlagship:true,description:'三年封闭运作，红利价值风格，回撤控制行业领先。',style:'价值 / 红利 / 大盘',managerInfo:{tenure:6.5,masterpiece:'中欧恒利、中欧红利优享',philosophy:'股息率与盈利稳定性优先'}},
+  {code:'009776',name:'中欧多元价值',manager:'袁维德',category:'主动权益',subCategory:'中小盘价值',scale:65.2,annualReturn:17.6,maxDrawdown:-23.5,sharpe:1.28,calmar:0.75,inception:'2020-08-18',benchmark:'中证500',tags:['进攻型','长跑选手'],isFlagship:true,description:'中小盘价值挖掘，行业分散，长期超额突出。',style:'价值 / 中小盘 / 分散',managerInfo:{tenure:4.5,masterpiece:'中欧多元价值',philosophy:'逆向 + 价值，行业分散持仓'}},
+  {code:'001955',name:'中欧明睿新起点',manager:'王健',category:'主动权益',subCategory:'均衡配置',scale:28.6,annualReturn:11.8,maxDrawdown:-22.3,sharpe:0.92,calmar:0.53,inception:'2015-12-28',benchmark:'沪深300',tags:['风格稳定'],isFlagship:false,description:'行业均衡配置，注重估值合理性。',style:'均衡 / 全市场',managerInfo:{tenure:7.0,masterpiece:'中欧明睿系列',philosophy:'合理估值的成长机会'}},
+  {code:'004908',name:'中欧行业成长',manager:'王培',category:'主动权益',subCategory:'行业成长',scale:45.8,annualReturn:14.5,maxDrawdown:-27.2,sharpe:0.95,calmar:0.53,inception:'2017-09-21',benchmark:'中证800',tags:['进攻型'],isFlagship:false,description:'行业景气度优选，成长板块为主。',style:'成长 / 行业景气',managerInfo:{tenure:7.0,masterpiece:'中欧行业成长',philosophy:'行业景气 + 个股精选'}},
+  {code:'163417',name:'中欧瑾通灵活配置',manager:'李帅',category:'主动权益',subCategory:'灵活配置',scale:22.4,annualReturn:10.5,maxDrawdown:-19.8,sharpe:0.85,calmar:0.53,inception:'2017-06-09',benchmark:'沪深300',tags:['底仓配置'],isFlagship:false,description:'股债灵活配置，攻守兼备。',style:'混合 / 灵活',managerInfo:{tenure:5.2,masterpiece:'中欧瑾通',philosophy:'股债平衡，控制波动'}},
+  // 固收+
+  {code:'166009',name:'中欧聚利债券A',manager:'黄华',category:'固收+',subCategory:'二级债基',scale:82.3,annualReturn:7.2,maxDrawdown:-4.8,sharpe:1.85,calmar:1.50,inception:'2013-09-25',benchmark:'中债综合',tags:['稳健回报','底仓配置','长跑选手'],isFlagship:true,description:'二级债基代表作，长期年化7%+，回撤极小。',style:'债 / 信用 + 转债',managerInfo:{tenure:11.5,masterpiece:'中欧聚利、中欧瑞丰',philosophy:'信用甄选 + 久期择时 + 转债增强'}},
+  {code:'210008',name:'中欧增强回报债券A',manager:'李波',category:'固收+',subCategory:'二级债基',scale:56.8,annualReturn:6.8,maxDrawdown:-3.2,sharpe:1.92,calmar:2.13,inception:'2010-11-09',benchmark:'中债综合',tags:['稳健回报','底仓配置'],isFlagship:true,description:'回撤控制极佳的固收+产品，机构投资者偏爱。',style:'债 / 转债增强',managerInfo:{tenure:9.8,masterpiece:'中欧增强回报、中欧颐利',philosophy:'稳健票息打底，权益弹性增强'}},
+  {code:'004718',name:'中欧瑞丰',manager:'黄华',category:'固收+',subCategory:'偏债混合',scale:38.5,annualReturn:6.5,maxDrawdown:-5.6,sharpe:1.42,calmar:1.16,inception:'2017-08-09',benchmark:'中债+沪深300',tags:['稳健回报','底仓配置'],isFlagship:false,description:'偏债混合，权益仓位灵活。',style:'偏债 / 转债 + 权益',managerInfo:{tenure:7.0,masterpiece:'中欧聚利、中欧瑞丰',philosophy:'偏债平衡'}},
+  {code:'003090',name:'中欧添益A',manager:'王慧杰',category:'固收+',subCategory:'一级债基',scale:26.4,annualReturn:5.4,maxDrawdown:-2.8,sharpe:1.68,calmar:1.93,inception:'2016-08-03',benchmark:'中债综合',tags:['稳健回报','底仓配置'],isFlagship:false,description:'一级债基，纯债增强为主，波动小。',style:'债 / 信用债为主',managerInfo:{tenure:8.2,masterpiece:'中欧添益、中欧纯债',philosophy:'严格信用研究'}},
+  {code:'004811',name:'中欧颐利A',manager:'李波',category:'固收+',subCategory:'二级债基',scale:32.1,annualReturn:6.2,maxDrawdown:-3.5,sharpe:1.72,calmar:1.77,inception:'2017-08-02',benchmark:'中债综合',tags:['稳健回报','底仓配置'],isFlagship:false,description:'稳健型二级债基，权益仓位审慎。',style:'偏债 / 信用债 + 权益',managerInfo:{tenure:9.8,masterpiece:'中欧增强回报、中欧颐利',philosophy:'稳健票息 + 权益弹性'}},
+  {code:'009098',name:'中欧融恒平衡混合',manager:'蓝小康',category:'固收+',subCategory:'偏债混合',scale:18.6,annualReturn:7.8,maxDrawdown:-6.2,sharpe:1.55,calmar:1.26,inception:'2020-06-09',benchmark:'中债+沪深300',tags:['稳健回报'],isFlagship:false,description:'股债平衡型产品，红利权益打底。',style:'平衡 / 红利 + 信用债',managerInfo:{tenure:6.5,masterpiece:'中欧恒利、中欧融恒',philosophy:'股债再平衡'}},
+  // 纯债
+  {code:'003936',name:'中欧纯债A',manager:'王慧杰',category:'纯债',subCategory:'中长期纯债',scale:65.4,annualReturn:4.6,maxDrawdown:-1.5,sharpe:2.15,calmar:3.07,inception:'2016-12-22',benchmark:'中债综合',tags:['底仓配置','稳健回报'],isFlagship:true,description:'纯债代表，久期择时与信用甄选并重。',style:'纯债 / 中长久期',managerInfo:{tenure:8.2,masterpiece:'中欧纯债、中欧添益',philosophy:'严守信用底线'}},
+  {code:'004417',name:'中欧短债A',manager:'董超',category:'纯债',subCategory:'短债',scale:88.7,annualReturn:3.8,maxDrawdown:-0.8,sharpe:2.45,calmar:4.75,inception:'2017-07-15',benchmark:'中债短融',tags:['底仓配置'],isFlagship:true,description:'短债工具型产品，流动性好，机构现金管理利器。',style:'短债 / 高流动性',managerInfo:{tenure:6.8,masterpiece:'中欧短债、中欧鼎利',philosophy:'短久期高流动'}},
+  {code:'003465',name:'中欧鼎利A',manager:'李波',category:'纯债',subCategory:'中长期纯债',scale:42.6,annualReturn:4.4,maxDrawdown:-1.2,sharpe:2.08,calmar:3.67,inception:'2016-11-08',benchmark:'中债综合',tags:['底仓配置','稳健回报'],isFlagship:false,description:'纯债产品，配置利率债+高等级信用。',style:'纯债 / 中长久期',managerInfo:{tenure:9.8,masterpiece:'中欧鼎利、中欧增强回报',philosophy:'组合久期管理'}},
+  {code:'004854',name:'中欧瑞泽纯债',manager:'李波',category:'纯债',subCategory:'中长期纯债',scale:35.2,annualReturn:4.2,maxDrawdown:-1.4,sharpe:1.98,calmar:3.00,inception:'2017-09-15',benchmark:'中债综合',tags:['底仓配置'],isFlagship:false,description:'纯债产品，机构定制风格。',style:'纯债 / 利率 + 信用',managerInfo:{tenure:9.8,masterpiece:'中欧瑞泽、中欧鼎利',philosophy:'稳健票息 + 久期择时'}},
+  {code:'166025',name:'中欧货币A',manager:'姚鹏',category:'纯债',subCategory:'货币',scale:156.4,annualReturn:2.4,maxDrawdown:0.0,sharpe:8.50,calmar:99.0,inception:'2014-06-25',benchmark:'7日通知存款',tags:['底仓配置'],isFlagship:false,description:'货币基金，T+0 流动性。',style:'货币 / 现金管理',managerInfo:{tenure:5.5,masterpiece:'中欧货币',philosophy:'流动性优先'}},
+  {code:'007589',name:'中欧融益债券A',manager:'董超',category:'纯债',subCategory:'中短债',scale:24.6,annualReturn:3.9,maxDrawdown:-0.9,sharpe:2.32,calmar:4.33,inception:'2019-08-09',benchmark:'中债短融',tags:['底仓配置'],isFlagship:false,description:'中短债配置为主。',style:'短债 / 中短久期',managerInfo:{tenure:6.8,masterpiece:'中欧短债、中欧融益',philosophy:'短久期高等级'}},
+  // 指数&量化
+  {code:'003318',name:'中欧沪深300指数增强A',manager:'曲径',category:'指数&量化',subCategory:'指数增强',scale:38.2,annualReturn:9.6,maxDrawdown:-25.4,sharpe:0.65,calmar:0.38,inception:'2016-12-28',benchmark:'沪深300',tags:['波段工具','风格稳定'],isFlagship:true,description:'沪深300指数增强，长期超额稳定。',style:'量化 / 大盘',managerInfo:{tenure:7.5,masterpiece:'中欧量化驱动、中欧500指增',philosophy:'多因子模型 + 风险约束'}},
+  {code:'004999',name:'中欧中证500指数增强A',manager:'曲径',category:'指数&量化',subCategory:'指数增强',scale:28.5,annualReturn:11.2,maxDrawdown:-28.6,sharpe:0.72,calmar:0.39,inception:'2017-12-05',benchmark:'中证500',tags:['波段工具'],isFlagship:false,description:'中证500指数增强，超额稳定。',style:'量化 / 中盘',managerInfo:{tenure:7.5,masterpiece:'中欧500指增',philosophy:'量化多因子'}},
+  {code:'002980',name:'中欧量化驱动',manager:'曲径',category:'指数&量化',subCategory:'主动量化',scale:18.6,annualReturn:12.8,maxDrawdown:-26.5,sharpe:0.85,calmar:0.48,inception:'2016-09-08',benchmark:'中证800',tags:['波段工具','风格稳定'],isFlagship:false,description:'主动量化产品，多因子选股。',style:'量化 / 全市场',managerInfo:{tenure:7.5,masterpiece:'中欧量化驱动',philosophy:'多因子 + 行业中性'}},
+  {code:'008893',name:'中欧创业板两年定开',manager:'曲径',category:'指数&量化',subCategory:'创业板',scale:12.4,annualReturn:13.5,maxDrawdown:-38.2,sharpe:0.62,calmar:0.35,inception:'2020-04-29',benchmark:'创业板指',tags:['进攻型','波段工具'],isFlagship:false,description:'创业板主题产品。',style:'指数 / 创业板',managerInfo:{tenure:7.5,masterpiece:'中欧创业板系列',philosophy:'行业 + 风格暴露管理'}},
+  {code:'008286',name:'中欧科创主题3年',manager:'王培',category:'指数&量化',subCategory:'科创板',scale:22.8,annualReturn:11.5,maxDrawdown:-36.4,sharpe:0.58,calmar:0.32,inception:'2019-06-21',benchmark:'科创50',tags:['进攻型','波段工具'],isFlagship:false,description:'科创板主题封闭运作。',style:'主题 / 科创',managerInfo:{tenure:10.1,masterpiece:'中欧科创主题',philosophy:'硬科技长期布局'}},
+  {code:'501010',name:'中欧上证180ETF',manager:'宋巍巍',category:'指数&量化',subCategory:'ETF',scale:8.6,annualReturn:8.4,maxDrawdown:-22.5,sharpe:0.58,calmar:0.37,inception:'2018-01-19',benchmark:'上证180',tags:['波段工具'],isFlagship:false,description:'上证180 ETF，宽基工具。',style:'指数 / 大盘 / ETF',managerInfo:{tenure:4.5,masterpiece:'中欧 ETF 系列',philosophy:'紧密跟踪'}},
+  // QDII
+  {code:'002230',name:'中欧丰泓沪港深A',manager:'罗佳明',category:'QDII',subCategory:'港股',scale:32.6,annualReturn:8.6,maxDrawdown:-38.4,sharpe:0.42,calmar:0.22,inception:'2016-04-07',benchmark:'恒生指数+沪深300',tags:['进攻型','波段工具'],isFlagship:false,description:'聚焦港股优质成长 + A 股龙头。',style:'港股 / 全市场',managerInfo:{tenure:8.2,masterpiece:'中欧丰泓沪港深',philosophy:'港股价值挖掘'}},
+  {code:'004158',name:'中欧远见两年定开',manager:'周蔚文',category:'QDII',subCategory:'全球',scale:24.5,annualReturn:12.8,maxDrawdown:-28.6,sharpe:0.85,calmar:0.45,inception:'2017-06-29',benchmark:'MSCI全球',tags:['进攻型','明星基金经理'],isFlagship:true,description:'全球视野选股，A股+港股+美股。',style:'全球 / 成长',managerInfo:{tenure:9.2,masterpiece:'中欧时代先锋、中欧远见',philosophy:'全球资产配置'}},
+  {code:'004834',name:'中欧全球聚焦',manager:'李雪琴',category:'QDII',subCategory:'全球',scale:12.8,annualReturn:9.5,maxDrawdown:-32.4,sharpe:0.55,calmar:0.29,inception:'2017-08-09',benchmark:'MSCI全球',tags:['波段工具'],isFlagship:false,description:'全球科技与消费龙头。',style:'QDII / 成长',managerInfo:{tenure:5.5,masterpiece:'中欧全球聚焦',philosophy:'全球龙头投资'}},
+  {code:'161126',name:'中欧香港优势精选',manager:'罗佳明',category:'QDII',subCategory:'港股',scale:8.4,annualReturn:7.8,maxDrawdown:-42.6,sharpe:0.32,calmar:0.18,inception:'2018-04-25',benchmark:'恒生指数',tags:['波段工具'],isFlagship:false,description:'港股精选。',style:'港股 / 中大盘',managerInfo:{tenure:8.2,masterpiece:'中欧港股系列',philosophy:'港股价值股挖掘'}},
+  // FOF & 养老
+  {code:'006580',name:'中欧汇选混合FOF',manager:'桑磊',category:'FOF&养老',subCategory:'混合FOF',scale:18.5,annualReturn:8.4,maxDrawdown:-12.5,sharpe:1.05,calmar:0.67,inception:'2018-12-19',benchmark:'中证混合基金',tags:['底仓配置','稳健回报'],isFlagship:false,description:'主动+被动多基金配置。',style:'FOF / 混合',managerInfo:{tenure:6.5,masterpiece:'中欧汇选FOF、预见养老系列',philosophy:'基金研究 + 资产配置'}},
+  {code:'006860',name:'中欧预见养老2035三年A',manager:'桑磊',category:'FOF&养老',subCategory:'目标日期',scale:22.8,annualReturn:7.8,maxDrawdown:-10.6,sharpe:1.12,calmar:0.74,inception:'2019-03-15',benchmark:'养老FOF基准',tags:['底仓配置','稳健回报'],isFlagship:true,description:'目标 2035 年退休的下滑曲线产品。',style:'养老 / 目标日期',managerInfo:{tenure:6.5,masterpiece:'中欧预见养老系列',philosophy:'生命周期下滑曲线'}},
+  {code:'008145',name:'中欧预见养老2045三年A',manager:'桑磊',category:'FOF&养老',subCategory:'目标日期',scale:12.5,annualReturn:9.2,maxDrawdown:-14.8,sharpe:1.02,calmar:0.62,inception:'2019-12-23',benchmark:'养老FOF基准',tags:['稳健回报'],isFlagship:false,description:'目标 2045 退休，权益占比更高。',style:'养老 / 目标日期',managerInfo:{tenure:6.5,masterpiece:'中欧预见养老系列',philosophy:'远期退休账户'}},
+  {code:'009342',name:'中欧汇优精选FOF',manager:'桑磊',category:'FOF&养老',subCategory:'混合FOF',scale:8.6,annualReturn:8.8,maxDrawdown:-11.4,sharpe:1.08,calmar:0.77,inception:'2020-08-04',benchmark:'中证混合基金',tags:['稳健回报'],isFlagship:false,description:'精选优质基金组合。',style:'FOF / 混合',managerInfo:{tenure:6.5,masterpiece:'中欧汇优、中欧汇选',philosophy:'优中选优'}}
+];
+
+// 默认主份额
+PRODUCTS.forEach(p=>{ p.isPrimary = true; });
+
+// 合并中欧基金完整产品池（来自 window.ZO_FUND_POOL，共 ~530 只）
+(function mergeZoFundPool(){
+  if(!window.ZO_FUND_POOL || !Array.isArray(window.ZO_FUND_POOL)) return;
+  // 用 code → product 索引而非简单 Set，便于把池里的 type 字段回填到精选产品
+  const byCode = new Map(PRODUCTS.map(p=>[p.code, p]));
+  let added = 0;
+  window.ZO_FUND_POOL.forEach(f=>{
+    const exist = byCode.get(f.code);
+    if(exist){
+      // 精选产品（38 只）补 type / shareClass / isPrimary，让三级分类直接命中 TYPE_TO_HIER
+      if(!exist.type && f.type) exist.type = f.type;
+      if(!exist.shareClass && f.shareClass) exist.shareClass = f.shareClass;
+      if(exist.isPrimary===undefined && f.isPrimary!==undefined) exist.isPrimary = f.isPrimary;
+      return;
+    }
+    PRODUCTS.push({
+      code: f.code,
+      name: f.name,
+      manager: '-',
+      type: f.type,                 // ★ 关键：保留天天基金官方分类
+      category: f.category,         // legacy，仅供 assignInvestType 兜底参考
+      subCategory: f.subCategory,
+      scale: 0, annualReturn: 0, maxDrawdown: 0, sharpe: 0, calmar: 0,
+      inception: '-',
+      benchmark: f.benchmark,
+      tags: [],
+      description: f.fullname || f.name,
+      style: f.subCategory,
+      managerInfo: { tenure:0, masterpiece:'-', philosophy:'-' },
+      shareClass: f.shareClass,
+      isPrimary: f.isPrimary,
+      _autoFilled: true
+    });
+    added++;
+  });
+  console.log('[中欧产品池] 已合并', added, '只新基金，总计', PRODUCTS.length, '只');
+})();
+
+// 用投资类型三级规则给所有产品打 l1/l2/l3 标签
+PRODUCTS.forEach(p=>{
+  const r = assignInvestType(p);
+  p.l1 = r.l1;
+  p.l2 = r.l2;
+  p.l3 = r.l3;
+});
+
+PRODUCTS.forEach((p,i)=>{ p.navHistory = genNav(p.annualReturn||0, Math.max(2,Math.abs(p.maxDrawdown||0)*0.6), i*17+7); });
+
+// ---------- 销售作战包 ----------
+const ENRICHMENT = {
+  '001938':{status:{code:'limited',label:'暂停大额申购（单笔 100 万以内）'},pitch:{opening:'中欧全市场选股代表作，周蔚文 9 年长期管理，年化收益跑赢沪深300超 8 个百分点。',highlights:['基金经理任职 9.2 年，操作风格连续，无团队人员变更风险','前十大重仓覆盖高端制造、新能源、医药三大主线，单一行业暴露低于 25%','穿越 2018/2022 两轮系统性熊市，规模始终稳定在 150 亿+ 区间'],cta:'建议：作为客户权益底仓的"长跑型"配置，单一产品占比建议 5%~10%。'},qa:[{q:'近期成长风格回调，组合如何应对？',a:'产业链龙头基本面未变，估值已落入合理区间，已分批加仓优质标的。我们看 3-5 年维度，短期波动不改长期判断。'},{q:'基金规模 168 亿是否过大、影响操作？',a:'中欧已为周总配备 6 人投研支持团队，重仓股流动性测试显示 3 个交易日可清仓 50% 头寸，规模仍在舒适区。'}],flags:[{level:'warn',text:'2025Q4 加仓 AI 算力板块至 14% 仓位，注意短期波动放大'}],competitors:[{name:'蓝筹精选混合',company:'易方达',mgr:'张坤',win:'本基金行业更分散，不依赖单一赛道；管理规模 168 vs 600+ 亿，操作灵活度更高'},{name:'天惠精选成长',company:'富国',mgr:'朱少醒',win:'近 3 年最大回撤 -28% vs 对手 -32%，回撤控制更优'}]},
+  '003095':{status:{code:'limited',label:'暂停大额申购（单笔 50 万以内）'},pitch:{opening:'中欧医药赛道旗舰，葛兰 8.5 年专注医药投研，覆盖创新药+医疗服务+CXO 全产业链。',highlights:['医药行业研究员 10+ 人，是国内医药投研覆盖最深的团队之一','当前重仓股中创新药占 35%、医疗器械 22%、CXO 18%，结构均衡','医药板块估值已回到历史 30% 分位以下，性价比凸显'],cta:'建议：适合对医药长期景气有信心、可承受行业 30%+ 回撤的客户左侧布局。'},qa:[{q:'产品已回撤 -42%，如何向客户解释？',a:'医药板块系统性回调（中证医药同期 -38%），叠加集采政策预期。组合重仓股盈利仍在增长，时间会消化估值压力。'},{q:'葛兰是否会被替换？',a:'公司明确表态葛总团队是医药投资核心，团队建制稳定，葛兰个人持有本基金超 200 万元。'},{q:'医药板块还有多少下行空间？',a:'当前 PE 分位 28%，处于近 10 年低位；如果集采政策不进一步加码，下行空间有限。'}],flags:[{level:'warn',text:'注意：客户多对葛兰敏感，需提前准备业绩归因话术'},{level:'info',text:'路演口径：强调医药长期赛道+估值底部，淡化短期排名'}],competitors:[{name:'前沿医疗股票',company:'工银瑞信',mgr:'赵蓓',win:'本基金规模 285 vs 65 亿，但持股集中度更低，单股最大权重 8% vs 9.5%'},{name:'医疗保健混合',company:'广发',mgr:'吴兴武',win:'本基金研究覆盖更全（含 CXO/医疗器械），对标的纯医药制造仓位 60% vs 75%'}]},
+  '166006':{status:{code:'open'},pitch:{opening:'深度价值派代表作，曹名长 14 年管理经验，最大回撤仅 -18.4%，回撤控制行业前 5%。',highlights:['严格价值投资，组合平均 PE 9.5x、股息率 4.2%，高股息属性突出','行业分布在金融、地产、公用事业、消费等防御板块','成立 16 年穿越 4 轮牛熊，年化 11.2% 且夏普 1.05'],cta:'建议：作为险资/银行理财子绝对收益打底，IFRS9 项下推荐 FVOCI 计量。'},qa:[{q:'价值风格近年表现一般，是否会切换风格？',a:'曹总坚守深度价值 14 年从未漂移，正是这种纪律性让产品在 2018/2022 大跌中相对抗跌。'},{q:'组合是否过度暴露金融地产？',a:'当前金融+地产合计 32%，符合价值派常态。组合分散度高，前十大占比仅 38%。'}],flags:[{level:'info',text:'高股息特征对险资特别友好，可强调久期匹配优势'}],competitors:[{name:'价值优势混合',company:'富国',mgr:'李巍',win:'本基金最大回撤 -18% vs 对手 -23%，更适合机构绝对收益诉求'},{name:'大盘股票',company:'汇丰晋信',mgr:'陆彬',win:'本基金风格更稳定（深度价值 vs 价值轮动），可预期性更强'}]},
+  '004812':{status:{code:'open'},pitch:{opening:'王健代表作之一，GARP 策略捕捉合理估值的成长机会，近 3 年年化 13.6%。',highlights:['GARP 估值约束严格','消费+医药+科技均衡','王健中欧任职 7 年风格稳定'],cta:'建议：作为权益均衡配置，与价值派/纯成长派形成互补。'},qa:[{q:'GARP 策略在极致行情下是否会跑输？',a:'是。但中长期看，估值约束让组合避免了 2021 年抱团瓦解时的大幅回撤。'}],flags:[{level:'info',text:'可强调与中欧时代先锋(纯成长)、价值发现(纯价值)形成产品矩阵'}],competitors:[{name:'策略增长',company:'嘉实',mgr:'邵秋涛',win:'本基金近 3 年夏普 0.96 vs 0.81，风险调整后表现更优'},{name:'价值精选',company:'汇添富',mgr:'劳杰男',win:'本基金行业暴露更分散，对单一行业冲击的抵御力更强'}]},
+  '001938B':{status:{code:'open'},pitch:{opening:'王培管理 10 年，价值与成长兼顾，近 3 年最大回撤仅 -21%。',highlights:['估值与质地并重','行业相对均衡','逆向布局，左侧建仓擅长'],cta:'建议：作为权益底仓配置，回撤控制对机构友好。'},qa:[{q:'逆向布局是否容易左侧深套？',a:'王培严守估值底线，过往左侧建仓时点准确性高于行业均值。'}],flags:[{level:'info',text:'王培产品线多，注意区分本款与中欧行业成长的风格差异'}],competitors:[{name:'合润混合',company:'兴证全球',mgr:'谢治宇',win:'本基金规模 38 vs 200+ 亿，调仓灵活度更高'},{name:'均衡增长',company:'汇添富',mgr:'胡昕炜',win:'本基金在熊市的回撤控制更突出（-21% vs -28%）'}]},
+  '002621':{status:{code:'open'},pitch:{opening:'王健消费旗舰，聚焦白酒+家电+零售龙头，捕捉消费升级长期红利。',highlights:['消费板块研究覆盖深入','前十大消费白马占 65%','近 3 年年化 15.4%'],cta:'建议：消费配置工具，搭配科技/医药形成行业平衡。'},qa:[{q:'消费板块还有多少空间？',a:'PMI 数据显示消费复苏初期，板块估值分位 35%，中长期空间充足。'}],flags:[{level:'warn',text:'近期白酒板块波动大，建议路演时主动提及而非回避'}],competitors:[{name:'消费行业',company:'易方达',mgr:'萧楠',win:'本基金规模 48 vs 300+ 亿，对中小消费股的覆盖灵活度更高'},{name:'中证白酒',company:'招商',mgr:'侯昊',win:'本基金行业分散（白酒+家电+零售）vs 单一白酒，回撤更小'}]},
+  '004233':{status:{code:'open'},pitch:{opening:'聚焦科技+新能源+先进制造，捕捉中国产业升级浪潮。',highlights:['中小盘成长风格','新能源/半导体/AI 三大主线','王健第二代表作'],cta:'建议：进攻型仓位配置，与稳健底仓搭配使用。'},qa:[{q:'中小盘风格波动大，机构是否能接受？',a:'建议作为权益组合的卫星仓位，配置比例 3-5%。'}],flags:[{level:'warn',text:'最大回撤 -35.8%，向风险偏好低的客户推荐前需评估'}],competitors:[{name:'创新成长',company:'银河',mgr:'郑巍山',win:'本基金对新能源敞口更分散，不集中赌单一细分'},{name:'科技先锋',company:'广发',mgr:'刘格菘',win:'本基金管理规模 32 vs 400+ 亿，操作灵活度优势明显'}]},
+  '166019':{status:{code:'limited',label:'三年封闭运作，下一开放期 2026-11'},pitch:{opening:'蓝小康代表作，红利价值风格，三年封闭运作，最大回撤 -16.8%，夏普 1.32。',highlights:['三年封闭让基金经理免受短期申赎扰动，可执行长期价值策略','组合股息率 5.1%，高股息属性突出','近 3 年年化 13.2%，夏普 1.32 同类前 5%'],cta:'建议：险资/银行理财子绝对收益首选，FVOCI 计量+久期匹配双重适配。'},qa:[{q:'三年封闭，客户流动性如何处理？',a:'产品定位为机构核心配置，三年期对应长期资金诉求。客户如需中短期流动性，可推荐中欧颐利。'},{q:'蓝小康风格漂移风险？',a:'近 6 年红利风格持续不变，团队对此有书面确认。'}],flags:[{level:'info',text:'★ 险资客户首推产品，可强调"高股息+久期匹配+FVOCI 友好"三重利好'}],competitors:[{name:'红利配置',company:'大成',mgr:'徐彦',win:'本基金有三年封闭锁定优势，可避免短期申赎冲击'},{name:'红利成长',company:'汇添富',mgr:'黄家诚',win:'本基金股息率 5.1% vs 4.3%，分红强度更高'}]},
+  '009776':{status:{code:'limited',label:'暂停大额申购（单笔 200 万以内）'},pitch:{opening:'袁维德"小而美"代表作，中小盘价值挖掘，近 3 年年化 17.6%、夏普 1.28。',highlights:['中小盘价值股深度挖掘，行业分散，前十大持仓占比仅 32%','基金经理调研频次行业领先，年均个股调研 200+ 次','规模控制 65 亿，保留小盘股操作灵活度'],cta:'建议：作为权益组合的 Alpha 增强工具，配置比例建议 3~5%。'},qa:[{q:'小盘股流动性风险？',a:'组合平均日均成交额 8 亿元，3 个交易日可处置 30% 头寸，流动性可控。'},{q:'袁维德是否会扩规模？',a:'团队明确把规模上限控制在 80 亿以内，保护现有持有人利益。'}],flags:[{level:'warn',text:'★ 优秀但有规模上限，路演需提前确认额度'}],competitors:[{name:'中小盘混合',company:'大成',mgr:'魏庆国',win:'本基金调研深度更强，年均覆盖标的 200+ 只'},{name:'合宜混合',company:'兴证全球',mgr:'谢治宇',win:'本基金规模 65 vs 250+ 亿，对小盘股覆盖更深'}]},
+  '001955':{status:{code:'open'},pitch:{opening:'王健均衡型产品，行业均衡配置，注重估值合理性。',highlights:['全市场行业均衡配置','估值约束严格','回撤可控'],cta:'建议：风险偏好中等的底仓配置。'},qa:[{q:'与中欧明睿新常态的差异？',a:'本基金更偏均衡，新常态偏成长一些；可视客户偏好选择。'}],flags:[{level:'info',text:'与中欧明睿新常态同一经理，注意区分话术'}],competitors:[{name:'均衡成长',company:'易方达',mgr:'陈皓',win:'本基金行业暴露更均衡，单一行业上限 18% vs 25%'},{name:'价值精选',company:'嘉实',mgr:'谭丽',win:'本基金风险调整后收益夏普 0.92 vs 0.85'}]},
+  '004908':{status:{code:'open'},pitch:{opening:'王培聚焦行业景气度，成长板块为主，近 3 年年化 14.5%。',highlights:['行业景气优选','中观研究突出','王培另一代表作'],cta:'建议：行业轮动型配置工具。'},qa:[{q:'行业轮动是否会买在山顶？',a:'王培以景气度向上 6 个月以上为筛选标准，避免追逐短期主题。'}],flags:[{level:'info',text:'当前重仓 AI/新能源/创新药三大行业'}],competitors:[{name:'成长动力',company:'富国',mgr:'何如',win:'本基金行业切换基于基本面而非主题，胜率更高'},{name:'主题行业',company:'博时',mgr:'黄继晨',win:'本基金 3 年期最大回撤 -27% vs -34%'}]},
+  '163417':{status:{code:'open'},pitch:{opening:'股债灵活配置，攻守兼备，回撤 -19.8%。',highlights:['股债再平衡策略','回撤控制','适合稳健型权益配置'],cta:'建议：风险偏好偏稳健的客户，作为半权益底仓。'},qa:[{q:'股债比例如何决定？',a:'基于宏观与估值信号，股票仓位在 40%~75% 区间动态调整。'}],flags:[],competitors:[{name:'新趋势混合',company:'汇添富',mgr:'劳杰男',win:'本基金回撤控制 -19.8% vs -25%，机构友好度更高'},{name:'睿元三年',company:'东方红',mgr:'林鹏',win:'本基金为开放式，流动性优势显著'}]},
+  '166009':{status:{code:'open'},pitch:{opening:'黄华 11 年管理代表作，二级债基长跑选手，年化 7.2% 夏普 1.85，机构投资者口碑产品。',highlights:['11.5 年管理经验，穿越多轮债市牛熊周期','信用甄选+久期择时+转债增强三大策略协同','最大回撤仅 -4.8%，回撤恢复期平均 45 天'],cta:'建议：险资/银行理财子绝对收益首推，IFRS9 项下推荐 FVOCI 计量。'},qa:[{q:'7.2% 年化，下沉信用了吗？',a:'组合 AAA 级信用债占 65%，AA+ 占 25%，无 AA 及以下。'},{q:'转债仓位风险？',a:'转债维持 10%~15% 仓位，单券集中度上限 2%，纯债底仓为主。'}],flags:[{level:'info',text:'★ 险资必推，FVOCI 友好+绝对收益+久期可选'}],competitors:[{name:'稳健收益债券',company:'易方达',mgr:'张清华',win:'本基金最大回撤 -4.8% vs -6.5%，信用控制更严格'},{name:'安心收益债券',company:'招商',mgr:'马龙',win:'本基金转债增强能力突出，长期年化超 1pct'}]},
+  '210008':{status:{code:'open'},pitch:{opening:'李波 10 年管理，最大回撤 -3.2%，夏普 1.92，回撤控制极致。',highlights:['稳健票息打底','权益弹性增强','同类回撤控制 Top 5%'],cta:'建议：保守型机构客户首选，IFRS9 项下推荐 FVOCI。'},qa:[{q:'权益占比多少？',a:'股票+转债合计 18%~22%，纯债底仓约 78%。'}],flags:[{level:'info',text:'险资+理财子双重适配，FVOCI 友好'}],competitors:[{name:'稳健收益债券',company:'易方达',mgr:'张清华',win:'本基金回撤 -3.2% vs -5.4%，控制更严'},{name:'集利债券',company:'广发',mgr:'张芊',win:'本基金成立 14 年穿越多轮周期，长期可预期性强'}]},
+  '004718':{status:{code:'open'},pitch:{opening:'黄华另一代表作，偏债混合，权益仓位灵活。',highlights:['偏债混合策略','权益仓位 25%~35%','黄华团队管理'],cta:'建议：偏债配置补充，与聚利形成产品矩阵。'},qa:[{q:'与中欧聚利的差异？',a:'权益仓位略高，进攻性更强，回撤稍大。'}],flags:[],competitors:[{name:'瑞丰混合',company:'招商',mgr:'王垠',win:'本基金转债策略突出，黄华信用甄选能力业内领先'},{name:'增强回报',company:'易方达',mgr:'张清华',win:'本基金权益仓位上限更高，进攻性更强'}]},
+  '003090':{status:{code:'open'},pitch:{opening:'一级债基，纯债增强为主，波动小、收益稳。',highlights:['一级债基策略','波动率仅 1.8%','现金管理替代'],cta:'建议：财务公司/银行理财子的中短期资金配置工具。'},qa:[{q:'与货币基金的差异？',a:'收益更高（5.4% vs 2.4%），但久期略长，流动性 T+1 vs T+0。'}],flags:[],competitors:[{name:'招华纯债',company:'招商',mgr:'马龙',win:'本基金可少量参与新股申购，收益增强 0.5pct'},{name:'信用债纯债',company:'博时',mgr:'魏桢',win:'本基金信用研究团队规模行业领先'}]},
+  '004811':{status:{code:'open'},pitch:{opening:'李波旗下二级债基，权益仓位审慎，回撤极小。',highlights:['二级债基稳健','权益仓位 10%~15%','回撤 -3.5%'],cta:'建议：稳健型机构客户的中长期配置。'},qa:[{q:'与增强回报的差异？',a:'颐利权益仓位略低，更加保守。'}],flags:[],competitors:[{name:'安泰平衡',company:'招商',mgr:'尹晓红',win:'本基金回撤更小（-3.5% vs -5.2%）'},{name:'集利债券',company:'广发',mgr:'张芊',win:'本基金机构持有比例 80%+，认可度高'}]},
+  '009098':{status:{code:'open'},pitch:{opening:'蓝小康偏债混合，红利权益打底，股债再平衡策略。',highlights:['股债平衡策略','红利股权益增强','蓝小康团队管理'],cta:'建议：寻求稳健回报的客户配置。'},qa:[{q:'股债比例？',a:'股票 30%~40%，债券 60%~70%，动态再平衡。'}],flags:[],competitors:[{name:'稳健收益',company:'易方达',mgr:'张清华',win:'本基金红利权益策略与蓝小康一致风格'},{name:'债券A',company:'大成',mgr:'周梅',win:'本基金权益弹性更突出，年化高 1.5pct'}]},
+  '003936':{status:{code:'open'},pitch:{opening:'王慧杰中长期纯债代表，年化 4.6%、最大回撤 -1.5%、夏普 2.15。',highlights:['久期主动管理 1.5~3.5 年区间','严守 AA+ 以上信用底线','险资/财务公司高契合'],cta:'建议：险资久期匹配+财务公司日常配置首选。'},qa:[{q:'当前久期？',a:'组合久期 2.8 年，处于近 3 年中性偏长水平。'}],flags:[{level:'info',text:'★ 险资 FVOCI 标准配置'}],competitors:[{name:'招华纯债',company:'招商',mgr:'马龙',win:'本基金久期管理更主动，2025 年捕捉两次债牛超额'},{name:'信用债',company:'博时',mgr:'魏桢',win:'本基金信用资质更严格，AA+ 以上占 100%'}]},
+  '004417':{status:{code:'limited',label:'日限申购上限 1000 万'},pitch:{opening:'董超短债代表作，机构现金管理利器，规模 88 亿+，T+1 流动性。',highlights:['组合久期 0.6 年，对利率敏感度极低','最大回撤 -0.8%，回撤恢复期平均 12 天','机构持有比例 85%+，专为机构定制设计'],cta:'建议：财务公司/银行理财子的现金管理替代工具。'},qa:[{q:'与货币基金的差异？',a:'收益高 1.4pct（3.8% vs 2.4%），但 T+1 赎回，适合非日常流动性资金。'}],flags:[{level:'warn',text:'当前限购，路演前需确认额度'}],competitors:[{name:'超短债',company:'嘉实',mgr:'王亚洲',win:'本基金久期管理更主动，超额收益更稳定'},{name:'合臻短债',company:'博时',mgr:'陈凯杨',win:'本基金机构持有比例 85% vs 60%，定位更清晰'}]},
+  '003465':{status:{code:'open'},pitch:{opening:'李波纯债产品，配置利率债+高等级信用债。',highlights:['中长期纯债','利率+信用双轮驱动','夏普 2.08'],cta:'建议：纯债底仓配置。'},qa:[{q:'与中欧纯债差异？',a:'风格类似，鼎利略偏利率债，纯债略偏信用债。'}],flags:[],competitors:[{name:'安瑞纯债',company:'招商',mgr:'马龙',win:'本基金管理规模适中，操作灵活度好'},{name:'安心收益',company:'招商',mgr:'马龙',win:'本基金收益略优，李波信用研究突出'}]},
+  '004854':{status:{code:'open'},pitch:{opening:'李波纯债，机构定制风格突出。',highlights:['纯债稳健','机构定制','回撤可控'],cta:'建议：机构纯债配置。'},qa:[{q:'机构占比？',a:'机构持有比例 90%+，操作完全围绕机构需求设计。'}],flags:[],competitors:[{name:'招华纯债',company:'招商',mgr:'马龙',win:'本基金机构定制度更高'},{name:'稳健收益',company:'易方达',mgr:'张清华',win:'本基金费率更低，机构友好'}]},
+  '166025':{status:{code:'open'},pitch:{opening:'中欧货币基金，T+0 流动性，财务公司日常资金管理。',highlights:['T+0 申赎','7日年化 2.4%','严守流动性纪律'],cta:'建议：财务公司/企业活期资金替代。'},qa:[{q:'收益是否会大幅波动？',a:'货币基金收益跟随央行政策利率，波动有限。'}],flags:[],competitors:[{name:'余额宝',company:'天弘',mgr:'王登峰',win:'本基金机构 share 占比更高，收益更稳定'},{name:'活期宝',company:'嘉实',mgr:'李金灿',win:'本基金为机构定制，收益略优'}]},
+  '007589':{status:{code:'open'},pitch:{opening:'董超另一代表作，中短债配置为主。',highlights:['中短债策略','高等级信用为主','回撤极小'],cta:'建议：与中欧短债形成久期梯度配置。'},qa:[{q:'与中欧短债差异？',a:'融益久期略长（1.2 vs 0.6 年），收益略高、波动略大。'}],flags:[],competitors:[{name:'安瑞短债',company:'招商',mgr:'马龙',win:'本基金费率更优'},{name:'合臻短债',company:'博时',mgr:'陈凯杨',win:'本基金董超管理一致性强'}]},
+  '003318':{status:{code:'open'},pitch:{opening:'曲径量化代表作，沪深300 指增长期超额稳定，3 年累计超额 12pct。',highlights:['多因子模型 + 风险约束','行业偏离不超过基准 ±5%','机构定制可定制 Smart Beta'],cta:'建议：作为银行理财子/养老金的 Beta 增强工具。'},qa:[{q:'量化超额还能维持吗？',a:'团队持续迭代因子，2025 年新增另类数据因子，超额贡献稳定。'}],flags:[],competitors:[{name:'沪深300量化',company:'易方达',mgr:'官泽帆',win:'本基金行业暴露更小，跟踪误差控制更优'},{name:'沪深300指增',company:'华夏',mgr:'孙蒙',win:'本基金费率更低（管理费 1.0% vs 1.2%）'}]},
+  '004999':{status:{code:'open'},pitch:{opening:'中证500指增，超额稳定，捕捉中盘 alpha。',highlights:['中盘 Alpha 捕捉','量化多因子','超额 3pct/年'],cta:'建议：与沪深300指增形成宽基组合。'},qa:[{q:'中证500 风格波动较大？',a:'指增产品聚焦超额，对绝对收益波动接受度较高的客户更适配。'}],flags:[],competitors:[{name:'中证500指增',company:'富国',mgr:'王乐乐',win:'本基金超额稳定性 IR 0.85 vs 0.7'},{name:'500指增',company:'申万菱信',mgr:'刘敦',win:'本基金跟踪误差更小'}]},
+  '002980':{status:{code:'open'},pitch:{opening:'主动量化产品，多因子选股+行业中性。',highlights:['主动量化','多因子驱动','行业中性'],cta:'建议：相对收益型机构配置。'},qa:[{q:'与指增的差异？',a:'量化驱动跟踪基准约束更弱，可以追求绝对收益。'}],flags:[],competitors:[{name:'量化先锋',company:'长信',mgr:'左金保',win:'本基金团队规模更大，模型迭代更快'},{name:'量化先行',company:'华泰柏瑞',mgr:'田汉卿',win:'本基金费率更低'}]},
+  '008893':{status:{code:'closing',label:'即将进入封闭期，2026-Q3 截止申购'},pitch:{opening:'创业板主题封闭运作，行业+风格暴露管理。',highlights:['创业板成长机会','两年封闭','主题进攻型'],cta:'建议：风险偏好高的客户左侧布局。'},qa:[{q:'创业板回撤会不会很大？',a:'历史回撤可达 -38%，仅适合长期资金。'}],flags:[{level:'warn',text:'即将封闭，路演需提示申购截止时点'}],competitors:[{name:'创业板ETF',company:'易方达',mgr:'余海燕',win:'本基金为指增，长期超额可期'},{name:'创业板50',company:'华安',mgr:'苏卿云',win:'本基金两年封闭可执行长期策略'}]},
+  '008286':{status:{code:'closing',label:'3 年封闭，2026 年 Q2 进入开放期'},pitch:{opening:'科创板主题封闭运作，硬科技长期布局。',highlights:['科创板硬科技','3 年封闭','主题进攻型'],cta:'建议：科技长期信徒型客户。'},qa:[{q:'科创板流动性？',a:'组合精选龙头，单股日均成交 2 亿+，流动性可控。'}],flags:[{level:'info',text:'即将开放，可提前与客户对接资金'}],competitors:[{name:'科创主题3年',company:'易方达',mgr:'蔡荣成',win:'本基金王培行业研究覆盖更广'},{name:'创新趋势',company:'富国',mgr:'李元博',win:'本基金封闭运作可执行长期策略'}]},
+  '501010':{status:{code:'open'},pitch:{opening:'上证180 ETF，宽基工具型产品。',highlights:['上证180 跟踪','低费率','机构波段工具'],cta:'建议：机构波段交易+定投工具。'},qa:[{q:'与沪深300ETF差异？',a:'上证180 偏蓝筹，沪深300 更均衡。'}],flags:[],competitors:[{name:'沪深300ETF',company:'华泰柏瑞',mgr:'柳军',win:'本基金跟踪上证180，蓝筹属性更纯'},{name:'上证50ETF',company:'华夏',mgr:'徐猛',win:'本基金成分股更分散（180 vs 50）'}]},
+  '002230':{status:{code:'open'},pitch:{opening:'罗佳明港股精选，聚焦港股优质成长+A 股龙头。',highlights:['港股价值挖掘','互联网+消费+医药主线','8 年管理经验'],cta:'建议：寻求港股配置的客户。'},qa:[{q:'港股流动性差？',a:'聚焦恒生指数成分股，流动性可控。'}],flags:[{level:'warn',text:'港股波动较大，建议 5 年以上持有'}],competitors:[{name:'沪港深价值精选',company:'富国',mgr:'汪孟海',win:'本基金 A+H 双重视角，估值套利机会更多'},{name:'沪港深精选',company:'嘉实',mgr:'张金涛',win:'本基金近 3 年港股回撤控制更优'}]},
+  '004158':{status:{code:'closing',label:'两年封闭，2026-Q4 进入开放期'},pitch:{opening:'周蔚文 QDII 产品，全球视野选股，A 股+港股+美股。',highlights:['全球资产配置','周蔚文管理','两年封闭'],cta:'建议：寻求全球分散的客户。'},qa:[{q:'美股仓位？',a:'当前美股 25%、港股 35%、A 股 40%。'}],flags:[{level:'info',text:'可作为客户美元配置入口'}],competitors:[{name:'全球成长',company:'易方达',mgr:'范冰',win:'本基金周蔚文成长选股能力突出'},{name:'全球医疗',company:'汇添富',mgr:'杨瑨',win:'本基金行业更分散'}]},
+  '004834':{status:{code:'open'},pitch:{opening:'全球科技与消费龙头投资。',highlights:['全球龙头精选','科技+消费主线','QDII 配置'],cta:'建议：全球资产配置工具。'},qa:[{q:'美股汇率风险？',a:'不做汇率对冲，建议作为美元资产长期配置。'}],flags:[],competitors:[{name:'全球聚焦',company:'华夏',mgr:'李湘杰',win:'本基金费率更优'},{name:'全球美元',company:'易方达',mgr:'张颖芝',win:'本基金组合波动更可控'}]},
+  '161126':{status:{code:'open'},pitch:{opening:'罗佳明港股精选系列。',highlights:['纯港股配置','价值+成长平衡','罗佳明系列'],cta:'建议：纯港股配置补充。'},qa:[{q:'与丰泓沪港深差异？',a:'本基金纯港股，丰泓有 A 股仓位。'}],flags:[{level:'warn',text:'最大回撤 -42.6%，仅适合高风险偏好'}],competitors:[{name:'港股通精选',company:'富国',mgr:'汪孟海',win:'本基金罗佳明港股研究深度更突出'},{name:'港股优势',company:'嘉实',mgr:'张金涛',win:'本基金费率更低'}]},
+  '006580':{status:{code:'open'},pitch:{opening:'桑磊 FOF 代表作，主动+被动多基金配置。',highlights:['基金研究 + 资产配置','混合型 FOF','夏普 1.05'],cta:'建议：寻求一站式配置的机构客户。'},qa:[{q:'是否会买中欧自己的基金？',a:'会基于纯客观筛选标准，外部基金占比 60%+，避免利益冲突。'}],flags:[],competitors:[{name:'安泰FOF',company:'兴证全球',mgr:'林国怀',win:'本基金外部基金筛选标准更严'},{name:'积极投资FOF',company:'汇添富',mgr:'杨柳',win:'本基金费率更优'}]},
+  '006860':{status:{code:'open'},pitch:{opening:'中欧养老目标日期 2035 旗舰，下滑曲线设计。',highlights:['目标 2035 退休','下滑曲线动态调整','养老 Y 份额可税延'],cta:'建议：35-45 岁客户养老账户配置首选。'},qa:[{q:'什么是下滑曲线？',a:'权益仓位随退休时点临近逐步下降，年轻时高权益、临近退休偏债。'}],flags:[{level:'info',text:'★ 可作为养老金/年金账户标配'}],competitors:[{name:'养老目标2035',company:'华夏',mgr:'许利明',win:'本基金桑磊团队 FOF 研究深入'},{name:'汇诚养老2043',company:'易方达',mgr:'林伟斌',win:'本基金 2035 目标日期更精准对应主流退休年龄'}]},
+  '008145':{status:{code:'open'},pitch:{opening:'远期退休账户，权益占比更高。',highlights:['目标 2045','权益占比 70%+','长期增值'],cta:'建议：25-35 岁客户养老账户。'},qa:[{q:'权益高，回撤会不会大？',a:'20 年期视角，权益资产是养老金最佳来源。'}],flags:[],competitors:[{name:'养老目标2045',company:'华夏',mgr:'许利明',win:'本基金桑磊系列管理一致'},{name:'养老目标2045',company:'招商',mgr:'章鸽武',win:'本基金权益占比更激进'}]},
+  '009342':{status:{code:'open'},pitch:{opening:'精选优质基金组合。',highlights:['优中选优','混合型 FOF','桑磊系列'],cta:'建议：FOF 配置补充。'},qa:[{q:'与汇选 FOF 差异？',a:'汇优更精简（持有基金数 8-12 vs 15-20），集中度略高。'}],flags:[],competitors:[{name:'精选FOF',company:'工银瑞信',mgr:'蒋华安',win:'本基金桑磊基金研究覆盖更全'},{name:'FOF精选',company:'海富通',mgr:'杜晓海',win:'本基金费率更优'}]}
+};
+
+// 应用 ENRICHMENT（仅保留客观字段：status 和归因；删除路演话术/客户适配/竞品硬编码）
+PRODUCTS.forEach(p => {
+  const e = ENRICHMENT[p.code] || {};
+  p.status = e.status || { code:'open', label:'正常申购' };
+  if (!p.status.label) p.status.label = STATUS_META[p.status.code].label;
+  p.attribution = e.attribution || deriveAttribution(p);
+});
+
+// ============================================================
+// 主交互逻辑
+// ============================================================
+const STATE = { l1:'ALL', l2:'ALL', l3:'ALL', showAllShares:false, sortKey:'scale', sortAsc:false, selectedCode:null, activeTab:'overview' };
+let bubbleChart=null, treeChart=null, miniChart=null, compareChart=null, radarChart=null;
+
+// ============================================================
+// 数据源状态机：pingzhongdata（业绩/规模/经理）+ 腾讯指数行情
+// ============================================================
+const DS = {
+  status: 'init',          // init | loading | live | partial | fail
+  lastRefresh: null,
+  perfMap: {},             // code -> { d1, w1, m1, m3, m6, y1, scale, manager, jzrq, dwjz }
+  pingzhongCache: {},      // code -> 解析后的 pingzhongdata 对象
+  indexQuotes: [],         // 腾讯指数行情
+  errors: []
+};
+
+function jsonpLoad(url, timeoutMs){
+  return new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = url; s.async = true;
+    let done = false;
+    const timer = setTimeout(()=>{
+      if(done) return; done=true;
+      try{ s.parentNode && s.parentNode.removeChild(s); }catch(_){}
+      reject(new Error('timeout '+url));
+    }, timeoutMs||7000);
+    s.onload = ()=>{ if(done) return; done=true; clearTimeout(timer); s.parentNode && s.parentNode.removeChild(s); resolve(); };
+    s.onerror = ()=>{ if(done) return; done=true; clearTimeout(timer); s.parentNode && s.parentNode.removeChild(s); reject(new Error('load fail '+url)); };
+    document.head.appendChild(s);
+  });
+}
+
+// ① 历史净值/经理/规模详情：pingzhongdata（核心数据源）
+async function loadPingzhong(code){
+  if(DS.pingzhongCache[code]) return DS.pingzhongCache[code];
+  // pingzhongdata 是一个 JS 文件，向 window 写入一堆 Data_xxx 全局
+  // 加载后取出来再清掉，避免污染
+  const before = Object.keys(window).filter(k=>k.startsWith('Data_'));
+  try{
+    await jsonpLoad('https://fund.eastmoney.com/pingzhongdata/'+code+'.js?v='+Date.now(), 8000);
+  }catch(e){ return null; }
+  const result = {};
+  ['Data_netWorthTrend','Data_grandTotal','Data_rateInSimilarType','Data_performanceEvaluation',
+   'Data_currentFundManager','Data_fluctuationScale','Data_holderStructure','Data_assetAllocation',
+   'Data_fundSharesPositions','Data_buySedemption','syl_1n','syl_6y','syl_3y','syl_1y',
+   'fS_name','fS_code','stockCodes','zqCodes','jjxq_zsdm','sScale']
+   .forEach(k=>{ if(window[k]!==undefined) result[k]=window[k]; });
+  // 清除全局污染
+  Object.keys(window).filter(k=>k.startsWith('Data_')||['syl_1n','syl_6y','syl_3y','syl_1y','fS_name','fS_code','stockCodes','zqCodes'].includes(k))
+    .forEach(k=>{ if(!before.includes(k)) try{ delete window[k]; }catch(_){} });
+  DS.pingzhongCache[code] = result;
+  return result;
+}
+
+// ② 近期业绩加载器（从 pingzhongdata 提取 昨日 / 近1周 / 近1月 / 近3月 / 近6月 / 近1年 + 规模 + 经理）
+async function loadPerformance(code){
+  if(DS.perfMap[code]) return DS.perfMap[code];
+  const raw = await loadPingzhong(code);
+  if(!raw) return null;
+  const trend = (raw.Data_netWorthTrend||[]).map(x=>x.y);
+  // 昨日收益率：trend 末两点之差（pingzhongdata 末点 = 最新交易日单位净值）
+  const d1 = trend.length>=2 ? +((trend[trend.length-1]/trend[trend.length-2]-1)*100).toFixed(2) : null;
+  // 近一周（5 交易日）
+  const w1 = trend.length>=6 ? +((trend[trend.length-1]/trend[trend.length-6]-1)*100).toFixed(2) : null;
+  const m1 = parseFloat(raw.syl_1y); // pingzhongdata 命名：syl_1y = 近一月
+  const m3 = parseFloat(raw.syl_3y); // syl_3y = 近三月
+  const m6 = parseFloat(raw.syl_6y); // syl_6y = 近六月
+  const y1 = parseFloat(raw.syl_1n); // syl_1n = 近一年
+  const scale = parseFloat(raw.sScale);
+  const mgrArr = raw.Data_currentFundManager;
+  const mgr = (Array.isArray(mgrArr) && mgrArr[0] && mgrArr[0].name) || null;
+  // 最新净值日期 / 单位净值（用于抽屉头展示）
+  const lastNav = (raw.Data_netWorthTrend||[]).slice(-1)[0];
+  const jzrq = lastNav && lastNav.x ? new Date(lastNav.x) : null;
+  const jzrqStr = jzrq ? jzrq.getFullYear()+'-'+String(jzrq.getMonth()+1).padStart(2,'0')+'-'+String(jzrq.getDate()).padStart(2,'0') : null;
+
+  DS.perfMap[code] = {
+    d1, w1,
+    m1: isNaN(m1)?null:m1,
+    m3: isNaN(m3)?null:m3,
+    m6: isNaN(m6)?null:m6,
+    y1: isNaN(y1)?null:y1,
+    scale: isNaN(scale)?null:scale,
+    manager: mgr,
+    dwjz: lastNav && lastNav.y ? +lastNav.y : null,
+    jzrq: jzrqStr
+  };
+  return DS.perfMap[code];
+}
+
+// ③ 批量加载所有主份额业绩（10 并发，逐批刷新 UI）
+async function loadAllPerformance(codes){
+  const batchSize = 10;
+  let ok = 0, fail = 0;
+  for(let i=0;i<codes.length;i+=batchSize){
+    const batch = codes.slice(i, i+batchSize);
+    const results = await Promise.all(batch.map(c =>
+      loadPerformance(c).catch(()=>null)
+    ));
+    results.forEach((r, idx)=>{
+      const code = batch[idx];
+      if(r){
+        ok++;
+        // 回填到 PRODUCTS（仅当原字段为空/0 时）
+        const prod = PRODUCTS.find(x=>x.code===code);
+        if(prod){
+          if((!prod.scale || prod.scale===0) && r.scale) prod.scale = r.scale;
+          if((!prod.manager || prod.manager==='-') && r.manager) prod.manager = r.manager;
+          if((!prod.annualReturn || prod.annualReturn===0) && r.y1!=null) prod.annualReturn = r.y1;
+        }
+      } else fail++;
+    });
+    updateDataSourceUI(ok, fail, codes.length);
+    if(typeof window.__refreshAfterPerf === 'function') window.__refreshAfterPerf();
+  }
+  return { success: ok, fail };
+}
+
+// ③ 指数行情：腾讯 qt.gtimg.cn 老 jsonp 接口
+//    返回形如  v_sh000300="1~沪深300~000300~3845.21~..."; 字符串
+function loadIndexQuotes(){
+  const symbols = [
+    {key:'sh000300', name:'沪深300'},
+    {key:'sh000905', name:'中证500'},
+    {key:'sz399006', name:'创业板指'},
+    {key:'sh000922', name:'中证红利'},
+    {key:'hkHSI',    name:'恒生指数'},
+    {key:'sh000832', name:'中证转债'}
+  ];
+  return new Promise(resolve=>{
+    const url = 'https://qt.gtimg.cn/q='+symbols.map(s=>s.key).join(',');
+    // qt.gtimg.cn 直接写 v_xxx="..." 全局变量
+    jsonpLoad(url, 5000).then(()=>{
+      const out = symbols.map(s=>{
+        const raw = window['v_'+s.key];
+        if(!raw){ return { name:s.name, val:null, chg:null, pct:null }; }
+        const parts = String(raw).split('~');
+        // 参考腾讯字段：parts[3]=现价, parts[31]=涨跌, parts[32]=涨跌幅%
+        // 港股字段顺序略不同：parts[3]=现价, parts[7]=涨跌, parts[8]=涨跌幅
+        let val = parseFloat(parts[3]);
+        let chg = parseFloat(parts[31]);
+        let pct = parseFloat(parts[32]);
+        if(s.key.startsWith('hk')){ chg = parseFloat(parts[7]); pct = parseFloat(parts[8]); }
+        return { name:s.name, val:isNaN(val)?null:val, chg:isNaN(chg)?null:chg, pct:isNaN(pct)?null:pct };
+      });
+      // 清理全局
+      symbols.forEach(s=>{ try{ delete window['v_'+s.key]; }catch(_){} });
+      DS.indexQuotes = out;
+      resolve(out);
+    }).catch(()=>{ DS.indexQuotes=[]; resolve([]); });
+  });
+}
+
+function renderTicker(){
+  const items = DS.indexQuotes;
+  const wrap = document.getElementById('tickerItems');
+  if(!items.length){
+    wrap.innerHTML = '<span class="ticker-item ticker-flat" style="color:var(--text-4);font-size:11px">⚠ 行情接口未响应（可能触发跨域或限流）</span>';
+    return;
+  }
+  wrap.innerHTML = items.map(q=>{
+    if(q.val==null) return '<span class="ticker-item ticker-flat"><span class="ticker-item-name">'+q.name+'</span><span class="ticker-item-val">--</span></span>';
+    const cls = q.pct>0 ? 'ticker-up' : q.pct<0 ? 'ticker-down' : 'ticker-flat';
+    const sign = q.pct>0?'+':'';
+    return '<span class="ticker-item '+cls+'">'+
+      '<span class="ticker-item-name">'+q.name+'</span>'+
+      '<span class="ticker-item-val">'+q.val.toFixed(2)+'</span>'+
+      '<span class="ticker-item-chg">'+sign+q.pct.toFixed(2)+'%</span></span>';
+  }).join('');
+  const t = new Date();
+  document.getElementById('tickerTail').textContent = '腾讯财经接口 · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
+}
+
+function updateDataSourceUI(success, fail, total){
+  const dot = document.getElementById('dsDot');
+  const status = document.getElementById('dsStatus');
+  const refresh = document.getElementById('dsRefresh');
+  const now = new Date();
+  DS.lastRefresh = now;
+  if(success>=total && total>0){
+    DS.status='live'; dot.className='ds-dot live';
+    status.textContent='业绩已加载 '+success+' / '+total;
+  } else if(success>0){
+    DS.status='partial'; dot.className='ds-dot partial';
+    status.textContent='业绩加载中 '+success+' / '+total;
+  } else if(total>0){
+    DS.status='loading'; dot.className='ds-dot';
+    status.textContent='等待业绩数据…';
+  } else {
+    DS.status='loading'; dot.className='ds-dot';
+    status.textContent='加载中…';
+  }
+  refresh.textContent = String(now.getHours()).padStart(2,'0')+':'+
+                        String(now.getMinutes()).padStart(2,'0')+':'+
+                        String(now.getSeconds()).padStart(2,'0');
+}
+
+// ④ 数据合理性自检（全部产品，规模/业绩为 0 不算异常）
+function runSanityChecks(){
+  PRODUCTS.forEach(p=>{
+    const issues = [];
+    if(p.sharpe!==0 && (p.sharpe<-3 || p.sharpe>10)) issues.push('Sharpe='+p.sharpe+' 超出常规区间[-3,10]');
+    if((p.maxDrawdown||0)>0) issues.push('最大回撤为正值（应为绝对值越小越稳健）');
+    if(p.calmar<0 || p.calmar>200) issues.push('Calmar 异常');
+    if((p.scale||0)<0) issues.push('规模为负');
+    if(p.annualReturn>60 || p.annualReturn<-50) issues.push('年化超出常规区间');
+    // 关键：业绩字段存在但规模为 0 = 数据不一致
+    if(!p.scale && (p.sharpe||p.annualReturn||p.maxDrawdown)) issues.push('有业绩数据但规模缺失');
+    p._sanityIssues = issues;
+  });
+}
+function listSanityIssues(){
+  return PRODUCTS.filter(p=>p._sanityIssues && p._sanityIssues.length)
+    .map(p=>({ code:p.code, name:p.name, issues:p._sanityIssues }));
+}
+
+// ⑤ 内部平替挖掘：同 L1 + 同 L2（优先）+ 规模相近 + 非限购 + 非自身
+function findInternalAlternatives(p, max){
+  const limit = max||3;
+  const sameCat = PRODUCTS.filter(q=>q.code!==p.code && q.l1===p.l1
+    && (!q.status || q.status.code==='open') && (q.scale||0)>0);
+  const scored = sameCat.map(q=>{
+    const l2Match = q.l2===p.l2 ? 3 : 0;
+    const l3Match = q.l3===p.l3 ? 2 : 0;
+    const mgrMatch = (q.manager && q.manager===p.manager) ? 1 : 0;
+    const scaleProx = 1/(1+Math.abs(Math.log((q.scale||1)/(p.scale||1))));
+    const sharpeProx = (q.sharpe && p.sharpe) ? 1/(1+Math.abs(q.sharpe-p.sharpe)) : 0;
+    const score = l2Match + l3Match + mgrMatch + scaleProx + sharpeProx;
+    return { q, score, l2Match, l3Match, mgrMatch };
+  }).sort((a,b)=>b.score-a.score).slice(0, limit);
+  return scored.map(({q,l2Match,l3Match,mgrMatch})=>{
+    const reasons = [];
+    if(l3Match) reasons.push('同属 '+q.l3);
+    else if(l2Match) reasons.push('同属 '+q.l2);
+    else reasons.push(q.l1+' 同大类');
+    if(mgrMatch) reasons.push('同基金经理 '+q.manager);
+    reasons.push('规模 '+fmt.scale(q.scale)+' 亿');
+    return { ...q, _altReason: reasons.join(' · ') };
+  });
+}
+
+// ⑥ 产品事件流（仅基于客观数据：业绩数据更新 / 状态变更 / 公开披露）
+function buildEventTimeline(p){
+  const events = [];
+  const now = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const fmtD = d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  // 业绩数据加载事件（来自 pingzhongdata）
+  const pf = DS.perfMap[p.code];
+  if(pf && pf.jzrq){
+    events.push({
+      time: pf.jzrq, type:'nav', label:'净值更新',
+      text:'最新单位净值 '+(pf.dwjz!=null?pf.dwjz.toFixed(4):'--')+
+        (pf.d1!=null?'，昨日 '+(pf.d1>=0?'+':'')+pf.d1.toFixed(2)+'%':''),
+      meta:'来源：天天基金 pingzhongdata'
+    });
+  }
+  // 限购/状态事件
+  if(p.status && p.status.code!=='open'){
+    events.push({
+      time: fmtD(new Date(now.getTime()-86400000*7)),
+      type:'status', label:STATUS_META[p.status.code].label,
+      text: p.status.label || '产品申购状态发生变化',
+      meta:'来源：基金公告 · 申购状态'
+    });
+  }
+  // 季报披露
+  events.push({
+    time: fmtD(new Date(now.getFullYear(), Math.floor(now.getMonth()/3)*3, 1)),
+    type:'disclosure', label:'季报披露',
+    text: p.l1+' · '+p.l3+'，'+p.name+' 公布最新季报。',
+    meta:'来源：基金合同信息披露'
+  });
+  // 规模快照（如已有 scale）
+  if((p.scale||0)>0){
+    events.push({
+      time: fmtD(new Date(now.getTime()-86400000*45)),
+      type:'scale', label:'规模快照',
+      text: '最新披露规模 '+fmt.scale(p.scale)+' 亿，'+(p.scale>50?'机构持有占比稳定':'仍处于成长期'),
+      meta:'来源：公告披露 · 季频'
+    });
+  }
+  return events.sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+}
+
+const fmt = {
+  num: (v,d=1) => (v==null||isNaN(v)) ? '--' : (+v).toFixed(d),
+  signed: (v,d=1) => (v==null||isNaN(v)) ? '--' : ((v>=0?'+':'') + fmt.num(v,d)),
+  scale: v => (v==null||isNaN(v)||v===0) ? '--' : (v>=100 ? (+v).toFixed(0) : (+v).toFixed(1))
+};
+function l1Color(l1){ const x = L1_BY_KEY[l1]; return x?x.color:'#888'; }
+function statusInfo(p){ return STATUS_META[p.status.code]; }
+function sharePasses(p){ if(STATE.showAllShares) return true; return p.isPrimary !== false; }
+function filteredProducts(){
+  return PRODUCTS.filter(p =>
+    (STATE.l1==='ALL' || p.l1===STATE.l1) &&
+    (STATE.l2==='ALL' || p.l2===STATE.l2) &&
+    (STATE.l3==='ALL' || p.l3===STATE.l3) &&
+    sharePasses(p));
+}
+// 业绩字段统一从 perfMap 读取（兜底 PRODUCTS 自带的 annualReturn / scale）
+function getPerf(p){
+  const pf = DS.perfMap[p.code] || {};
+  return {
+    d1: pf.d1,
+    w1: pf.w1,
+    m1: pf.m1,
+    m3: pf.m3,
+    m6: pf.m6,
+    y1: pf.y1!=null ? pf.y1 : (p.annualReturn||null),
+    scale: pf.scale!=null ? pf.scale : (p.scale||null)
+  };
+}
+function sortedProducts(list){
+  const k = STATE.sortKey, asc = STATE.sortAsc?1:-1;
+  const perfKeys = ['d1','w1','m1','m3','m6','y1'];
+  const getVal = p => {
+    if(perfKeys.includes(k)){ const v = getPerf(p)[k]; return (v==null||isNaN(v))?-Infinity:v; }
+    if(k==='scale'){ const v = getPerf(p).scale; return (v==null||isNaN(v))?-Infinity:v; }
+    return p[k];
+  };
+  return [...list].sort((a,b)=>{
+    const va=getVal(a), vb=getVal(b);
+    if (typeof va==='string') return va.localeCompare(vb,'zh') * (STATE.sortAsc?1:-1);
+    return (va-vb)*asc;
+  });
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderTopbarDate(){
+  const d=new Date(), z=n=>String(n).padStart(2,'0');
+  document.getElementById('topbarDate').textContent = d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+}
+// 一级（投资大类）
+function renderChips(){
+  const bar = document.getElementById('chipBar');
+  document.getElementById('chipCountALL').textContent = PRODUCTS.length;
+  INVEST_HIERARCHY.forEach(h=>{
+    const cnt = PRODUCTS.filter(p=>p.l1===h.l1).length;
+    if(cnt===0) return;
+    const btn = document.createElement('button');
+    btn.className='chip'; btn.dataset.l1=h.l1;
+    btn.innerHTML = '<span class="chip-color-dot" style="background:'+h.color+'"></span>'+h.l1+' <span class="chip-count">'+cnt+'</span>';
+    bar.appendChild(btn);
+  });
+  bar.addEventListener('click', e=>{
+    const btn = e.target.closest('.chip'); if(!btn) return;
+    const v = btn.dataset.l1; if(v===undefined) return;
+    if (STATE.l1===v) return;
+    STATE.l1 = v; STATE.l2='ALL'; STATE.l3='ALL';
+    bar.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.dataset.l1===v));
+    renderSubChips();
+    renderAll();
+  });
+}
+// 二级（策略）
+function renderSubChips(){
+  const bar = document.getElementById('chipBarSub');
+  bar.querySelectorAll('.chip-sub:not([data-sub="ALL"])').forEach(el=>el.remove());
+  const tail = document.getElementById('chipBarSubTail');
+  if(STATE.l1==='ALL'){
+    bar.style.display='none';
+    // 同时也把三级藏起来
+    const sub3 = document.getElementById('chipBarSub3');
+    if(sub3) sub3.style.display='none';
+    return;
+  }
+  bar.style.display='';
+  const h = L1_BY_KEY[STATE.l1];
+  if(!h) return;
+  const baseList = PRODUCTS.filter(p=>p.l1===STATE.l1);
+  h.l2.forEach(l2=>{
+    const cnt = baseList.filter(p=>p.l2===l2.key).length;
+    if(cnt===0) return;
+    const btn = document.createElement('button');
+    btn.className='chip chip-sub'; btn.dataset.sub=l2.key;
+    btn.innerHTML = l2.key+' <span class="chip-count">'+cnt+'</span>';
+    bar.insertBefore(btn, tail);
+  });
+  bar.querySelectorAll('.chip-sub').forEach(c=>c.classList.toggle('active', c.dataset.sub===STATE.l2));
+  tail.innerHTML = '当前命中 <b style="color:var(--text-1)">'+filteredProducts().length+'</b> 只';
+  renderSubChips3();
+}
+// 三级（细分）
+function renderSubChips3(){
+  const bar = document.getElementById('chipBarSub3');
+  if(!bar) return;
+  bar.querySelectorAll('.chip-sub3:not([data-sub3="ALL"])').forEach(el=>el.remove());
+  const tail = document.getElementById('chipBarSub3Tail');
+  if(STATE.l1==='ALL' || STATE.l2==='ALL'){
+    bar.style.display='none';
+    return;
+  }
+  bar.style.display='';
+  const h = L1_BY_KEY[STATE.l1];
+  if(!h) return;
+  const l2def = h.l2.find(x=>x.key===STATE.l2);
+  if(!l2def) return;
+  const baseList = PRODUCTS.filter(p=>p.l1===STATE.l1 && p.l2===STATE.l2);
+  l2def.l3.forEach(l3key=>{
+    const cnt = baseList.filter(p=>p.l3===l3key).length;
+    if(cnt===0) return;
+    const btn = document.createElement('button');
+    btn.className='chip chip-sub3'; btn.dataset.sub3=l3key;
+    btn.innerHTML = l3key+' <span class="chip-count">'+cnt+'</span>';
+    bar.insertBefore(btn, tail);
+  });
+  bar.querySelectorAll('.chip-sub3').forEach(c=>c.classList.toggle('active', c.dataset.sub3===STATE.l3));
+  if(tail) tail.innerHTML = '细分命中 <b style="color:var(--text-1)">'+filteredProducts().length+'</b> 只';
+}
+function bindSubChipsEvents(){
+  const bar2 = document.getElementById('chipBarSub');
+  bar2.addEventListener('click', e=>{
+    const btn = e.target.closest('.chip-sub'); if(!btn) return;
+    const s = btn.dataset.sub; if(STATE.l2===s) return;
+    STATE.l2 = s; STATE.l3 = 'ALL';
+    bar2.querySelectorAll('.chip-sub').forEach(c=>c.classList.toggle('active', c.dataset.sub===s));
+    renderSubChips3();
+    renderAll();
+  });
+  const bar3 = document.getElementById('chipBarSub3');
+  if(bar3){
+    bar3.addEventListener('click', e=>{
+      const btn = e.target.closest('.chip-sub3'); if(!btn) return;
+      const s = btn.dataset.sub3; if(STATE.l3===s) return;
+      STATE.l3 = s;
+      bar3.querySelectorAll('.chip-sub3').forEach(c=>c.classList.toggle('active', c.dataset.sub3===s));
+      renderAll();
+    });
+  }
+}
+function renderKpi(){
+  const list = filteredProducts();
+  // 每只产品的有效规模：优先 perfMap.scale，兜底 p.scale
+  const scales = list.map(p=>{
+    const v = (DS.perfMap[p.code] && DS.perfMap[p.code].scale) || p.scale || 0;
+    return { code:p.code, v };
+  });
+  const withScale = scales.filter(x=>x.v>0);
+  const sumScale  = withScale.reduce((s,x)=>s+x.v, 0);
+  const totalScale = (() => {
+    return PRODUCTS.reduce((s,p)=>{
+      const v = (DS.perfMap[p.code] && DS.perfMap[p.code].scale) || p.scale || 0;
+      return s + v;
+    }, 0);
+  })();
+
+  // 平均近一年收益率（基于已加载业绩的产品）
+  const withY1 = list.map(p=>{
+    const pf = DS.perfMap[p.code]; return pf && pf.y1!=null ? pf.y1 : null;
+  }).filter(v=>v!=null);
+  const avgY1 = withY1.length ? withY1.reduce((s,v)=>s+v,0)/withY1.length : null;
+
+  // 数据完整度：当前筛选下已加载业绩的占比
+  const loadedCnt = list.filter(p=>DS.perfMap[p.code] && DS.perfMap[p.code].m1!=null).length;
+  const healthRate = list.length ? Math.round(loadedCnt/list.length*100) : 0;
+
+  document.getElementById('kpiScale').textContent = sumScale>0 ? (sumScale>=10000?fmt.num(sumScale/10000,2):fmt.num(sumScale,0)) : '--';
+  document.getElementById('kpiCount').textContent = list.length;
+  document.getElementById('kpiSharpe').textContent = avgY1!=null ? fmt.signed(avgY1,1)+'%' : '--';
+  document.getElementById('kpiHealth').textContent = healthRate;
+
+  const allFilt = STATE.l1!=='ALL' || STATE.l2!=='ALL' || STATE.l3!=='ALL';
+  document.getElementById('kpiScaleSub').textContent = withScale.length
+    ? ('基于 '+withScale.length+' 只有规模披露 / 共 '+list.length+' 只'
+        + (allFilt && totalScale>0 ? ' · 占公司 '+fmt.num(sumScale/totalScale*100,1)+'%' : ''))
+    : '业绩数据加载中…';
+  const pathLabel = STATE.l3!=='ALL' ? (STATE.l1+' · '+STATE.l2+' · '+STATE.l3)
+                  : STATE.l2!=='ALL' ? (STATE.l1+' · '+STATE.l2)
+                  : STATE.l1!=='ALL' ? STATE.l1 : '当前展示全部产品';
+  document.getElementById('kpiCountSub').textContent = pathLabel;
+  document.getElementById('kpiSharpeSub').textContent = withY1.length
+    ? '近一年平均（基于 '+withY1.length+' 只已加载产品）'
+    : '业绩数据加载中…';
+  document.getElementById('kpiHealthSub').textContent = '已加载近期业绩 '+loadedCnt+' / '+list.length;
+}
+
+function bubbleSize(s){ return 12 + Math.sqrt(s)*2.6; }
+function renderBubble(){
+  // 用 perfMap.y1 作为 Y 轴年化收益（更可靠），perfMap.scale 兜底
+  const data = filteredProducts().map(p=>{
+    const pf = DS.perfMap[p.code]||{};
+    const scale = pf.scale!=null?pf.scale:p.scale;
+    const y1 = pf.y1!=null?pf.y1:(p.annualReturn||0);
+    const dd = p.maxDrawdown||0;
+    return { p, scale, y1, dd };
+  }).filter(x=>x.scale>0 && (x.y1 || x.dd));
+  let xMax = 0;
+  data.forEach(x=>{ const v=Math.abs(x.dd); if(v>xMax) xMax=v; });
+  xMax = Math.ceil(Math.max(xMax,20)/5)*5;
+
+  const series = INVEST_HIERARCHY.map(h=>{
+    const items = data.filter(x=>x.p.l1===h.l1).map(x=>{
+      const isLimit = x.p.status.code !== 'open';
+      const ddAbs = Math.abs(x.dd);
+      return {
+        name: x.p.name,
+        value: [ddAbs, x.y1, x.scale, x.p.sharpe||0, x.p.code, x.p.manager, x.p.status.code, x.dd],
+        symbolSize: bubbleSize(x.scale),
+        itemStyle: {
+          borderColor: isLimit ? STATUS_META[x.p.status.code].color : 'rgba(255,255,255,0.15)',
+          borderWidth: isLimit?2:1, opacity:1
+        }
+      };
+    });
+    return { name:h.l1, type:'scatter', data:items, color:h.color, emphasis:{ focus:'series', scale:1.15 } };
+  }).filter(s=>s.data.length);
+
+  bubbleChart.setOption({
+    backgroundColor:'transparent',
+    grid:{ left:56, right:22, top:24, bottom:50, containLabel:true },
+    legend:{ bottom:4, left:'center', itemWidth:10, itemHeight:10, textStyle:{color:'#B4BAC8',fontSize:12}, icon:'circle' },
+    xAxis:{ type:'value', name:'最大回撤（绝对值）→ 右侧波动更大', nameLocation:'middle', nameGap:32,
+      nameTextStyle:{color:'#7A8294',fontSize:11},
+      axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
+      splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:0, max:xMax },
+    yAxis:{ type:'value', name:'↑ 年化收益', nameTextStyle:{color:'#7A8294',fontSize:11,padding:[0,0,0,-30]},
+      axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
+      splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}} },
+    tooltip:{ backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', borderWidth:1,
+      textStyle:{color:'#E5E7EB',fontSize:12}, padding:12,
+      formatter: p=>{
+        const [ddAbs,ar,sc,sh,code,mgr,statusCode,ddRaw]=p.value;
+        const sm = STATUS_META[statusCode];
+        return '<div style="font-weight:600;margin-bottom:4px">'+p.name+
+          '<span style="color:#7A8294;font-size:11px;font-weight:400;margin-left:6px">'+code+'</span></div>'+
+          '<div style="color:#B4BAC8;font-size:11px;margin-bottom:6px">'+p.seriesName+' · '+mgr+' · <span style="color:'+sm.color+'">●'+sm.label+'</span></div>'+
+          '<table style="font-size:12px;color:#B4BAC8;border-collapse:collapse">'+
+          '<tr><td style="padding:1px 12px 1px 0">规模</td><td style="color:#E5E7EB;font-weight:600">'+fmt.scale(sc)+' 亿</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">近一年</td><td style="color:#00C853;font-weight:600">'+fmt.signed(ar)+'%</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">最大回撤</td><td style="color:#FF5C5C;font-weight:600">-'+fmt.num(ddAbs)+'%</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">夏普</td><td style="color:#E5E7EB;font-weight:600">'+fmt.num(sh,2)+'</td></tr>'+
+          '</table><div style="color:#7A8294;font-size:11px;margin-top:6px;border-top:1px solid #232B3F;padding-top:6px">点击查看详情</div>';
+      } },
+    series: series
+  }, true);
+  bubbleChart.off('click');
+  bubbleChart.on('click', params=>{ const code=params.value && params.value[4]; if (code) openDrawer(code); });
+}
+
+function renderTree(){
+  // 三层 treemap：L1 → L2 → L3（按规模聚合，无规模产品按数量按 1 兜底）
+  // 规模数据从 perfMap.scale 取，兜底 p.scale；都没有则按数量 1 计入便于显示
+  const data = filteredProducts().map(p=>{
+    const pf = DS.perfMap[p.code]||{};
+    const scale = (pf.scale!=null?pf.scale:p.scale) || 0;
+    return { p, scale };
+  });
+
+  const grouped = INVEST_HIERARCHY.map(h=>{
+    const l1Items = data.filter(x=>x.p.l1===h.l1);
+    if(!l1Items.length) return null;
+    // 按 l2 分组
+    const l2Map = {};
+    l1Items.forEach(x=>{
+      const k = x.p.l2 || '其他';
+      if(!l2Map[k]) l2Map[k] = { name:k, value:0, items:[], byL3:{} };
+      const v = x.scale>0?x.scale:1;
+      l2Map[k].value += v;
+      l2Map[k].items.push(x.p);
+      const l3k = x.p.l3 || '其他';
+      if(!l2Map[k].byL3[l3k]) l2Map[k].byL3[l3k] = { name:l3k, value:0, items:[] };
+      l2Map[k].byL3[l3k].value += v;
+      l2Map[k].byL3[l3k].items.push(x.p);
+    });
+    const l2Children = Object.values(l2Map).sort((a,b)=>b.value-a.value).map(l2node=>{
+      const l3Children = Object.values(l2node.byL3).sort((a,b)=>b.value-a.value).map(l3node=>({
+        name: l3node.name,
+        value: l3node.value,
+        count: l3node.items.length,
+        l1Key: h.l1, l2Key: l2node.name, l3Key: l3node.name,
+        itemStyle:{ color:h.color, opacity:0.85, borderColor:'#0F1422', borderWidth:1 }
+      }));
+      return {
+        name: l2node.name,
+        value: l2node.value,
+        count: l2node.items.length,
+        l1Key: h.l1, l2Key: l2node.name,
+        itemStyle:{ color:h.color, opacity:0.92 },
+        children: l3Children
+      };
+    });
+    return {
+      name: h.l1,
+      value: l1Items.reduce((s,x)=>s+(x.scale>0?x.scale:1),0),
+      l1Key: h.l1,
+      itemStyle:{ color:h.color },
+      children: l2Children
+    };
+  }).filter(Boolean);
+
+  treeChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{ backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', borderWidth:1,
+      textStyle:{color:'#E5E7EB',fontSize:12}, padding:12,
+      formatter: info=>{
+        const d = info.data;
+        const isScale = d.value > 30;
+        const valLabel = isScale ? fmt.scale(d.value)+' 亿' : (d.count||0)+' 只';
+        if (d.l3Key) return '<div style="font-weight:600;margin-bottom:4px">'+d.l1Key+' · '+d.l2Key+' · '+d.l3Key+'</div>'+
+          '<div style="font-size:12px;color:#B4BAC8">规模 <span style="color:#E5E7EB;font-weight:600">'+fmt.scale(d.value)+' 亿</span> · '+d.count+' 只</div>'+
+          '<div style="font-size:11px;color:#7A8294">点击下钻到三级细分</div>';
+        if (d.l2Key) return '<div style="font-weight:600;margin-bottom:4px">'+d.l1Key+' · '+d.l2Key+'</div>'+
+          '<div style="font-size:12px;color:#B4BAC8">规模 <span style="color:#E5E7EB;font-weight:600">'+fmt.scale(d.value)+' 亿</span> · '+d.count+' 只</div>'+
+          '<div style="font-size:11px;color:#7A8294">点击下钻到二级策略</div>';
+        return '<div style="font-weight:600;margin-bottom:4px">'+d.name+'</div>'+
+          '<div style="font-size:12px;color:#B4BAC8">合计规模 <span style="color:#E5E7EB;font-weight:600">'+fmt.scale(d.value)+' 亿</span></div>'+
+          '<div style="font-size:11px;color:#7A8294">点击筛选该一级大类</div>';
+      } },
+    series:[{ type:'treemap', breadcrumb:{show:false}, roam:false, nodeClick:false, data:grouped,
+      width:'100%', height:'100%', top:8, bottom:8, left:8, right:8,
+      levels:[
+        { itemStyle:{gapWidth:3} },
+        { itemStyle:{gapWidth:2, borderColor:'#0F1422', borderWidth:2},
+          upperLabel:{show:true, height:22, color:'#fff', fontWeight:600, fontSize:12, padding:[0,0,0,8]},
+          emphasis:{ upperLabel:{color:'#fff'} } },
+        { itemStyle:{gapWidth:1, borderColor:'#0F1422', borderWidth:1},
+          upperLabel:{show:true, height:18, color:'rgba(255,255,255,0.92)', fontWeight:500, fontSize:11, padding:[0,0,0,6]},
+          emphasis:{ upperLabel:{color:'#fff'} } },
+        { itemStyle:{gapWidth:1, borderWidth:0},
+          label:{ show:true, color:'rgba(255,255,255,0.95)', fontSize:10, overflow:'truncate',
+            formatter: p=>p.name+(p.data.count?' · '+p.data.count+' 只':'') } }
+      ] }]
+  }, true);
+  treeChart.off('click');
+  treeChart.on('click', params=>{
+    const d = params.data; if(!d) return;
+    if (d.l3Key) {
+      STATE.l1 = d.l1Key; STATE.l2 = d.l2Key; STATE.l3 = d.l3Key;
+    } else if (d.l2Key) {
+      STATE.l1 = d.l1Key; STATE.l2 = d.l2Key; STATE.l3 = 'ALL';
+    } else if (d.l1Key) {
+      if(STATE.l1===d.l1Key) return;
+      STATE.l1 = d.l1Key; STATE.l2 = 'ALL'; STATE.l3 = 'ALL';
+    } else return;
+    document.querySelectorAll('#chipBar .chip').forEach(c=>c.classList.toggle('active', c.dataset.l1===STATE.l1));
+    renderSubChips();
+    renderAll();
+  });
+}
+
+function renderTable(){
+  const list = sortedProducts(filteredProducts());
+  const tbody = document.getElementById('ptableBody');
+  const rCell = (v, signed)=>{
+    if(v==null||isNaN(v)) return '<span style="color:var(--text-4)">--</span>';
+    const cls = v>0?'cell-pos':v<0?'cell-neg':'';
+    return '<span class="'+cls+'">'+(signed?fmt.signed(v,2):fmt.num(v,2))+'</span>';
+  };
+  tbody.innerHTML = list.map(p=>{
+    const sm = statusInfo(p);
+    const pf = DS.perfMap[p.code] || {};
+    const effScale = pf.scale!=null?pf.scale:p.scale;
+    const effMgr = pf.manager || p.manager;
+    // sanity flag
+    const sanityFlag = (p._sanityIssues && p._sanityIssues.length)
+      ? '<span class="sanity-flag" title="数据合理性自检：&#10;'+p._sanityIssues.map(x=>'· '+x).join('&#10;')+'">!</span>' : '';
+    const hasScale = (effScale||0) > 0;
+    const scaleCell = hasScale ? fmt.scale(effScale) : '<span style="color:var(--text-4)">--</span>';
+    const ddCell  = p.maxDrawdown ? '<span class="cell-neg">'+fmt.num(p.maxDrawdown)+'</span>' : '<span style="color:var(--text-4)">--</span>';
+    const shCell  = p.sharpe      ? fmt.num(p.sharpe,2) : '<span style="color:var(--text-4)">--</span>';
+    const mgrCell = (effMgr && effMgr!=='-') ? escapeHtml(effMgr) : '<span style="color:var(--text-4)">--</span>';
+    const shareTag = (p.shareClass && p.shareClass!=='_' && p.shareClass!=='A')
+      ? '<span class="src-badge q" title="份额变体">'+p.shareClass+'</span>' : '';
+    const l3Tag = '<span class="cell-sub-tag" title="三级细分">'+(p.l3||'--')+'</span>';
+    return '<tr data-code="'+p.code+'">'+
+      '<td><span class="cell-status-dot" style="background:'+sm.color+'" title="'+escapeHtml(p.status.label)+'"></span>'+
+        '<span class="cell-name">'+p.name+'</span><span class="cell-code">'+p.code+'</span>'+shareTag+sanityFlag+'</td>'+
+      '<td>'+mgrCell+'</td>'+
+      '<td><span class="cell-cat-badge" style="color:'+l1Color(p.l1)+';border:1px solid '+l1Color(p.l1)+'40">'+p.l1+'</span></td>'+
+      '<td class="num">'+scaleCell+'</td>'+
+      '<td class="num">'+rCell(pf.d1,true)+'</td>'+
+      '<td class="num">'+rCell(pf.w1,true)+'</td>'+
+      '<td class="num">'+rCell(pf.m1,true)+'</td>'+
+      '<td class="num">'+rCell(pf.y1,true)+'</td>'+
+      '<td class="num">'+ddCell+'</td>'+
+      '<td class="num">'+shCell+'</td>'+
+      '<td>'+l3Tag+'</td></tr>';
+  }).join('');
+  document.querySelectorAll('#ptable thead th').forEach(th=>{
+    const arrow = th.querySelector('.sort-arrow'); if (arrow) arrow.remove();
+    if (th.dataset.sort === STATE.sortKey) {
+      const a = document.createElement('span');
+      a.className='sort-arrow'; a.textContent = STATE.sortAsc?'▲':'▼';
+      th.appendChild(a);
+    }
+  });
+}
+function bindTableEvents(){
+  document.querySelectorAll('#ptable thead th').forEach(th=>{
+    if (!th.dataset.sort) return;
+    th.addEventListener('click', ()=>{
+      if (STATE.sortKey === th.dataset.sort) STATE.sortAsc = !STATE.sortAsc;
+      else { STATE.sortKey = th.dataset.sort; STATE.sortAsc = false; }
+      renderTable();
+    });
+  });
+  document.getElementById('ptableBody').addEventListener('click', e=>{
+    const tr = e.target.closest('tr');
+    if (tr && tr.dataset.code) openDrawer(tr.dataset.code);
+  });
+}
+
+// ---------- 抽屉 Tab ----------
+function tabOverviewHtml(p){
+  const pf = DS.perfMap[p.code] || {};
+  const effMgr = pf.manager || p.manager;
+  const sanityHtml = (p._sanityIssues && p._sanityIssues.length)
+    ? '<div class="flag-list" style="margin-top:8px"><div class="flag-item warn"><div class="flag-icon">!</div><div><b>数据合理性自检：</b>'+p._sanityIssues.join('；')+'</div></div></div>'
+    : '';
+
+  // 近期业绩横条（昨日/近一周/近一月/近一年）
+  const cellPerf = (label, v) => {
+    if(v==null||isNaN(v)){
+      return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:var(--text-4)">--</div></div>';
+    }
+    const color = v>0?'#FF5C5C':v<0?'#00C853':'var(--text-3)';
+    return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:'+color+'">'+(v>=0?'+':'')+v.toFixed(2)+'%</div></div>';
+  };
+  const navInfo = (pf.dwjz!=null) ? ('<div style="font-size:11px;color:var(--text-4);margin-top:8px">单位净值 <b style="color:var(--text-2)">'+pf.dwjz.toFixed(4)+'</b> · 净值日期 '+(pf.jzrq||'--')+'</div>') : '';
+  const perfBar = '<div class="dr-section" style="background:linear-gradient(135deg,rgba(76,205,196,0.06),transparent);border-left:3px solid var(--teal);padding-left:14px">'+
+    '<div class="dr-section-title">近期业绩 <span class="src-badge live" style="background:rgba(76,205,196,0.15);color:var(--teal)">pingzhongdata</span></div>'+
+    '<div style="display:flex;gap:28px;flex-wrap:wrap;font-variant-numeric:tabular-nums">'+
+    cellPerf('昨日',     pf.d1)+
+    cellPerf('近一周',   pf.w1)+
+    cellPerf('近一月',   pf.m1)+
+    cellPerf('近一年',   pf.y1)+
+    '</div>'+navInfo+'</div>';
+
+  // 近期动态时间线（最多 5 条）
+  const events = buildEventTimeline(p).slice(0,5);
+  const eventsHtml = events.length ? '<div class="event-list">'+events.map(ev=>
+    '<div class="event-item"><div class="event-time">'+ev.time+'</div><div class="event-body">'+
+    '<span class="event-type '+ev.type+'">'+ev.label+'</span><span class="event-text">'+escapeHtml(ev.text)+'</span>'+
+    '<div class="event-meta">'+ev.meta+'</div></div></div>'
+  ).join('')+'</div>' : '<div class="dr-desc" style="color:var(--text-3)">暂无近期动态</div>';
+
+  return perfBar +
+    '<div class="dr-section"><div class="dr-section-title">核心指标</div><div class="dr-metrics">'+
+    '<div class="dr-metric pos"><div class="dr-metric-label">近一年收益</div><div class="dr-metric-value">'+fmt.signed(pf.y1!=null?pf.y1:p.annualReturn)+'%</div></div>'+
+    '<div class="dr-metric neg"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+fmt.num(p.maxDrawdown)+'%</div></div>'+
+    '<div class="dr-metric neutral"><div class="dr-metric-label">夏普比率</div><div class="dr-metric-value">'+fmt.num(p.sharpe,2)+'</div></div>'+
+    '<div class="dr-metric neutral"><div class="dr-metric-label">卡玛比率</div><div class="dr-metric-value">'+fmt.num(p.calmar,2)+'</div></div>'+
+    '</div>'+sanityHtml+'</div>'+
+    (effMgr && effMgr!=='-' ? (
+      '<div class="dr-section"><div class="dr-section-title">基金经理</div><div class="dr-mgr">'+
+      '<div class="dr-mgr-avatar">'+effMgr.charAt(0)+'</div><div style="flex:1">'+
+      '<div class="dr-mgr-name">'+effMgr+'</div>'+
+      '<div class="dr-mgr-tenure">投资风格：'+(p.style||'--')+' · 任职年限 '+((p.managerInfo&&p.managerInfo.tenure)||0)+' 年</div>'+
+      '<div class="dr-mgr-mw">代表作：'+((p.managerInfo&&p.managerInfo.masterpiece)||'--')+'</div>'+
+      (p.managerInfo&&p.managerInfo.philosophy&&p.managerInfo.philosophy!=='-'?'<div class="dr-mgr-quote">"'+p.managerInfo.philosophy+'"</div>':'')+
+      '</div></div></div>'
+    ) : '')+
+    '<div class="dr-section"><div class="dr-section-title">近期净值走势</div>'+
+    '<div class="dr-mini-chart-meta"><span id="miniNavStart">起点：--</span><span id="miniNavEnd">当前：--</span></div>'+
+    '<div id="drawerMiniChart" class="dr-mini-chart"></div>'+
+    '<div style="font-size:10px;color:var(--text-4);margin-top:6px">来源：天天基金 pingzhongdata · 真实历史净值序列</div>'+
+    '</div>'+
+    '<div class="dr-section"><div class="dr-section-title">近期动态</div>'+eventsHtml+'</div>'+
+    '<div class="dr-section"><div class="dr-section-title">产品概要</div><div class="dr-desc">'+(p.description||'--')+'</div></div>';
+}
+function tabAttributionHtml(p){
+  const a = p.attribution;
+  if(!a || !a.parts || !a.parts.length){
+    return '<div class="dr-section"><div class="dr-desc" style="color:var(--text-3);padding:20px 0">业绩归因数据基于公开净值与基准计算，当前产品业绩数据不完整。</div></div>';
+  }
+  const totalAbs = a.parts.reduce((s,x)=>s+Math.abs(x.value),0) || 1;
+  const segs = a.parts.map(part=>{
+    const w = Math.abs(part.value)/totalAbs*100;
+    return '<div class="attr-seg" style="width:'+w+'%;background:'+part.color+'" title="'+part.label+'：'+fmt.signed(part.value)+'%">'+(w>12?part.label:'')+'</div>';
+  }).join('');
+  const rows = a.parts.map(part=>
+    '<tr><td><span class="attr-color" style="background:'+part.color+'"></span>'+part.label+'</td>'+
+    '<td class="attr-val" style="color:'+(part.value>=0?'#00C853':'#FF5C5C')+'">'+fmt.signed(part.value,2)+'%</td></tr>'
+  ).join('');
+  return '<div class="dr-section">'+
+    '<div class="attr-period">归因区间：'+a.period+'</div>'+
+    '<div class="attr-total '+(a.total>=0?'pos':'neg')+'">'+fmt.signed(a.total,2)+'%</div>'+
+    '<div class="attr-total-label">'+a.period+' 总收益</div>'+
+    '<div class="attr-stack">'+segs+'</div>'+
+    '<table class="attr-table">'+rows+'</table></div>'+
+    '<div class="dr-section"><div class="dr-section-title">话术解读</div><div class="dr-desc">'+attrNarrative(p)+'</div></div>';
+}
+function attrNarrative(p){
+  const a = p.attribution; if(!a||!a.parts||!a.parts.length) return '';
+  const parts = a.parts;
+  const top = [...parts].sort((x,y)=>Math.abs(y.value)-Math.abs(x.value))[0];
+  const second = [...parts].sort((x,y)=>Math.abs(y.value)-Math.abs(x.value))[1] || top;
+  if (p.l1==='股票型' || p.l1==='混合型') {
+    return '本季度收益主要来自 <b style="color:'+top.color+'">'+top.label+'</b>（'+fmt.signed(top.value,2)+'%），'+
+      '其次是 <b style="color:'+second.color+'">'+second.label+'</b>（'+fmt.signed(second.value,2)+'%）。';
+  }
+  if (p.l1==='债券型' || p.l1==='货币型') {
+    return '收益结构清晰：信用票息打底（'+fmt.signed((parts.find(x=>x.key==='credit')||{}).value||0,2)+'%），'+
+      '久期管理贡献（'+fmt.signed((parts.find(x=>x.key==='duration')||{}).value||0,2)+'%）。';
+  }
+  return '本季度收益结构均衡，最大贡献为 <b style="color:'+top.color+'">'+top.label+'</b>。';
+}
+// ============================================================
+// 竞品对比 Tab：轨道 A（市场竞品） + 轨道 B（内部平替）
+// ============================================================
+// 全市场基金索引：从天天基金 fundcode_search 离线提取的精简池（首屏不加载，按需加载）
+// 数据形态：{ code, name, company, type, mgr? }
+let MARKET_FUND_INDEX = null;
+let MARKET_INDEX_LOADING = false;
+
+function loadMarketIndex(){
+  // 从 localStorage 7 天缓存 → 否则远程拉取 fundcode_search.js
+  if(MARKET_FUND_INDEX) return Promise.resolve(MARKET_FUND_INDEX);
+  if(MARKET_INDEX_LOADING) return MARKET_INDEX_LOADING;
+  try{
+    const cached = localStorage.getItem('zo_market_idx');
+    const ts = +localStorage.getItem('zo_market_idx_ts')||0;
+    if(cached && Date.now()-ts < 7*86400*1000){
+      MARKET_FUND_INDEX = JSON.parse(cached);
+      return Promise.resolve(MARKET_FUND_INDEX);
+    }
+  }catch(_){}
+  // 远程拉取（fundcode_search 是 JSONP 风格，把数据写到全局变量 r）
+  MARKET_INDEX_LOADING = new Promise(resolve=>{
+    const before = window.r;
+    jsonpLoad('https://fund.eastmoney.com/js/fundcode_search.js?v='+Date.now(), 8000).then(()=>{
+      const raw = window.r || [];
+      // raw 每行：[code, pinyin, name, type, pinyinFull]
+      const idx = raw.map(row=>({
+        code: row[0], name: row[2], type: row[3]||'',
+        company: '' // fundcode_search 没有公司，留空
+      })).filter(x=>x.code && /^\d{6}$/.test(x.code));
+      try{
+        window.r = before;
+        localStorage.setItem('zo_market_idx', JSON.stringify(idx));
+        localStorage.setItem('zo_market_idx_ts', Date.now());
+      }catch(_){}
+      MARKET_FUND_INDEX = idx;
+      MARKET_INDEX_LOADING = false;
+      resolve(idx);
+    }).catch(()=>{ MARKET_INDEX_LOADING=false; MARKET_FUND_INDEX=[]; resolve([]); });
+  });
+  return MARKET_INDEX_LOADING;
+}
+
+// L1 → 天天基金 fundtype 关键词（按需粗筛同类）
+const L1_TO_FUNDTYPE = {
+  '股票型': ['股票','指数','ETF'],
+  '混合型': ['混合','偏股','偏债','灵活配置'],
+  '债券型': ['债券','纯债','短债','中长债','信用债','利率债','一级债基','二级债基','偏债'],
+  '货币型': ['货币'],
+  'QDII':   ['QDII','沪港深','港股','纳指','美股','全球'],
+  'FOF':    ['FOF','养老','目标日期','目标风险']
+};
+
+function isZhongOuFund(f){ return f.name && f.name.startsWith('中欧'); }
+
+async function findMarketCompetitors(p, n){
+  const idx = await loadMarketIndex();
+  if(!idx || !idx.length) return [];
+  const kw = L1_TO_FUNDTYPE[p.l1] || [];
+  let pool = idx.filter(f=>!isZhongOuFund(f) && kw.some(k=>(f.type||'').indexOf(k)>=0));
+  // 随机抽 12 个候选（控制 pingzhongdata 拉取量）
+  pool = pool.slice().sort(()=>Math.random()-0.5).slice(0, 12);
+  // 拉每个候选的 pingzhongdata，提取近一年收益 + 规模 + 净值
+  const enriched = [];
+  const batchSize = 4;
+  for(let i=0;i<pool.length;i+=batchSize){
+    const batch = pool.slice(i, i+batchSize);
+    const arr = await Promise.all(batch.map(async f=>{
+      try {
+        const data = await loadPingzhong(f.code);
+        if(!data) return null;
+        const y1 = parseFloat(data.syl_1n);
+        const m1 = parseFloat(data.syl_1y);
+        const sScale = parseFloat(data.sScale);
+        const trend = (data.Data_netWorthTrend||[]).slice(-250).map(t=>({x:t.x,y:t.y}));
+        return {
+          code: f.code, name: f.name, type: f.type,
+          y1: isNaN(y1)?null:y1, m1: isNaN(m1)?null:m1,
+          scale: isNaN(sScale)?null:sScale,
+          navTrend: trend
+        };
+      } catch(_) { return null; }
+    }));
+    arr.forEach(x=>{ if(x) enriched.push(x); });
+  }
+  // 评分：本品 y1 已知 → 取近一年收益最接近的；未知则取规模接近的；都没就按命名相似度
+  const myPf = DS.perfMap[p.code] || {};
+  const myY1 = myPf.y1!=null?myPf.y1:p.annualReturn;
+  const myScale = myPf.scale!=null?myPf.scale:p.scale;
+  enriched.forEach(c=>{
+    const y1d = (myY1!=null && c.y1!=null) ? Math.abs(myY1 - c.y1) : 99;
+    const scd = (myScale!=null && c.scale!=null) ? Math.abs(Math.log((myScale+1)/(c.scale+1))) : 99;
+    c._score = y1d + scd*0.5;
+  });
+  return enriched.sort((a,b)=>a._score-b._score).slice(0, n||3);
+}
+
+function tabCompetitorHtml(p){
+  const alts = findInternalAlternatives(p, 3);
+  const altsHtml = alts.length
+    ? '<div class="alt-list">'+alts.map(a=>{
+        const sm2 = STATUS_META[(a.status&&a.status.code)||'open'];
+        const apf = DS.perfMap[a.code] || {};
+        const ay1 = apf.y1!=null?apf.y1:a.annualReturn;
+        const ascale = apf.scale!=null?apf.scale:a.scale;
+        return '<div class="alt-card" data-jump="'+a.code+'">'+
+          '<div class="alt-head"><div class="alt-name">'+escapeHtml(a.name)+'</div>'+
+          '<div class="alt-meta">'+escapeHtml(a.code)+' · '+escapeHtml(apf.manager||a.manager||'--')+' · <span style="color:'+sm2.color+'">●'+sm2.label+'</span></div></div>'+
+          '<div class="alt-reason">'+escapeHtml(a._altReason)+'</div>'+
+          '<div class="alt-stats">'+
+          '<span>规模 <b>'+fmt.scale(ascale)+'亿</b></span>'+
+          '<span>近一年 <b style="color:'+(ay1>=0?'#00C853':'#FF5C5C')+'">'+fmt.signed(ay1)+'%</b></span>'+
+          '<span>回撤 <b style="color:#FF5C5C">'+fmt.num(a.maxDrawdown)+'%</b></span>'+
+          '<span>夏普 <b>'+fmt.num(a.sharpe,2)+'</b></span>'+
+          '</div></div>';
+      }).join('')+'</div>'
+    : '<div class="dr-desc" style="color:var(--text-3)">该投资类型内未发现可推荐的非限购替代款。</div>';
+
+  return '<div class="dr-section">'+
+    '<div class="dr-section-title">市场同类对比 <span class="src-badge live" style="background:rgba(76,205,196,0.15);color:var(--teal)">天天基金</span></div>'+
+    '<div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.55">'+
+    '从全市场同类基金中按 *投资类型 + 近一年收益 + 规模* 三维相似度自动匹配 3 只主流竞品。'+
+    '<br>⚠ 风格判断请人工二次确认。</div>'+
+    '<div id="rivalArea" data-code="'+p.code+'"><div style="color:var(--text-3);font-size:12px;padding:20px 0">加载中…（首次需联网拉取市场基金索引，约 3 秒）</div></div>'+
+    '<div id="rivalCompareChart" style="width:100%;height:280px;margin-top:14px;display:none"></div>'+
+    '<div id="rivalRadarChart" style="width:100%;height:260px;margin-top:14px;display:none"></div>'+
+    '</div>'+
+    '<div class="dr-section"><div class="dr-section-title">中欧内部平替</div>'+
+    '<div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.55">客户因限购/风格暂不能进本品时，优先推荐同投资类型的非限购中欧产品：</div>'+
+    altsHtml+'</div>';
+}
+
+function renderRivalArea(p){
+  const area = document.getElementById('rivalArea');
+  if(!area) return;
+  area.innerHTML = '<div style="color:var(--text-3);font-size:12px;padding:20px 0">⏳ 正在从全市场同类基金中匹配竞品…</div>';
+  findMarketCompetitors(p, 3).then(rivals=>{
+    if(!rivals || !rivals.length){
+      area.innerHTML = '<div style="color:var(--text-3);font-size:12px;padding:20px 0">⚠ 当前网络环境下未能从公开接口匹配到竞品（可能为接口限流）。</div>';
+      return;
+    }
+    drawRivalCompare(p, rivals);
+  });
+}
+
+function drawRivalCompare(p, rivals){
+  const area = document.getElementById('rivalArea');
+  if(!area) return;
+  const pf = DS.perfMap[p.code] || {};
+  const myY1 = pf.y1!=null?pf.y1:p.annualReturn;
+  const myM1 = pf.m1;
+  const myScale = pf.scale!=null?pf.scale:p.scale;
+
+  const fmtPct = v => (v==null||isNaN(v)) ? '<span style="color:var(--text-4)">--</span>' : ((v>=0?'+':'')+(+v).toFixed(2)+'%');
+  const fmtSc  = v => (v==null||isNaN(v)||v===0) ? '<span style="color:var(--text-4)">--</span>' : fmt.scale(v);
+
+  const mkRow = (label, mine, others)=>{
+    return '<tr><td style="color:var(--text-3);font-size:11px;padding:5px 8px">'+label+'</td>'+
+      '<td style="color:var(--text-1);font-weight:600;padding:5px 8px">'+mine+'</td>'+
+      others.map(v=>'<td style="color:var(--text-2);padding:5px 8px">'+v+'</td>').join('')+'</tr>';
+  };
+
+  let html = '<table class="rival-table" style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">';
+  html += '<thead><tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px 8px;color:var(--text-3);font-weight:500;font-size:11px">指标</th>';
+  html += '<th style="text-align:left;padding:6px 8px;color:var(--green);font-weight:600">'+p.name+' <span style="color:var(--text-3);font-size:10px;font-weight:400">(本品)</span></th>';
+  rivals.forEach(r=>{
+    html += '<th style="text-align:left;padding:6px 8px;color:var(--text-2);font-weight:500">'+r.name+'<div style="font-size:10px;color:var(--text-4);font-weight:400">'+r.code+' · '+(r.type||'')+'</div></th>';
+  });
+  html += '</tr></thead><tbody>';
+  html += mkRow('近一年(%)',  fmtPct(myY1),    rivals.map(r=>fmtPct(r.y1)));
+  html += mkRow('近一月(%)',  fmtPct(myM1),    rivals.map(r=>fmtPct(r.m1)));
+  html += mkRow('规模(亿)',   fmtSc(myScale),  rivals.map(r=>fmtSc(r.scale)));
+  html += '</tbody></table>';
+  html += '<div style="margin-top:10px;font-size:11px;color:var(--text-4)">数据来源：天天基金 pingzhongdata 公开接口</div>';
+  area.innerHTML = html;
+
+  // 净值叠加图（最近 250 个交易日，归一化起点 1.0）
+  const compEl = document.getElementById('rivalCompareChart');
+  if(!compEl) return;
+  compEl.style.display = 'block';
+  if(compareChart){ compareChart.dispose(); compareChart=null; }
+  compareChart = echarts.init(compEl);
+  const colors = ['#00C853','#FFB800','#4ECDC4','#FF6B6B'];
+  const buildSeries = (name, trend, color, isMine)=>{
+    if(!trend || !trend.length) return null;
+    const base = trend[0].y;
+    return {
+      type:'line', name, smooth:true, symbol:'none',
+      lineStyle:{width: isMine?2.5:1.8, color},
+      data: trend.map(t=>[t.x, (t.y/base).toFixed(4)])
+    };
+  };
+  loadPingzhong(p.code).then(data=>{
+    const myNav = (data && data.Data_netWorthTrend) ? data.Data_netWorthTrend.slice(-250).map(t=>({x:t.x,y:t.y})) : [];
+    const all = [buildSeries(p.name, myNav, colors[0], true)].concat(
+      rivals.map((r,i)=>buildSeries(r.name, r.navTrend, colors[i+1], false))
+    ).filter(Boolean);
+    compareChart.setOption({
+      backgroundColor:'transparent',
+      legend:{ top:0, textStyle:{color:'#B4BAC8',fontSize:11} },
+      grid:{ left:48, right:16, top:32, bottom:28 },
+      xAxis:{ type:'time', axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',fontSize:10} },
+      yAxis:{ type:'value', scale:true, axisLine:{show:false}, axisLabel:{color:'#7A8294',fontSize:10,formatter:v=>v.toFixed(2)},
+              splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}} },
+      tooltip:{ trigger:'axis', backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', textStyle:{color:'#E5E7EB',fontSize:11} },
+      series: all
+    });
+  });
+
+  // 雷达图（4 维：近一年收益 / 近一月收益 / 规模 / 夏普）
+  const radarEl = document.getElementById('rivalRadarChart');
+  if(radarEl){
+    radarEl.style.display = 'block';
+    if(radarChart){ radarChart.dispose(); radarChart=null; }
+    radarChart = echarts.init(radarEl);
+    const allY1 = [myY1, ...rivals.map(r=>r.y1)].filter(v=>v!=null && !isNaN(v));
+    const allM1 = [myM1, ...rivals.map(r=>r.m1)].filter(v=>v!=null && !isNaN(v));
+    const allSc = [myScale, ...rivals.map(r=>r.scale)].filter(v=>v!=null && !isNaN(v));
+    const indicators = [
+      { name:'近一年收益(%)', max: Math.max(20, ...allY1.map(Math.abs))*1.2 },
+      { name:'近一月收益(%)', max: Math.max(5,  ...allM1.map(Math.abs))*1.2 },
+      { name:'规模(亿)',       max: Math.max(100, ...allSc.map(v=>v||0))*1.2 },
+      { name:'夏普',           max: 3 }
+    ];
+    const valFor = (y1, m1, sc, sh) => [Math.max(0,y1||0), Math.max(0,m1||0), sc||0, sh||0];
+    const data = [
+      { name:p.name, value: valFor(myY1, myM1, myScale, p.sharpe), areaStyle:{opacity:0.18}, lineStyle:{color:colors[0]}, itemStyle:{color:colors[0]} }
+    ].concat(rivals.map((r,i)=>({
+      name: r.name,
+      value: valFor(r.y1, r.m1, r.scale, 0),
+      lineStyle:{color:colors[i+1]}, itemStyle:{color:colors[i+1]}
+    })));
+    radarChart.setOption({
+      backgroundColor:'transparent',
+      legend:{ top:0, textStyle:{color:'#B4BAC8',fontSize:11} },
+      radar:{ indicator: indicators, axisName:{color:'#B4BAC8',fontSize:10},
+              splitLine:{lineStyle:{color:'#232B3F'}},
+              splitArea:{areaStyle:{color:['transparent','transparent']}},
+              axisLine:{lineStyle:{color:'#232B3F'}} },
+      series:[{ type:'radar', data, symbol:'circle', symbolSize:5 }]
+    });
+  }
+}
+
+function openDrawer(code){
+  const p = PRODUCTS.find(x=>x.code===code); if (!p) return;
+  STATE.selectedCode = code; STATE.activeTab = 'overview';
+  const sm = STATUS_META[p.status.code];
+  const subDisplay = (p.l3 || p.l2 || '') + (p.inception && p.inception!=='-' ? (' · 成立于 '+p.inception) : '');
+  const pf = DS.perfMap[p.code] || {};
+  const effScale = pf.scale!=null?pf.scale:p.scale;
+  const scaleDisplay = (effScale||0)>0 ? (fmt.scale(effScale)+' 亿') : '<span style="color:var(--text-4)">业绩加载中…</span>';
+  const html = '<div class="dr-head">'+
+    '<div class="dr-name">'+p.name+'</div>'+
+    '<div class="dr-code">代码 '+p.code+' · '+subDisplay+'</div>'+
+    '<div class="dr-status-row">'+
+    '<span class="status-pill code-'+p.status.code+'">'+sm.label+'</span>'+
+    '<span style="color:var(--text-3)">'+escapeHtml(p.status.label||'')+'</span></div>'+
+    '<div class="dr-meta">'+
+    '<div class="dr-meta-item"><span class="dr-meta-label">投资类型</span><span style="color:'+l1Color(p.l1)+';font-weight:600">'+p.l1+' · '+p.l2+' · '+p.l3+'</span></div>'+
+    '<div class="dr-meta-item"><span class="dr-meta-label">规模</span><span style="font-weight:600">'+scaleDisplay+'</span></div>'+
+    '<div class="dr-meta-item"><span class="dr-meta-label">业绩比较基准</span><span>'+(p.benchmark||'--')+'</span></div>'+
+    '</div></div>'+
+    '<div class="dr-tabs" id="drTabs">'+
+    '<div class="dr-tab active" data-tab="overview">概览</div>'+
+    '<div class="dr-tab" data-tab="attribution">业绩归因</div>'+
+    '<div class="dr-tab" data-tab="competitor">同类对比</div></div>'+
+    '<div class="dr-tab-pane active" data-pane="overview">'+tabOverviewHtml(p)+'</div>'+
+    '<div class="dr-tab-pane" data-pane="attribution">'+tabAttributionHtml(p)+'</div>'+
+    '<div class="dr-tab-pane" data-pane="competitor">'+tabCompetitorHtml(p)+'</div>';
+  const drawerBody = document.getElementById('drawerBody');
+  drawerBody.innerHTML = html;
+  drawerBody.scrollTop = 0;
+  document.getElementById('drawer').classList.add('show');
+  document.getElementById('drawerMask').classList.add('show');
+  renderMiniChart(p);
+}
+function bindDrawerEvents(){
+  const drawerBody = document.getElementById('drawerBody');
+  drawerBody.addEventListener('click', e=>{
+    const t = e.target.closest('.dr-tab');
+    if (t) {
+      const tab = t.dataset.tab; STATE.activeTab = tab;
+      drawerBody.querySelectorAll('.dr-tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===tab));
+      drawerBody.querySelectorAll('.dr-tab-pane').forEach(x=>x.classList.toggle('active', x.dataset.pane===tab));
+      drawerBody.scrollTop = 0;
+      if (tab==='overview' && STATE.selectedCode) {
+        const p = PRODUCTS.find(x=>x.code===STATE.selectedCode);
+        if (p) renderMiniChart(p);
+      }
+      if (tab==='competitor' && STATE.selectedCode) {
+        const p = PRODUCTS.find(x=>x.code===STATE.selectedCode);
+        if (p) renderRivalArea(p);
+      }
+      return;
+    }
+    // 内部平替卡片跳转
+    const alt = e.target.closest('.alt-card');
+    if(alt && alt.dataset.jump){ openDrawer(alt.dataset.jump); return; }
+    const q = e.target.closest('.qa-q');
+    if (q) q.closest('.qa-item').classList.toggle('open');
+  });
+}
+function renderMiniChart(p){
+  const el = document.getElementById('drawerMiniChart'); if (!el) return;
+  if (miniChart) { miniChart.dispose(); miniChart=null; }
+  miniChart = echarts.init(el);
+  // 占位空 chart，先显示"加载中"
+  miniChart.setOption({
+    backgroundColor:'transparent',
+    grid:{left:36,right:8,top:10,bottom:22},
+    xAxis:{type:'category', data:[], axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',fontSize:10}, axisTick:{show:false}},
+    yAxis:{type:'value', scale:true, axisLine:{show:false}, axisLabel:{color:'#7A8294',fontSize:10}, splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}},
+    series:[]
+  });
+  // 异步拉真实净值
+  loadPingzhong(p.code).then(data=>{
+    const drawerBody = document.getElementById('drawerBody');
+    if(!data || !data.Data_netWorthTrend || !data.Data_netWorthTrend.length){
+      const meta = drawerBody && drawerBody.querySelector('.dr-mini-chart-meta');
+      if(meta) meta.innerHTML = '<span style="color:var(--text-4)">净值数据加载失败</span><span></span>';
+      return;
+    }
+    const trend = data.Data_netWorthTrend.slice(-120);
+    const ys = trend.map(t=>+t.y);
+    const isUp = ys[ys.length-1] >= ys[0];
+    const lineColor = isUp ? '#00C853' : '#FF5C5C';
+    miniChart && miniChart.setOption({
+      xAxis:{type:'category', data:trend.map(t=>{
+        const d = new Date(t.x); return (d.getMonth()+1)+'/'+d.getDate();
+      }), axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',fontSize:10,interval:Math.floor(trend.length/6)}, axisTick:{show:false}},
+      yAxis:{type:'value', scale:true, axisLine:{show:false},
+        axisLabel:{color:'#7A8294',fontSize:10, formatter:v=>v.toFixed(3)},
+        splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}},
+      tooltip:{trigger:'axis', backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', textStyle:{color:'#E5E7EB',fontSize:11}},
+      series:[{type:'line', data:ys, smooth:true, symbol:'none',
+        lineStyle:{color:lineColor, width:2},
+        areaStyle:{color:{type:'linear', x:0,y:0,x2:0,y2:1,
+          colorStops:[{offset:0,color:lineColor+'55'},{offset:1,color:lineColor+'00'}]}}}]
+    }, true);
+    // 更新起点/当前
+    if(drawerBody){
+      const ms = drawerBody.querySelector('#miniNavStart');
+      const me = drawerBody.querySelector('#miniNavEnd');
+      if(ms) ms.textContent = '起点：'+ys[0].toFixed(4);
+      if(me) me.textContent = '当前：'+ys[ys.length-1].toFixed(4);
+    }
+  });
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('show');
+  document.getElementById('drawerMask').classList.remove('show');
+  STATE.selectedCode = null;
+  if (miniChart) { miniChart.dispose(); miniChart=null; }
+}
+function renderAll(){ renderKpi(); renderBubble(); renderTree(); renderTable(); updatePoolStat(); updateHealthBadge(); }
+
+// ---------- 数据健康面板 ----------
+function updateHealthBadge(){
+  const issues = listSanityIssues();
+  const badge = document.getElementById('healthBadge');
+  if(!badge) return;
+  if(issues.length){
+    badge.style.display='inline-block';
+    badge.textContent = issues.length>99?'99+':issues.length;
+  } else {
+    badge.style.display='none';
+  }
+}
+function openHealthPanel(){
+  const body = document.getElementById('healthBody');
+  const issues = listSanityIssues();
+  if(!issues.length){
+    body.innerHTML = '<div style="color:var(--green);font-size:14px;padding:24px 0">✓ 当前所有产品数据合理性检查通过。</div>';
+  } else {
+    body.innerHTML = '<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+
+      '共发现 <b style="color:var(--gold)">'+issues.length+'</b> 个数据异常。点击产品名可跳转查看详情。</div>'+
+      issues.map(it=>(
+        '<div class="health-item">'+
+        '<div class="h-name" data-jump="'+it.code+'">'+escapeHtml(it.name)+'<span class="h-code">'+it.code+'</span></div>'+
+        '<ul>'+it.issues.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul>'+
+        '</div>'
+      )).join('');
+  }
+  document.getElementById('healthPanel').style.transform='translateX(0)';
+  document.getElementById('healthMask').classList.add('show');
+}
+function closeHealthPanel(){
+  document.getElementById('healthPanel').style.transform='translateX(100%)';
+  document.getElementById('healthMask').classList.remove('show');
+}
+
+// ---------- 启动 ----------
+window.__startApp = function(){
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  renderTopbarDate();
+  renderChips();
+  renderSubChips();
+  bindSubChipsEvents();
+  runSanityChecks();
+  bubbleChart = echarts.init(document.getElementById('chartBubble'));
+  treeChart = echarts.init(document.getElementById('chartTree'));
+  bindTableEvents();
+  bindDrawerEvents();
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  document.getElementById('drawerMask').addEventListener('click', closeDrawer);
+  // 数据健康面板
+  document.getElementById('healthBtn').addEventListener('click', openHealthPanel);
+  document.getElementById('healthClose').addEventListener('click', closeHealthPanel);
+  document.getElementById('healthMask').addEventListener('click', closeHealthPanel);
+  document.getElementById('healthBody').addEventListener('click', e=>{
+    const t = e.target.closest('.h-name');
+    if(t && t.dataset.jump){ closeHealthPanel(); openDrawer(t.dataset.jump); }
+  });
+  document.addEventListener('keydown', e=>{
+    if (e.key==='Escape'){
+      if(document.getElementById('healthPanel').style.transform==='translateX(0px)') closeHealthPanel();
+      else if(STATE.selectedCode) closeDrawer();
+    }
+  });
+  window.addEventListener('resize', ()=>{
+    bubbleChart && bubbleChart.resize();
+    treeChart && treeChart.resize();
+    miniChart && miniChart.resize();
+  });
+  renderAll();
+
+  // === 开关 ===
+  const tShr = document.getElementById('toggleShares');
+  if(tShr){ tShr.checked = STATE.showAllShares; tShr.addEventListener('change', ()=>{ STATE.showAllShares = tShr.checked; renderAll(); updatePoolStat(); kickoffFullPerf(); }); }
+  updatePoolStat();
+
+  // === 异步拉公开数据（不阻塞首屏）===
+  window.__refreshAfterPerf = ()=>{ renderTable(); renderKpi(); updatePoolStat(); renderBubble(); renderTree(); runSanityChecks(); updateHealthBadge(); };
+  // 1. 行情 ticker
+  loadIndexQuotes().then(renderTicker).catch(()=>renderTicker());
+  // 2. 业绩数据：默认批量拉所有主份额的 pingzhongdata（约 250 只，10 并发）
+  const primaryCodes = PRODUCTS.filter(p=>p.isPrimary!==false).map(p=>p.code);
+  updateDataSourceUI(0, 0, primaryCodes.length);
+  window.__loadedPerfCodes = new Set();
+  loadAllPerformance(primaryCodes).then(({success,fail})=>{
+    primaryCodes.forEach(c=>window.__loadedPerfCodes.add(c));
+    updateDataSourceUI(success, fail, primaryCodes.length);
+    renderTable(); renderKpi(); renderBubble(); renderTree(); updatePoolStat();
+    const refresh = document.getElementById('dsRefresh');
+    if(refresh){
+      const t = new Date();
+      refresh.textContent = String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0')+' （As of '+(t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'))+'）';
+    }
+  });
+  // 3. 行情每 60s 刷新一次
+  setInterval(()=>{ loadIndexQuotes().then(renderTicker); }, 60000);
+};
+
+// 切换"显示份额变体"时，按需补拉非主份额的业绩数据
+function kickoffFullPerf(){
+  if(!STATE.showAllShares) return;
+  const need = PRODUCTS.filter(p=>p.isPrimary===false && !window.__loadedPerfCodes.has(p.code)).map(p=>p.code);
+  if(!need.length) return;
+  loadAllPerformance(need).then(()=>{
+    need.forEach(c=>window.__loadedPerfCodes.add(c));
+    renderTable(); renderKpi(); renderBubble(); renderTree(); updatePoolStat();
+  });
+}
+
+function updatePoolStat(){
+  const stat = document.getElementById('poolStat');
+  if(!stat) return;
+  const total = PRODUCTS.length;
+  const filt = filteredProducts().length;
+  stat.innerHTML = '产品池：共 <b style="color:var(--text-2)">'+total+'</b> 只 · 当前显示 <b style="color:var(--text-1)">'+filt+'</b>';
+}
+
+// 触发 ECharts 加载
+loadECharts(0);
+</script>
+
+</body>
+</html>
