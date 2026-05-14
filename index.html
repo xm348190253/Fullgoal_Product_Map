@@ -1109,6 +1109,12 @@ function runSanityChecks(){
     if(pf.scale!=null && pf.scale < 0) issues.push('规模为负');
     if(pf.y1 != null && (pf.y1 > 300 || pf.y1 < -80)) issues.push('近一年收益超出极端区间 [-80%, 300%]');
     if(pf.d1 != null && Math.abs(pf.d1) > 12) issues.push('昨日涨跌超过 ±12%（疑似数据异常）');
+    // 货币基金兜底：上游加载链已屏蔽，但万一漏过会被这里检测出来
+    if(isMoneyFund(p.code)){
+      if(pf.d1 != null) issues.push('货币基金不应出现昨日涨跌幅');
+      if(pf.w1 != null) issues.push('货币基金不应出现近一周涨跌幅');
+      if(pf.mdd != null) issues.push('货币基金不应计算最大回撤');
+    }
     p._sanityIssues = issues;
   });
 }
@@ -1269,10 +1275,17 @@ function getPerf(p){
     const fs = familyScale(p);
     scale = fs!=null ? fs : (pf.scale!=null ? pf.scale : (p.scale||null));
   }
+  // 货币基金锁死：d1/w1/mdd 不允许回退到 PRODUCTS 静态字段（p.maxDrawdown 初始为 0
+  // 但 deriveAttribution / 旧版本可能填充非零值），统一显示 --
+  const mf = isMoneyFund(p.code);
   return {
-    d1: pf.d1, w1: pf.w1, m1: pf.m1, m3: pf.m3, m6: pf.m6,
+    d1: mf ? null : pf.d1,
+    w1: mf ? null : pf.w1,
+    m1: pf.m1, m3: pf.m3, m6: pf.m6,
     y1: pf.y1!=null ? pf.y1 : (p.annualReturn||null),
-    mdd: pf.mdd!=null ? pf.mdd : (p.maxDrawdown!=null && p.maxDrawdown!==0 ? -Math.abs(p.maxDrawdown) : null),
+    mdd: mf ? null
+       : (pf.mdd!=null ? pf.mdd
+       : (p.maxDrawdown!=null && p.maxDrawdown!==0 ? -Math.abs(p.maxDrawdown) : null)),
     scale
   };
 }
@@ -1697,6 +1710,9 @@ function renderTable(){
     const cls = v>0?'cell-pos':v<0?'cell-neg':'';
     return '<span class="'+cls+'">'+(signed?fmt.signed(v,2):fmt.num(v,2))+'</span>';
   };
+  // 货币基金的 d1/w1 在 pingzhongdata/rankhandler 中都没有"涨跌幅"金融意义，
+  // 统一渲染为 --，避免把"万份收益/七日年化"误读为收益率。
+  const safeCell = (p, key) => isMoneyFund(p.code) ? '<span style="color:var(--text-4)">--</span>' : rCell(DS.perfMap[p.code]?DS.perfMap[p.code][key]:null, true);
   tbody.innerHTML = list.map(p=>{
     const sm = statusInfo(p);
     const pf = DS.perfMap[p.code] || {};
@@ -1717,8 +1733,8 @@ function renderTable(){
       '<td>'+mgrCell+'</td>'+
       '<td><span class="cell-cat-badge" style="color:'+l1Color(p.l1)+';border:1px solid '+l1Color(p.l1)+'40">'+p.l1+'</span></td>'+
       '<td class="num">'+scaleCell+'</td>'+
-      '<td class="num">'+rCell(pf.d1,true)+'</td>'+
-      '<td class="num">'+rCell(pf.w1,true)+'</td>'+
+      '<td class="num">'+safeCell(p,'d1')+'</td>'+
+      '<td class="num">'+safeCell(p,'w1')+'</td>'+
       '<td class="num">'+rCell(pf.m1,true)+'</td>'+
       '<td class="num">'+rCell(pf.y1,true)+'</td>'+
       '<td>'+l3Tag+'</td></tr>';
@@ -1756,6 +1772,8 @@ function tabOverviewHtml(p){
     : '';
 
   // 近期业绩横条（昨日/近一周/近一月/近一年）
+  // 货币基金的 d1/w1 不显示具体数值（rankhandler 返回的是万份收益/七日年化，不是涨跌幅）
+  const mfDrawer = isMoneyFund(p.code);
   const cellPerf = (label, v) => {
     if(v==null||isNaN(v)){
       return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:var(--text-4)">--</div></div>';
@@ -1763,12 +1781,13 @@ function tabOverviewHtml(p){
     const color = v>0?'#FF5C5C':v<0?'#00C853':'var(--text-3)';
     return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:'+color+'">'+(v>=0?'+':'')+v.toFixed(2)+'%</div></div>';
   };
-  const navInfo = (pf.dwjz!=null) ? ('<div style="font-size:11px;color:var(--text-4);margin-top:8px">单位净值 <b style="color:var(--text-2)">'+pf.dwjz.toFixed(4)+'</b> · 净值日期 '+(pf.jzrq||'--')+'</div>') : '';
+  const navInfo = (!mfDrawer && pf.dwjz!=null) ? ('<div style="font-size:11px;color:var(--text-4);margin-top:8px">单位净值 <b style="color:var(--text-2)">'+pf.dwjz.toFixed(4)+'</b> · 净值日期 '+(pf.jzrq||'--')+'</div>') : '';
   const perfBar = '<div class="dr-section" style="background:linear-gradient(135deg,rgba(76,205,196,0.06),transparent);border-left:3px solid var(--teal);padding-left:14px">'+
-    '<div class="dr-section-title">近期业绩 <span class="src-badge live" style="background:rgba(76,205,196,0.15);color:var(--teal)">pingzhongdata</span></div>'+
+    '<div class="dr-section-title">近期业绩 <span class="src-badge live" style="background:rgba(76,205,196,0.15);color:var(--teal)">pingzhongdata</span>'+
+    (mfDrawer?'<span style="margin-left:8px;font-size:11px;color:var(--text-4);font-weight:400">货币基金不展示日/周涨跌幅</span>':'')+'</div>'+
     '<div style="display:flex;gap:28px;flex-wrap:wrap;font-variant-numeric:tabular-nums">'+
-    cellPerf('昨日',     pf.d1)+
-    cellPerf('近一周',   pf.w1)+
+    cellPerf('昨日',     mfDrawer ? null : pf.d1)+
+    cellPerf('近一周',   mfDrawer ? null : pf.w1)+
     cellPerf('近一月',   pf.m1)+
     cellPerf('近一年',   pf.y1)+
     '</div>'+navInfo+'</div>';
@@ -1787,7 +1806,7 @@ function tabOverviewHtml(p){
     '<div class="dr-metric '+mPos(pf.m1)+'"><div class="dr-metric-label">近一月</div><div class="dr-metric-value">'+fmt.signed(pf.m1,2)+'%</div></div>'+
     '<div class="dr-metric '+mPos(pf.m6)+'"><div class="dr-metric-label">近六月</div><div class="dr-metric-value">'+fmt.signed(pf.m6,2)+'%</div></div>'+
     '<div class="dr-metric '+mPos(pf.y1)+'"><div class="dr-metric-label">近一年</div><div class="dr-metric-value">'+fmt.signed(pf.y1,2)+'%</div></div>'+
-    '<div class="dr-metric '+(pf.mdd!=null?'neg':'neutral')+'"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+(pf.mdd!=null?fmt.signed(pf.mdd,2)+'%':'--')+'</div></div>'+
+    '<div class="dr-metric '+(!mfDrawer && pf.mdd!=null?'neg':'neutral')+'"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+(!mfDrawer && pf.mdd!=null?fmt.signed(pf.mdd,2)+'%':'--')+'</div></div>'+
     '</div>'+sanityHtml+'</div>'+
     (effMgr && effMgr!=='-' ? (
       '<div class="dr-section"><div class="dr-section-title">基金经理</div><div class="dr-mgr">'+
