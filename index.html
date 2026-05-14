@@ -755,6 +755,14 @@ const DS = {
   errors: []
 };
 
+// 判断是否货币型基金：货币基金的 pingzhongdata.Data_netWorthTrend 实际是"累计万份收益"序列，
+// rankhandler 返回的 d1/w1 是"万份收益/7日年化"绝对值，都不是真正的"价格波动百分比"。
+// 因此对货币型基金必须跳过这些字段，否则会出现 -47% 回撤 / +6% 周涨幅之类的荒谬数字。
+function isMoneyFund(code){
+  const p = PRODUCTS.find(x=>x.code===code);
+  return !!(p && p.type === '货币型');
+}
+
 function jsonpLoad(url, timeoutMs){
   return new Promise((resolve, reject)=>{
     const s = document.createElement('script');
@@ -799,7 +807,7 @@ async function loadPerformance(code){
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v3:'+code);
+    const cached = localStorage.getItem('zo_perf_v4:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
@@ -813,11 +821,14 @@ async function loadPerformance(code){
   // 一次失败后重试 1 次（pingzhongdata 偶发限流，单次重试可显著提高完整率）
   if(!raw){ await new Promise(r=>setTimeout(r, 300)); raw = await loadPingzhong(code); }
   if(!raw) return null;
+  // 货币基金的 Data_netWorthTrend 实际是累计万份收益序列（如 2.6929），不是可比价格，
+  // 用比例法算"日涨跌幅 / 周涨跌幅 / 最大回撤"完全没有金融意义，必须屏蔽。
+  const mf = isMoneyFund(code);
   const trend = (raw.Data_netWorthTrend||[]).map(x=>x.y);
   // 昨日收益率：trend 末两点之差（pingzhongdata 末点 = 最新交易日单位净值）
-  const d1 = trend.length>=2 ? +((trend[trend.length-1]/trend[trend.length-2]-1)*100).toFixed(2) : null;
+  const d1 = mf ? null : (trend.length>=2 ? +((trend[trend.length-1]/trend[trend.length-2]-1)*100).toFixed(2) : null);
   // 近一周（5 交易日）
-  const w1 = trend.length>=6 ? +((trend[trend.length-1]/trend[trend.length-6]-1)*100).toFixed(2) : null;
+  const w1 = mf ? null : (trend.length>=6 ? +((trend[trend.length-1]/trend[trend.length-6]-1)*100).toFixed(2) : null);
   const m1 = parseFloat(raw.syl_1y); // pingzhongdata 命名：syl_1y = 近一月
   const m3 = parseFloat(raw.syl_3y); // syl_3y = 近三月
   const m6 = parseFloat(raw.syl_6y); // syl_6y = 近六月
@@ -836,8 +847,10 @@ async function loadPerformance(code){
   const jzrqStr = jzrq ? jzrq.getFullYear()+'-'+String(jzrq.getMonth()+1).padStart(2,'0')+'-'+String(jzrq.getDate()).padStart(2,'0') : null;
 
   // 最大回撤（基于全部历史净值序列计算）—— 风险收益矩阵的 X 轴
+  // 货币基金的"净值序列"是累计值，永远单调上升，按比例法算 mdd ≈ 0，但截图里 -47% 的怪值
+  // 来自 rankhandler/缓存或之前版本的累计值算法。货币基金本就不报告 mdd，直接屏蔽。
   let mdd = null;
-  if(raw.Data_netWorthTrend && Array.isArray(raw.Data_netWorthTrend) && raw.Data_netWorthTrend.length > 1){
+  if(!mf && raw.Data_netWorthTrend && Array.isArray(raw.Data_netWorthTrend) && raw.Data_netWorthTrend.length > 1){
     const t = raw.Data_netWorthTrend;
     let peak = t[0].y, worst = 0;
     for(let i=1;i<t.length;i++){
@@ -850,21 +863,22 @@ async function loadPerformance(code){
   }
 
   // 合并：保留 rankhandler 已经填好的字段，pingzhongdata 仅补缺失的 scale/manager 以及更精确的 d1/w1
+  // 货币基金对 d1/w1/mdd/dwjz 直接锁定为 null，避免被 rankhandler 旧值或缓存覆盖回错值。
   const prev = DS.perfMap[code] || {};
   DS.perfMap[code] = {
-    d1: (d1!=null)?d1:prev.d1,
-    w1: (w1!=null)?w1:prev.w1,
+    d1: mf ? null : ((d1!=null)?d1:prev.d1),
+    w1: mf ? null : ((w1!=null)?w1:prev.w1),
     m1: isNaN(m1)?prev.m1:m1,
     m3: isNaN(m3)?prev.m3:m3,
     m6: isNaN(m6)?prev.m6:m6,
     y1: isNaN(y1)?prev.y1:y1,
-    mdd: mdd!=null?mdd:prev.mdd,
+    mdd: mf ? null : (mdd!=null?mdd:prev.mdd),
     scale: isNaN(scale)?prev.scale:scale,
     manager: mgr || prev.manager || null,
-    dwjz: (lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null),
+    dwjz: mf ? null : ((lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null)),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v3:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('zo_perf_v4:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
@@ -877,7 +891,7 @@ async function loadPerformance(code){
 function loadBatchRank(){
   // localStorage 短缓存（30 分钟）：避免短时间反复刷
   try{
-    const cached = localStorage.getItem('zo_rank_v1');
+    const cached = localStorage.getItem('zo_rank_v2');
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t)<30*60*1000 && obj.map){
@@ -926,9 +940,15 @@ function loadBatchRank(){
           const num = i => { const v = parseFloat(f[i]); return isNaN(v)?null:v; };
           // rankhandler 字段顺序：0=code,1=name,2=pinyin,3=date,4=unit_nav,5=acc_nav,
           //                       6=日,7=近1周,8=近1月,9=近3月,10=近6月,11=近1年,12=近2年,13=近3年,14=今年来
+          const mf = isMoneyFund(code);
+          // 货币基金的 d1/w1 = 万份收益 / 7 日年化（绝对值，单位"元"或"%"），不是日涨跌幅；
+          // 单位净值固定 1.0000，rankhandler 给的 unit_nav 对货币基金是累计值，会误导，全部置 null。
           const rec = {
-            d1: num(6), w1: num(7), m1: num(8), m3: num(9), m6: num(10), y1: num(11),
-            dwjz: num(4), jzrq: f[3]||null
+            d1: mf ? null : num(6),
+            w1: mf ? null : num(7),
+            m1: num(8), m3: num(9), m6: num(10), y1: num(11),
+            dwjz: mf ? null : num(4),
+            jzrq: f[3]||null
           };
           const prev = DS.perfMap[code]||{};
           DS.perfMap[code] = {
@@ -947,7 +967,7 @@ function loadBatchRank(){
           count++;
         });
         try{ delete window.rankData; }catch(_){}
-        try{ localStorage.setItem('zo_rank_v1', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
+        try{ localStorage.setItem('zo_rank_v2', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
         resolve(count);
       } catch(e){ resolve(0); }
     }).catch(()=>resolve(0));
