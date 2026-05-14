@@ -465,8 +465,8 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
           <th data-sort="manager">基金经理</th>
           <th data-sort="l1">投资类型</th>
           <th data-sort="scale" class="num">规模(亿)</th>
-          <th data-sort="d1" class="num" title="昨日单位净值涨跌（来自天天基金 pingzhongdata）">昨日(%)</th>
-          <th data-sort="w1" class="num" title="近 5 个交易日涨跌（来自 pingzhongdata 净值序列计算）">近一周(%)</th>
+          <th data-sort="d1" class="num" title="非货币基金：昨日单位净值涨跌(%)；货币基金：每万份收益(元)">昨日表现</th>
+          <th data-sort="w1" class="num" title="非货币基金：近 5 个交易日涨跌(%)；货币基金：七日年化收益率(%)">近期表现</th>
           <th data-sort="m1" class="num" title="近一月收益率（pingzhongdata · syl_1y）">近一月(%)</th>
           <th data-sort="y1" class="num" title="近一年收益率（pingzhongdata · syl_1n）">近一年(%)</th>
           <th data-sort="l3">三级细分</th>
@@ -862,7 +862,7 @@ async function loadPerformance(code){
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v4:'+code);
+    const cached = localStorage.getItem('zo_perf_v5:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
@@ -917,12 +917,30 @@ async function loadPerformance(code){
     mdd = +worst.toFixed(2); // 负值，例如 -15.32
   }
 
+  // 货币基金专属：每万份收益（wfsy，单位元）+ 七日年化（qrnh，单位%）
+  // pingzhongdata 字段：Data_millionCopiesIncome=[[ts,wfsy],...]，Data_sevenDaysYearIncome=[[ts,qrnh],...]
+  let wfsy = null, qrnh = null;
+  if(mf){
+    const mci = raw.Data_millionCopiesIncome;
+    if(Array.isArray(mci) && mci.length){
+      const last = mci[mci.length-1];
+      if(Array.isArray(last) && last.length>=2 && isFinite(+last[1])) wfsy = +(+last[1]).toFixed(4);
+    }
+    const sdy = raw.Data_sevenDaysYearIncome;
+    if(Array.isArray(sdy) && sdy.length){
+      const last = sdy[sdy.length-1];
+      if(Array.isArray(last) && last.length>=2 && isFinite(+last[1])) qrnh = +(+last[1]).toFixed(3);
+    }
+  }
+
   // 合并：保留 rankhandler 已经填好的字段，pingzhongdata 仅补缺失的 scale/manager 以及更精确的 d1/w1
   // 货币基金对 d1/w1/mdd/dwjz 直接锁定为 null，避免被 rankhandler 旧值或缓存覆盖回错值。
   const prev = DS.perfMap[code] || {};
   DS.perfMap[code] = {
     d1: mf ? null : ((d1!=null)?d1:prev.d1),
     w1: mf ? null : ((w1!=null)?w1:prev.w1),
+    wfsy: mf ? (wfsy!=null?wfsy:(prev.wfsy||null)) : null,
+    qrnh: mf ? (qrnh!=null?qrnh:(prev.qrnh||null)) : null,
     m1: isNaN(m1)?prev.m1:m1,
     m3: isNaN(m3)?prev.m3:m3,
     m6: isNaN(m6)?prev.m6:m6,
@@ -933,7 +951,7 @@ async function loadPerformance(code){
     dwjz: mf ? null : ((lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null)),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v4:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('zo_perf_v5:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
@@ -946,7 +964,7 @@ async function loadPerformance(code){
 function loadBatchRank(){
   // localStorage 短缓存（30 分钟）：避免短时间反复刷
   try{
-    const cached = localStorage.getItem('zo_rank_v2');
+    const cached = localStorage.getItem('zo_rank_v3');
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t)<30*60*1000 && obj.map){
@@ -958,6 +976,8 @@ function loadBatchRank(){
           DS.perfMap[code] = {
             d1: prev.d1!=null?prev.d1:cv.d1,
             w1: prev.w1!=null?prev.w1:cv.w1,
+            wfsy: prev.wfsy!=null?prev.wfsy:(cv.wfsy||null),
+            qrnh: prev.qrnh!=null?prev.qrnh:(cv.qrnh||null),
             m1: prev.m1!=null?prev.m1:cv.m1,
             m3: prev.m3!=null?prev.m3:cv.m3,
             m6: prev.m6!=null?prev.m6:cv.m6,
@@ -996,19 +1016,26 @@ function loadBatchRank(){
           // rankhandler 字段顺序：0=code,1=name,2=pinyin,3=date,4=unit_nav,5=acc_nav,
           //                       6=日,7=近1周,8=近1月,9=近3月,10=近6月,11=近1年,12=近2年,13=近3年,14=今年来
           const mf = isMoneyFund(code);
-          // 货币基金的 d1/w1 = 万份收益 / 7 日年化（绝对值，单位"元"或"%"），不是日涨跌幅；
-          // 单位净值固定 1.0000，rankhandler 给的 unit_nav 对货币基金是累计值，会误导，全部置 null。
-          const rec = {
-            d1: mf ? null : num(6),
-            w1: mf ? null : num(7),
+          // 货币基金口径：rankhandler 的 f[6] 实际是"每万份收益"(元)，f[7] 是"七日年化"(%)，
+          // 不是涨跌幅。分别存到 wfsy/qrnh 专属字段，d1/w1 仍置 null（语义不同不混用）。
+          // 单位净值固定 1.0000，rankhandler 给的 unit_nav 对货币基金是累计值，不展示。
+          const rec = mf ? {
+            d1: null, w1: null,
+            wfsy: num(6), qrnh: num(7),
             m1: num(8), m3: num(9), m6: num(10), y1: num(11),
-            dwjz: mf ? null : num(4),
-            jzrq: f[3]||null
+            dwjz: null, jzrq: f[3]||null
+          } : {
+            d1: num(6), w1: num(7),
+            wfsy: null, qrnh: null,
+            m1: num(8), m3: num(9), m6: num(10), y1: num(11),
+            dwjz: num(4), jzrq: f[3]||null
           };
           const prev = DS.perfMap[code]||{};
           DS.perfMap[code] = {
             d1: rec.d1!=null?rec.d1:prev.d1,
             w1: rec.w1!=null?rec.w1:prev.w1,
+            wfsy: rec.wfsy!=null?rec.wfsy:(prev.wfsy||null),
+            qrnh: rec.qrnh!=null?rec.qrnh:(prev.qrnh||null),
             m1: rec.m1!=null?rec.m1:prev.m1,
             m3: rec.m3!=null?rec.m3:prev.m3,
             m6: rec.m6!=null?rec.m6:prev.m6,
@@ -1022,7 +1049,7 @@ function loadBatchRank(){
           count++;
         });
         try{ delete window.rankData; }catch(_){}
-        try{ localStorage.setItem('zo_rank_v2', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
+        try{ localStorage.setItem('zo_rank_v3', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
         resolve(count);
       } catch(e){ resolve(0); }
     }).catch(()=>resolve(0));
@@ -1767,9 +1794,20 @@ function renderTable(){
     const cls = v>0?'cell-pos':v<0?'cell-neg':'';
     return '<span class="'+cls+'">'+(signed?fmt.signed(v,2):fmt.num(v,2))+'</span>';
   };
-  // 货币基金的 d1/w1 在 pingzhongdata/rankhandler 中都没有"涨跌幅"金融意义，
-  // 统一渲染为 --，避免把"万份收益/七日年化"误读为收益率。
-  const safeCell = (p, key) => isMoneyFund(p.code) ? '<span style="color:var(--text-4)">--</span>' : rCell(DS.perfMap[p.code]?DS.perfMap[p.code][key]:null, true);
+  // 货币基金按官方披露口径展示：昨日列 = 每万份收益(元，wfsy)，近期列 = 七日年化(%，qrnh)
+  // 非货币基金保持原口径：昨日列 = d1(%)，近期列 = w1(%)
+  const mfCell = (label, v, unit) => {
+    if(v==null||isNaN(v)) return '<span style="color:var(--text-4)">--</span>';
+    return '<span style="color:#9DB2D0" title="'+label+'">'+(v>=0?'':'')+v.toFixed(unit==='元'?4:3)+' '+unit+'</span>';
+  };
+  const safeCell = (p, key) => {
+    const pf = DS.perfMap[p.code] || {};
+    if(isMoneyFund(p.code)){
+      if(key==='d1') return mfCell('每万份收益', pf.wfsy, '元');
+      if(key==='w1') return mfCell('七日年化', pf.qrnh, '%');
+    }
+    return rCell(pf[key], true);
+  };
   tbody.innerHTML = list.map(p=>{
     const sm = statusInfo(p);
     const pf = DS.perfMap[p.code] || {};
@@ -1828,8 +1866,9 @@ function tabOverviewHtml(p){
     ? '<div class="flag-list" style="margin-top:8px"><div class="flag-item warn"><div class="flag-icon">!</div><div><b>数据合理性自检：</b>'+p._sanityIssues.join('；')+'</div></div></div>'
     : '';
 
-  // 近期业绩横条（昨日/近一周/近一月/近一年）
-  // 货币基金的 d1/w1 不显示具体数值（rankhandler 返回的是万份收益/七日年化，不是涨跌幅）
+  // 近期业绩横条
+  // 货币基金口径：每万份收益(元) / 七日年化(%) / 近一月 / 近一年
+  // 权益类口径：昨日(%) / 近一周(%) / 近一月(%) / 近一年(%)
   const mfDrawer = isMoneyFund(p.code);
   const cellPerf = (label, v) => {
     if(v==null||isNaN(v)){
@@ -1838,15 +1877,29 @@ function tabOverviewHtml(p){
     const color = v>0?'#FF5C5C':v<0?'#00C853':'var(--text-3)';
     return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:'+color+'">'+(v>=0?'+':'')+v.toFixed(2)+'%</div></div>';
   };
-  const navInfo = (!mfDrawer && pf.dwjz!=null) ? ('<div style="font-size:11px;color:var(--text-4);margin-top:8px">单位净值 <b style="color:var(--text-2)">'+pf.dwjz.toFixed(4)+'</b> · 净值日期 '+(pf.jzrq||'--')+'</div>') : '';
+  // 货币基金专属字段（万份收益、七日年化）—— 数值正负不再用红绿，统一显示青色
+  const cellMfMetric = (label, v, unit, digits) => {
+    if(v==null||isNaN(v)){
+      return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:var(--text-4)">--</div></div>';
+    }
+    return '<div><div style="font-size:11px;color:var(--text-3)">'+label+'</div><div style="font-size:20px;font-weight:600;color:var(--teal)">'+v.toFixed(digits)+' <span style="font-size:12px;font-weight:500">'+unit+'</span></div></div>';
+  };
+  const navInfo = (!mfDrawer && pf.dwjz!=null)
+    ? ('<div style="font-size:11px;color:var(--text-4);margin-top:8px">单位净值 <b style="color:var(--text-2)">'+pf.dwjz.toFixed(4)+'</b> · 净值日期 '+(pf.jzrq||'--')+'</div>')
+    : (mfDrawer && pf.jzrq ? ('<div style="font-size:11px;color:var(--text-4);margin-top:8px">单位净值 <b style="color:var(--text-2)">1.0000</b>（货币基金恒定） · 数据日期 '+pf.jzrq+'</div>') : '');
   const perfBar = '<div class="dr-section" style="background:linear-gradient(135deg,rgba(76,205,196,0.06),transparent);border-left:3px solid var(--teal);padding-left:14px">'+
     '<div class="dr-section-title">近期业绩 <span class="src-badge live" style="background:rgba(76,205,196,0.15);color:var(--teal)">pingzhongdata</span>'+
-    (mfDrawer?'<span style="margin-left:8px;font-size:11px;color:var(--text-4);font-weight:400">货币基金不展示日/周涨跌幅</span>':'')+'</div>'+
+    (mfDrawer?'<span style="margin-left:8px;font-size:11px;color:var(--text-4);font-weight:400">货币基金口径</span>':'')+'</div>'+
     '<div style="display:flex;gap:28px;flex-wrap:wrap;font-variant-numeric:tabular-nums">'+
-    cellPerf('昨日',     mfDrawer ? null : pf.d1)+
-    cellPerf('近一周',   mfDrawer ? null : pf.w1)+
-    cellPerf('近一月',   pf.m1)+
-    cellPerf('近一年',   pf.y1)+
+    (mfDrawer
+      ? (cellMfMetric('每万份收益', pf.wfsy, '元', 4)+
+         cellMfMetric('七日年化',   pf.qrnh, '%', 3)+
+         cellPerf('近一月',   pf.m1)+
+         cellPerf('近一年',   pf.y1))
+      : (cellPerf('昨日',     pf.d1)+
+         cellPerf('近一周',   pf.w1)+
+         cellPerf('近一月',   pf.m1)+
+         cellPerf('近一年',   pf.y1)))+
     '</div>'+navInfo+'</div>';
 
   // 近期动态时间线（最多 5 条）
@@ -1863,7 +1916,9 @@ function tabOverviewHtml(p){
     '<div class="dr-metric '+mPos(pf.m1)+'"><div class="dr-metric-label">近一月</div><div class="dr-metric-value">'+fmt.signed(pf.m1,2)+'%</div></div>'+
     '<div class="dr-metric '+mPos(pf.m6)+'"><div class="dr-metric-label">近六月</div><div class="dr-metric-value">'+fmt.signed(pf.m6,2)+'%</div></div>'+
     '<div class="dr-metric '+mPos(pf.y1)+'"><div class="dr-metric-label">近一年</div><div class="dr-metric-value">'+fmt.signed(pf.y1,2)+'%</div></div>'+
-    '<div class="dr-metric '+(!mfDrawer && pf.mdd!=null?'neg':'neutral')+'"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+(!mfDrawer && pf.mdd!=null?fmt.signed(pf.mdd,2)+'%':'--')+'</div></div>'+
+    (mfDrawer
+      ? '<div class="dr-metric neutral" style="color:var(--teal)"><div class="dr-metric-label">每万份收益</div><div class="dr-metric-value" style="color:var(--teal)">'+(pf.wfsy!=null?pf.wfsy.toFixed(4)+' 元':'--')+'</div></div>'
+      : '<div class="dr-metric '+(pf.mdd!=null?'neg':'neutral')+'"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+(pf.mdd!=null?fmt.signed(pf.mdd,2)+'%':'--')+'</div></div>')+
     '</div>'+sanityHtml+'</div>'+
     (effMgr && effMgr!=='-' ? (
       '<div class="dr-section"><div class="dr-section-title">基金经理</div><div class="dr-mgr">'+
