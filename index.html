@@ -385,7 +385,7 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
     <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生指数</span><span class="ticker-item-val">--</span></span>
     <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证转债</span><span class="ticker-item-val">--</span></span>
   </div>
-  <div class="ticker-tail" id="tickerTail">市场指数 · 腾讯财经 qt.gtimg.cn</div>
+  <div class="ticker-tail" id="tickerTail">市场指数 · 东方财富 push2.eastmoney.com</div>
 </div>
 
 <nav class="chip-bar" id="chipBar">
@@ -497,12 +497,12 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
   <div style="margin-bottom:6px"><b>数据来源声明（全部基于外部公开数据）</b></div>
   <div>· <b>近期业绩 / 单位净值 / 规模 / 基金经理</b>：天天基金 <code>pingzhongdata</code> 公开数据集（昨日/近一周由净值序列计算；近一月/三月/六月/一年取 <code>syl_*</code>）</div>
   <div>· <b>投资类型三级分类</b>：天天基金（东方财富）官方 <code>type</code> 字段（如"混合型-偏股"、"债券型-长债"），等同晨星标准三级口径</div>
-  <div>· <b>市场指数行情</b>：腾讯财经 <code>qt.gtimg.cn</code></div>
+  <div>· <b>市场指数行情</b>：东方财富 <code>push2.eastmoney.com</code>（与天天基金同源，天天基金首页指数 ticker 即用此接口）</div>
   <div style="margin-top:8px;color:var(--text-4)">公开接口可能因第三方限流偶发失败，未拉到业绩的产品对应字段显示 <code>--</code>；最终业绩以中欧基金官网披露为准。</div>
 </div>
 
 <footer class="footer">
-  <div>中欧基金产品全景 · 数据全部来自天天基金 / 腾讯财经公开接口 · 业绩以官方披露为准</div>
+  <div>中欧基金产品全景 · 数据全部来自天天基金 / 东方财富公开接口 · 业绩以官方披露为准</div>
 </footer>
 
 <!-- 中欧基金 503 只产品池（来自天天基金 fundcode_search.js 离线提取，window.ZO_FUND_POOL）-->
@@ -744,14 +744,14 @@ const STATE = { l1:'ALL', l2:'ALL', l3:'ALL', showAllShares:false, sortKey:'scal
 let bubbleChart=null, treeChart=null, miniChart=null, compareChart=null, radarChart=null;
 
 // ============================================================
-// 数据源状态机：pingzhongdata（业绩/规模/经理）+ 腾讯指数行情
+// 数据源状态机：pingzhongdata（业绩/规模/经理）+ 东方财富 push2（指数行情，与天天基金同源）
 // ============================================================
 const DS = {
   status: 'init',          // init | loading | live | partial | fail
   lastRefresh: null,
   perfMap: {},             // code -> { d1, w1, m1, m3, m6, y1, scale, manager, jzrq, dwjz }
   pingzhongCache: {},      // code -> 解析后的 pingzhongdata 对象
-  indexQuotes: [],         // 腾讯指数行情
+  indexQuotes: [],         // 东方财富 push2 指数行情
   errors: []
 };
 
@@ -1014,38 +1014,46 @@ async function loadAllPerformance(codes){
   return { success: ok, fail };
 }
 
-// ③ 指数行情：腾讯 qt.gtimg.cn 老 jsonp 接口
-//    返回形如  v_sh000300="1~沪深300~000300~3845.21~..."; 字符串
+// ③ 指数行情：东方财富 push2 接口（与天天基金同源，天天基金首页指数 ticker 用的就是这个）
+//    URL: https://push2.eastmoney.com/api/qt/ulist.np/get?secids=...&fields=...&cb=jsonp_xxx
+//    返回: jsonp_xxx({"rc":0,"data":{"diff":[{f2,f3,f4,f12,f14},...]}})
+//    secid 前缀：1=上交所，0=深交所，100=港股 / 海外指数
+//    字段：f2=最新价，f3=涨跌幅%，f4=涨跌额，f12=代码，f14=名称（fltt=2 表示数值已按 2 位小数缩放）
 function loadIndexQuotes(){
   const symbols = [
-    {key:'sh000300', name:'沪深300'},
-    {key:'sh000905', name:'中证500'},
-    {key:'sz399006', name:'创业板指'},
-    {key:'sh000922', name:'中证红利'},
-    {key:'hkHSI',    name:'恒生指数'},
-    {key:'sh000832', name:'中证转债'}
+    {secid:'1.000300', name:'沪深300'},
+    {secid:'1.000905', name:'中证500'},
+    {secid:'0.399006', name:'创业板指'},
+    {secid:'1.000922', name:'中证红利'},
+    {secid:'100.HSI',  name:'恒生指数'},
+    {secid:'1.000832', name:'中证转债'}
   ];
   return new Promise(resolve=>{
-    const url = 'https://qt.gtimg.cn/q='+symbols.map(s=>s.key).join(',');
-    // qt.gtimg.cn 直接写 v_xxx="..." 全局变量
-    jsonpLoad(url, 5000).then(()=>{
-      const out = symbols.map(s=>{
-        const raw = window['v_'+s.key];
-        if(!raw){ return { name:s.name, val:null, chg:null, pct:null }; }
-        const parts = String(raw).split('~');
-        // 参考腾讯字段：parts[3]=现价, parts[31]=涨跌, parts[32]=涨跌幅%
-        // 港股字段顺序略不同：parts[3]=现价, parts[7]=涨跌, parts[8]=涨跌幅
-        let val = parseFloat(parts[3]);
-        let chg = parseFloat(parts[31]);
-        let pct = parseFloat(parts[32]);
-        if(s.key.startsWith('hk')){ chg = parseFloat(parts[7]); pct = parseFloat(parts[8]); }
-        return { name:s.name, val:isNaN(val)?null:val, chg:isNaN(chg)?null:chg, pct:isNaN(pct)?null:pct };
-      });
-      // 清理全局
-      symbols.forEach(s=>{ try{ delete window['v_'+s.key]; }catch(_){} });
-      DS.indexQuotes = out;
-      resolve(out);
-    }).catch(()=>{ DS.indexQuotes=[]; resolve([]); });
+    const cbName = 'jsonp_idx_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+    const url = 'https://push2.eastmoney.com/api/qt/ulist.np/get'
+      + '?fltt=2&invt=2&fields=f2,f3,f4,f12,f14'
+      + '&secids='+symbols.map(s=>s.secid).join(',')
+      + '&cb='+cbName+'&_='+Date.now();
+    let done = false;
+    const finish = (out)=>{ if(done) return; done=true; DS.indexQuotes = out; try{ delete window[cbName]; }catch(_){} resolve(out); };
+    window[cbName] = function(resp){
+      try{
+        const diff = resp && resp.data && resp.data.diff;
+        if(!Array.isArray(diff)){ finish(symbols.map(s=>({name:s.name,val:null,chg:null,pct:null}))); return; }
+        // 按代码回查，保持 ticker 显示顺序与 symbols 一致
+        const byCode = {};
+        diff.forEach(it=>{ if(it && it.f12!=null) byCode[String(it.f12)] = it; });
+        const out = symbols.map(s=>{
+          const code = s.secid.split('.')[1];
+          const it = byCode[code];
+          if(!it){ return { name:s.name, val:null, chg:null, pct:null }; }
+          const val = parseFloat(it.f2), pct = parseFloat(it.f3), chg = parseFloat(it.f4);
+          return { name:s.name, val:isNaN(val)?null:val, chg:isNaN(chg)?null:chg, pct:isNaN(pct)?null:pct };
+        });
+        finish(out);
+      }catch(_){ finish(symbols.map(s=>({name:s.name,val:null,chg:null,pct:null}))); }
+    };
+    jsonpLoad(url, 5000).catch(()=>finish(symbols.map(s=>({name:s.name,val:null,chg:null,pct:null}))));
   });
 }
 
@@ -1066,7 +1074,7 @@ function renderTicker(){
       '<span class="ticker-item-chg">'+sign+q.pct.toFixed(2)+'%</span></span>';
   }).join('');
   const t = new Date();
-  document.getElementById('tickerTail').textContent = '腾讯财经接口 · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
+  document.getElementById('tickerTail').textContent = '东方财富 push2 · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
 }
 
 function updateDataSourceUI(success, fail, total){
