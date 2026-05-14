@@ -439,7 +439,7 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
   <div class="panel panel-bubble">
     <div class="panel-header">
       <div class="panel-title">风险收益矩阵</div>
-      <div class="panel-hint">X = 近一月收益 &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 规模 &nbsp;·&nbsp; 颜色 = 投资大类</div>
+      <div class="panel-hint">X = 最大回撤(回撤越浅越右) &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 合并规模 &nbsp;·&nbsp; 颜色 = 投资大类</div>
     </div>
     <div id="chartBubble" class="chart-box"></div>
   </div>
@@ -799,7 +799,7 @@ async function loadPerformance(code){
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v2:'+code);
+    const cached = localStorage.getItem('zo_perf_v3:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
@@ -835,6 +835,20 @@ async function loadPerformance(code){
   const jzrq = lastNav && lastNav.x ? new Date(lastNav.x) : null;
   const jzrqStr = jzrq ? jzrq.getFullYear()+'-'+String(jzrq.getMonth()+1).padStart(2,'0')+'-'+String(jzrq.getDate()).padStart(2,'0') : null;
 
+  // 最大回撤（基于全部历史净值序列计算）—— 风险收益矩阵的 X 轴
+  let mdd = null;
+  if(raw.Data_netWorthTrend && Array.isArray(raw.Data_netWorthTrend) && raw.Data_netWorthTrend.length > 1){
+    const t = raw.Data_netWorthTrend;
+    let peak = t[0].y, worst = 0;
+    for(let i=1;i<t.length;i++){
+      const y = +t[i].y; if(!isFinite(y)) continue;
+      if(y>peak) peak = y;
+      const dd = (y/peak - 1) * 100;
+      if(dd < worst) worst = dd;
+    }
+    mdd = +worst.toFixed(2); // 负值，例如 -15.32
+  }
+
   // 合并：保留 rankhandler 已经填好的字段，pingzhongdata 仅补缺失的 scale/manager 以及更精确的 d1/w1
   const prev = DS.perfMap[code] || {};
   DS.perfMap[code] = {
@@ -844,12 +858,13 @@ async function loadPerformance(code){
     m3: isNaN(m3)?prev.m3:m3,
     m6: isNaN(m6)?prev.m6:m6,
     y1: isNaN(y1)?prev.y1:y1,
+    mdd: mdd!=null?mdd:prev.mdd,
     scale: isNaN(scale)?prev.scale:scale,
     manager: mgr || prev.manager || null,
     dwjz: (lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v2:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('zo_perf_v3:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
@@ -1229,6 +1244,7 @@ function getPerf(p){
   return {
     d1: pf.d1, w1: pf.w1, m1: pf.m1, m3: pf.m3, m6: pf.m6,
     y1: pf.y1!=null ? pf.y1 : (p.annualReturn||null),
+    mdd: pf.mdd!=null ? pf.mdd : (p.maxDrawdown!=null && p.maxDrawdown!==0 ? -Math.abs(p.maxDrawdown) : null),
     scale
   };
 }
@@ -1414,32 +1430,32 @@ function renderKpi(){
 
 function bubbleSize(s){ return s>0 ? (10 + Math.sqrt(s)*2.0) : 8; }
 function renderBubble(){
-  // X = 近一月、Y = 近一年（均来自 pingzhongdata 公开数据），气泡大小 = 规模（缺规模给固定小气泡）
+  // 风险收益矩阵：X = 最大回撤(负值，越靠右回撤越浅)，Y = 近一年收益。"右上方"即低回撤+高收益=最优。
+  // 气泡大小 = 家族合并规模；颜色 = 投资大类
   const data = filteredProducts().map(p=>{
     const pf = DS.perfMap[p.code]||{};
-    const scale = getPerf(p).scale || 0;
-    const y1 = pf.y1!=null?pf.y1:null;
-    const m1 = pf.m1!=null?pf.m1:null;
-    return { p, scale: scale||0, y1, m1, mgr: pf.manager||p.manager };
-  }).filter(x=>x.y1!=null && x.m1!=null);
+    const gp = getPerf(p);
+    return { p, scale: gp.scale||0, y1: gp.y1, mdd: gp.mdd, mgr: pf.manager||p.manager };
+  }).filter(x=>x.y1!=null && x.mdd!=null);
 
   const ys = data.map(x=>x.y1).sort((a,b)=>a-b);
-  const ms = data.map(x=>x.m1).sort((a,b)=>a-b);
+  const xs = data.map(x=>x.mdd).sort((a,b)=>a-b);
   const p95y = ys.length ? ys[Math.floor(ys.length*0.95)] : 30;
   const p05y = ys.length ? ys[Math.floor(ys.length*0.05)] : -10;
-  const p95m = ms.length ? ms[Math.floor(ms.length*0.95)] : 10;
-  const p05m = ms.length ? ms[Math.floor(ms.length*0.05)] : -5;
-  const yMax = Math.min(80, Math.max(25, Math.ceil(p95y/5)*5 + 5));
-  const yMin = Math.max(-30, Math.min(-5, Math.floor(p05y/5)*5));
-  const xMax = Math.min(30, Math.max(8, Math.ceil(p95m/2)*2 + 2));
-  const xMin = Math.max(-15, Math.min(-3, Math.floor(p05m/2)*2));
+  const p05x = xs.length ? xs[Math.floor(xs.length*0.05)] : -30;  // 最深回撤
+  const yMax = Math.min(120, Math.max(25, Math.ceil(p95y/5)*5 + 5));
+  const yMin = Math.max(-40, Math.min(-5, Math.floor(p05y/5)*5));
+  // X 轴：最大回撤是负值。xMin 取观测下限再外扩 5；xMax 留 2 余量到 0 附近，让"右=回撤浅"直观可见。
+  const xMin = Math.min(-5, Math.floor(p05x/5)*5 - 2);
+  const xMax = 2;
 
   const series = INVEST_HIERARCHY.map(h=>{
     const items = data.filter(x=>x.p.l1===h.l1).map(x=>{
       const isLimit = x.p.status.code !== 'open';
       return {
         name: x.p.name,
-        value: [x.m1, x.y1, x.scale, x.p.code, x.mgr, x.p.status.code, x.p.l1, x.p.l2, x.p.l3],
+        // value: [x, y, scale, code, mgr, status, l1, l2, l3]
+        value: [x.mdd, x.y1, x.scale, x.p.code, x.mgr, x.p.status.code, x.p.l1, x.p.l2, x.p.l3],
         symbolSize: bubbleSize(x.scale),
         itemStyle: {
           borderColor: isLimit ? STATUS_META[x.p.status.code].color : 'rgba(255,255,255,0.15)',
@@ -1452,27 +1468,33 @@ function renderBubble(){
 
   bubbleChart.setOption({
     backgroundColor:'transparent',
-    grid:{ left:56, right:22, top:24, bottom:50, containLabel:true },
+    grid:{ left:56, right:30, top:36, bottom:64, containLabel:true },
     legend:{ bottom:4, left:'center', itemWidth:10, itemHeight:10, textStyle:{color:'#B4BAC8',fontSize:12}, icon:'circle' },
-    xAxis:{ type:'value', name:'近一月收益 →', nameLocation:'middle', nameGap:32,
+    // X 轴：最大回撤（负值），数值由左到右递增（更接近 0 = 回撤更浅 = 更好）
+    xAxis:{ type:'value', name:'最大回撤(%)  回撤越浅 →', nameLocation:'middle', nameGap:38,
       nameTextStyle:{color:'#7A8294',fontSize:11},
-      axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
-      splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:xMin, max:xMax },
-    yAxis:{ type:'value', name:'↑ 近一年收益', nameTextStyle:{color:'#7A8294',fontSize:11,padding:[0,0,0,-30]},
+      axisLine:{lineStyle:{color:'#232B3F'}},
+      axisLabel:{color:'#7A8294', formatter:v=> v.toFixed(0)+'%'},
+      splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}},
+      min:xMin, max:xMax },
+    yAxis:{ type:'value', name:'↑ 近一年收益(%)', nameTextStyle:{color:'#7A8294',fontSize:11,padding:[0,0,0,-30]},
       axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
       splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:yMin, max:yMax },
+    // 四象限提示：右上 = 收益高且回撤浅 = 最优
+    graphic: [
+      { type:'text', right:30, top:8, style:{ text:'★ 右上方 = 高收益 + 低回撤 = 最优', fill:'#FFB800', fontSize:11, fontWeight:600 } }
+    ],
     tooltip:{ backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', borderWidth:1,
       textStyle:{color:'#E5E7EB',fontSize:12}, padding:12,
-      formatter: p=>{
-        const [m1,y1,sc,code,mgr,statusCode,l1,l2,l3]=p.value;
-        const sm = STATUS_META[statusCode];
-        return '<div style="font-weight:600;margin-bottom:4px">'+p.name+
+      formatter: pt=>{
+        const [mdd,y1,sc,code,mgr,statusCode,l1,l2,l3]=pt.value;
+        return '<div style="font-weight:600;margin-bottom:4px">'+pt.name+
           '<span style="color:#7A8294;font-size:11px;font-weight:400;margin-left:6px">'+code+'</span></div>'+
           '<div style="color:#B4BAC8;font-size:11px;margin-bottom:6px">'+l1+' · '+l2+' · '+l3+' · '+(mgr||'--')+'</div>'+
           '<table style="font-size:12px;color:#B4BAC8;border-collapse:collapse">'+
-          '<tr><td style="padding:1px 12px 1px 0">规模</td><td style="color:#E5E7EB;font-weight:600">'+(sc>0?fmt.scale(sc)+' 亿':'<span style=\"color:#7A8294\">未披露</span>')+'</td></tr>'+
-          '<tr><td style="padding:1px 12px 1px 0">近一月</td><td style="color:'+(m1>=0?'#FF5C5C':'#00C853')+';font-weight:600">'+fmt.signed(m1,2)+'%</td></tr>'+
-          '<tr><td style="padding:1px 12px 1px 0">近一年</td><td style="color:'+(y1>=0?'#FF5C5C':'#00C853')+';font-weight:600">'+fmt.signed(y1,2)+'%</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">合并规模</td><td style="color:#E5E7EB;font-weight:600">'+(sc>0?fmt.scale(sc)+' 亿':'<span style=\"color:#7A8294\">未披露</span>')+'</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">最大回撤</td><td style="color:#FF5C5C;font-weight:600">'+(mdd!=null?fmt.signed(mdd,2)+'%':'--')+'</td></tr>'+
+          '<tr><td style="padding:1px 12px 1px 0">近一年收益</td><td style="color:'+(y1>=0?'#FF5C5C':'#00C853')+';font-weight:600">'+fmt.signed(y1,2)+'%</td></tr>'+
           '</table><div style="color:#7A8294;font-size:11px;margin-top:6px;border-top:1px solid #232B3F;padding-top:6px">点击查看详情</div>';
       } },
     series: series
@@ -1576,46 +1598,47 @@ function renderTree(){
         return ''; // 根节点不显示 tooltip，避免 "undefined"
       } },
     series:[{ type:'treemap', breadcrumb:{show:false}, roam:false, nodeClick:false, data:grouped,
-      width:'100%', height:'100%', top:6, bottom:6, left:6, right:6,
+      width:'100%', height:'100%', top:4, bottom:4, left:4, right:4,
       visibleMin: 0,
       childrenVisibleMin: 0,
-      // 排版口径："图的标题（upperLabel）显示产品数量、图里（叶子 label）显示规模"
+      squareRatio: 0.7, // 让块更接近正方形，避免极扁
+      // 视觉口径：顶栏显示"X 只"（数量），叶子内居中显示"X 亿"（规模）
       levels:[
-        { itemStyle:{gapWidth:3} },
-        // L1 一级大类 —— 顶栏显示"大类 · X 只"
+        { itemStyle:{gapWidth:3, borderWidth:0} },
+        // L1 一级大类 —— 顶栏窄而清晰
         { itemStyle:{gapWidth:2, borderColor:'#0F1422', borderWidth:2},
-          upperLabel:{show:true, height:26, color:'#fff', fontWeight:700, fontSize:13, padding:[0,0,0,10],
+          upperLabel:{show:true, height:22, color:'#fff', fontWeight:700, fontSize:12, padding:[0,8,0,10],
+            backgroundColor:'rgba(0,0,0,0.22)',
             formatter: p=>{
               if(!p.data) return p.name||'';
-              const key = p.data.l1Key || p.name || '';
-              return key + ' · ' + (p.data.count||0) + ' 只';
+              return (p.data.l1Key||p.name||'') + '  ·  ' + (p.data.count||0) + ' 只';
             } },
           emphasis:{ upperLabel:{color:'#fff'} } },
-        // L2 二级策略 —— 顶栏显示"策略 · X 只"
+        // L2 二级策略 —— 顶栏更紧凑
         { itemStyle:{gapWidth:1, borderColor:'#0F1422', borderWidth:1},
-          upperLabel:{show:true, height:20, color:'rgba(255,255,255,0.92)', fontWeight:600, fontSize:11, padding:[0,0,0,7],
+          upperLabel:{show:true, height:16, color:'rgba(255,255,255,0.88)', fontWeight:500, fontSize:10.5, padding:[0,6,0,8],
+            backgroundColor:'rgba(0,0,0,0.12)',
             formatter: p=>{
               if(!p.data) return p.name||'';
-              const key = p.data.l2Key || p.name || '';
-              return key + ' · ' + (p.data.count||0) + ' 只';
+              return (p.data.l2Key||p.name||'') + '  ·  ' + (p.data.count||0) + ' 只';
             } },
           emphasis:{ upperLabel:{color:'#fff'} } },
-        // L3 三级细分（叶子）—— 块内居中显示规模为主、名称为副
+        // L3 三级细分（叶子）—— 纯文本两行，ECharts 才能正确居中
         { itemStyle:{gapWidth:1, borderWidth:0},
-          label:{ show:true, color:'#fff', overflow:'truncate',
-            align:'center', verticalAlign:'middle', lineHeight:15,
+          label:{
+            show:true,
+            color:'#fff',
+            fontSize:12,
+            fontWeight:500,
+            align:'center',
+            verticalAlign:'middle',
+            lineHeight:18,
+            overflow:'truncate',
             formatter: p=>{
               if(!p.data) return p.name||'';
               const nm = p.data.l3Key || p.data.rawName || p.name || '';
               const sc = p.data.scale || 0;
-              const cnt = p.data.count || 0;
-              if(sc>0) return '{nm|'+nm+'}\n{sc|'+fmt.scale(sc)+' 亿}\n{ct|'+cnt+' 只}';
-              return cnt ? ('{nm|'+nm+'}\n{ct|'+cnt+' 只}') : '{nm|'+nm+'}';
-            },
-            rich: {
-              nm: { color:'rgba(255,255,255,0.95)', fontSize:11, fontWeight:600, lineHeight:14 },
-              sc: { color:'#fff', fontSize:15, fontWeight:700, lineHeight:18, padding:[2,0,0,0] },
-              ct: { color:'rgba(255,255,255,0.65)', fontSize:10, lineHeight:13 }
+              return sc>0 ? (nm + '\n' + fmt.scale(sc) + ' 亿') : nm;
             }
           }
         }
@@ -1734,9 +1757,9 @@ function tabOverviewHtml(p){
   return perfBar +
     '<div class="dr-section"><div class="dr-section-title">公开业绩指标</div><div class="dr-metrics">'+
     '<div class="dr-metric '+mPos(pf.m1)+'"><div class="dr-metric-label">近一月</div><div class="dr-metric-value">'+fmt.signed(pf.m1,2)+'%</div></div>'+
-    '<div class="dr-metric '+mPos(pf.m3)+'"><div class="dr-metric-label">近三月</div><div class="dr-metric-value">'+fmt.signed(pf.m3,2)+'%</div></div>'+
     '<div class="dr-metric '+mPos(pf.m6)+'"><div class="dr-metric-label">近六月</div><div class="dr-metric-value">'+fmt.signed(pf.m6,2)+'%</div></div>'+
     '<div class="dr-metric '+mPos(pf.y1)+'"><div class="dr-metric-label">近一年</div><div class="dr-metric-value">'+fmt.signed(pf.y1,2)+'%</div></div>'+
+    '<div class="dr-metric '+(pf.mdd!=null?'neg':'neutral')+'"><div class="dr-metric-label">最大回撤</div><div class="dr-metric-value">'+(pf.mdd!=null?fmt.signed(pf.mdd,2)+'%':'--')+'</div></div>'+
     '</div>'+sanityHtml+'</div>'+
     (effMgr && effMgr!=='-' ? (
       '<div class="dr-section"><div class="dr-section-title">基金经理</div><div class="dr-mgr">'+
