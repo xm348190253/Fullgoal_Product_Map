@@ -813,9 +813,15 @@ const DS = {
 // 判断是否货币型基金：货币基金的 pingzhongdata.Data_netWorthTrend 实际是"累计万份收益"序列，
 // rankhandler 返回的 d1/w1 是"万份收益/7日年化"绝对值，都不是真正的"价格波动百分比"。
 // 因此对货币型基金必须跳过这些字段，否则会出现 -47% 回撤 / +6% 周涨幅之类的荒谬数字。
+// ⚠ 关键：PRODUCTS 里 type 实际值是 "货币型-普通货币" 这种带二级后缀的，必须 startsWith
+//       同时叠加 l1 字段判断（assignInvestType 输出的标准化分类），双保险。
 function isMoneyFund(code){
   const p = PRODUCTS.find(x=>x.code===code);
-  return !!(p && p.type === '货币型');
+  if(!p) return false;
+  if(p.l1 === '货币型') return true;
+  if(typeof p.type === 'string' && p.type.indexOf('货币') >= 0) return true;
+  if(typeof p.subCategory === 'string' && p.subCategory.indexOf('货币') >= 0) return true;
+  return false;
 }
 
 function jsonpLoad(url, timeoutMs){
@@ -862,7 +868,7 @@ async function loadPerformance(code){
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v5:'+code);
+    const cached = localStorage.getItem('zo_perf_v6:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
@@ -951,7 +957,7 @@ async function loadPerformance(code){
     dwjz: mf ? null : ((lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null)),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v5:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('zo_perf_v6:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
@@ -964,7 +970,7 @@ async function loadPerformance(code){
 function loadBatchRank(){
   // localStorage 短缓存（30 分钟）：避免短时间反复刷
   try{
-    const cached = localStorage.getItem('zo_rank_v3');
+    const cached = localStorage.getItem('zo_rank_v4');
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t)<30*60*1000 && obj.map){
@@ -1049,7 +1055,7 @@ function loadBatchRank(){
           count++;
         });
         try{ delete window.rankData; }catch(_){}
-        try{ localStorage.setItem('zo_rank_v3', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
+        try{ localStorage.setItem('zo_rank_v4', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
         resolve(count);
       } catch(e){ resolve(0); }
     }).catch(()=>resolve(0));
@@ -1555,11 +1561,15 @@ function bubbleSize(s){ return s>0 ? (10 + Math.sqrt(s)*2.0) : 8; }
 function renderBubble(){
   // 风险收益矩阵：X = 最大回撤(负值，越靠右回撤越浅)，Y = 近一年收益。"右上方"即低回撤+高收益=最优。
   // 气泡大小 = 家族合并规模；颜色 = 投资大类
-  const data = filteredProducts().map(p=>{
-    const pf = DS.perfMap[p.code]||{};
-    const gp = getPerf(p);
-    return { p, scale: gp.scale||0, y1: gp.y1, mdd: gp.mdd, mgr: pf.manager||p.manager };
-  }).filter(x=>x.y1!=null && x.mdd!=null);
+  // ⚠ 货币基金硬排除：从机构销售角度，货币基金的"风险收益矩阵"位置无金融意义
+  //   （单位净值恒定 1.0，没有回撤维度，近一年收益与权益类不可比），不应混入对比图
+  const data = filteredProducts()
+    .filter(p => !isMoneyFund(p.code))  // ← 货币基金从源头排除
+    .map(p=>{
+      const pf = DS.perfMap[p.code]||{};
+      const gp = getPerf(p);
+      return { p, scale: gp.scale||0, y1: gp.y1, mdd: gp.mdd, mgr: pf.manager||p.manager };
+    }).filter(x=>x.y1!=null && x.mdd!=null);
 
   const ys = data.map(x=>x.y1).sort((a,b)=>a-b);
   const xs = data.map(x=>x.mdd).sort((a,b)=>a-b);
