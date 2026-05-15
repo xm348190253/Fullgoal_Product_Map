@@ -439,7 +439,7 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
   <div class="panel panel-bubble">
     <div class="panel-header">
       <div class="panel-title">风险收益矩阵</div>
-      <div class="panel-hint">X = 最大回撤(回撤越浅越右) &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 合并规模 &nbsp;·&nbsp; 颜色 = 投资大类</div>
+      <div class="panel-hint">X = 最大回撤(回撤越浅越右) &nbsp;·&nbsp; Y = 近一年收益 &nbsp;·&nbsp; 大小 = 合并规模 &nbsp;·&nbsp; 颜色 = 投资大类<br><span style="color:#FFB800;font-weight:600">★ 右上方 = 高收益 + 低回撤 = 最优</span></div>
     </div>
     <div id="chartBubble" class="chart-box"></div>
   </div>
@@ -469,6 +469,8 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
           <th data-sort="w1" class="num" title="非货币基金：近 5 个交易日涨跌(%)；货币基金：七日年化收益率(%)">近期表现</th>
           <th data-sort="m1" class="num" title="近一月收益率（pingzhongdata · syl_1y）">近一月(%)</th>
           <th data-sort="y1" class="num" title="近一年收益率（pingzhongdata · syl_1n）">近一年(%)</th>
+          <th data-sort="ytd" class="num" title="今年以来收益率（YTD，自当年首个交易日起算 / rankhandler 今年来）">今年以来(%)</th>
+          <th data-sort="ytdMdd" class="num" title="今年以来最大回撤（YTD，仅当年净值区间内滚动峰值计算；货币基金不适用）">今年最大回撤(%)</th>
           <th data-sort="l3">三级细分</th>
         </tr>
       </thead>
@@ -868,7 +870,7 @@ async function loadPerformance(code){
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v6:'+code);
+    const cached = localStorage.getItem('zo_perf_v7:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
@@ -923,6 +925,36 @@ async function loadPerformance(code){
     mdd = +worst.toFixed(2); // 负值，例如 -15.32
   }
 
+  // 今年以来（YTD）：收益率 + 最大回撤，基于净值序列从「当年首个交易日」起算
+  // 货币基金净值是累计值，YTD 回撤无意义 → ytdMdd=null；YTD 收益率对货币基金有意义，但
+  // 货币基金 Data_netWorthTrend 是累计万份收益，比例法不准，YTD 收益率统一交给 rankhandler f[14]。
+  let ytd = null, ytdMdd = null;
+  if(!mf && raw.Data_netWorthTrend && Array.isArray(raw.Data_netWorthTrend) && raw.Data_netWorthTrend.length > 1){
+    const t = raw.Data_netWorthTrend;
+    const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+    // 找到当年首个交易日（>= 1月1日 的第一个点）作为基准
+    let baseIdx = -1;
+    for(let i=0;i<t.length;i++){ if(t[i].x >= yearStart){ baseIdx = i; break; } }
+    // 若基准点不是当年第一天本身，用它前一个点（去年最后一个交易日）作为更准的年初基准
+    if(baseIdx > 0) baseIdx = baseIdx - 1;
+    if(baseIdx >= 0 && baseIdx < t.length-1){
+      const base = +t[baseIdx].y;
+      const lastY = +t[t.length-1].y;
+      if(isFinite(base) && base>0 && isFinite(lastY)){
+        ytd = +((lastY/base - 1)*100).toFixed(2);
+      }
+      // YTD 最大回撤：仅在当年区间内滚动峰值
+      let peak = +t[baseIdx].y, worst = 0;
+      for(let i=baseIdx+1;i<t.length;i++){
+        const y = +t[i].y; if(!isFinite(y)) continue;
+        if(y>peak) peak = y;
+        const dd = (y/peak - 1) * 100;
+        if(dd < worst) worst = dd;
+      }
+      ytdMdd = +worst.toFixed(2); // 负值，无回撤则 0
+    }
+  }
+
   // 货币基金专属：每万份收益（wfsy，单位元）+ 七日年化（qrnh，单位%）
   // pingzhongdata 字段：Data_millionCopiesIncome=[[ts,wfsy],...]，Data_sevenDaysYearIncome=[[ts,qrnh],...]
   let wfsy = null, qrnh = null;
@@ -951,13 +983,15 @@ async function loadPerformance(code){
     m3: isNaN(m3)?prev.m3:m3,
     m6: isNaN(m6)?prev.m6:m6,
     y1: isNaN(y1)?prev.y1:y1,
+    ytd: (ytd!=null)?ytd:(prev.ytd!=null?prev.ytd:null),
+    ytdMdd: mf ? null : ((ytdMdd!=null)?ytdMdd:(prev.ytdMdd!=null?prev.ytdMdd:null)),
     mdd: mf ? null : (mdd!=null?mdd:prev.mdd),
     scale: isNaN(scale)?prev.scale:scale,
     manager: mgr || prev.manager || null,
     dwjz: mf ? null : ((lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null)),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v6:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('zo_perf_v7:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
@@ -970,7 +1004,7 @@ async function loadPerformance(code){
 function loadBatchRank(){
   // localStorage 短缓存（30 分钟）：避免短时间反复刷
   try{
-    const cached = localStorage.getItem('zo_rank_v4');
+    const cached = localStorage.getItem('zo_rank_v5');
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t)<30*60*1000 && obj.map){
@@ -988,6 +1022,8 @@ function loadBatchRank(){
             m3: prev.m3!=null?prev.m3:cv.m3,
             m6: prev.m6!=null?prev.m6:cv.m6,
             y1: prev.y1!=null?prev.y1:cv.y1,
+            ytd: prev.ytd!=null?prev.ytd:(cv.ytd!=null?cv.ytd:null),
+            ytdMdd: prev.ytdMdd!=null?prev.ytdMdd:(cv.ytdMdd!=null?cv.ytdMdd:null),
             dwjz: prev.dwjz!=null?prev.dwjz:cv.dwjz,
             jzrq: prev.jzrq||cv.jzrq,
             scale: prev.scale!=null?prev.scale:cv.scale,
@@ -1025,15 +1061,16 @@ function loadBatchRank(){
           // 货币基金口径：rankhandler 的 f[6] 实际是"每万份收益"(元)，f[7] 是"七日年化"(%)，
           // 不是涨跌幅。分别存到 wfsy/qrnh 专属字段，d1/w1 仍置 null（语义不同不混用）。
           // 单位净值固定 1.0000，rankhandler 给的 unit_nav 对货币基金是累计值，不展示。
+          // f[14] = 今年以来收益率（%）。货币基金的"今年来"也是有意义的累计收益率，保留展示。
           const rec = mf ? {
             d1: null, w1: null,
             wfsy: num(6), qrnh: num(7),
-            m1: num(8), m3: num(9), m6: num(10), y1: num(11),
+            m1: num(8), m3: num(9), m6: num(10), y1: num(11), ytd: num(14),
             dwjz: null, jzrq: f[3]||null
           } : {
             d1: num(6), w1: num(7),
             wfsy: null, qrnh: null,
-            m1: num(8), m3: num(9), m6: num(10), y1: num(11),
+            m1: num(8), m3: num(9), m6: num(10), y1: num(11), ytd: num(14),
             dwjz: num(4), jzrq: f[3]||null
           };
           const prev = DS.perfMap[code]||{};
@@ -1046,6 +1083,8 @@ function loadBatchRank(){
             m3: rec.m3!=null?rec.m3:prev.m3,
             m6: rec.m6!=null?rec.m6:prev.m6,
             y1: rec.y1!=null?rec.y1:prev.y1,
+            ytd: rec.ytd!=null?rec.ytd:(prev.ytd!=null?prev.ytd:null),
+            ytdMdd: prev.ytdMdd!=null?prev.ytdMdd:null,  // YTD 回撤需净值序列，rankhandler 不含，由 pingzhongdata 补
             dwjz: prev.dwjz!=null?prev.dwjz:rec.dwjz,
             jzrq: prev.jzrq||rec.jzrq,
             scale: prev.scale!=null?prev.scale:null,
@@ -1055,7 +1094,7 @@ function loadBatchRank(){
           count++;
         });
         try{ delete window.rankData; }catch(_){}
-        try{ localStorage.setItem('zo_rank_v4', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
+        try{ localStorage.setItem('zo_rank_v5', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
         resolve(count);
       } catch(e){ resolve(0); }
     }).catch(()=>resolve(0));
@@ -1371,6 +1410,8 @@ function getPerf(p){
     w1: mf ? null : pf.w1,
     m1: pf.m1, m3: pf.m3, m6: pf.m6,
     y1: pf.y1!=null ? pf.y1 : (p.annualReturn||null),
+    ytd: pf.ytd!=null ? pf.ytd : null,
+    ytdMdd: mf ? null : (pf.ytdMdd!=null ? pf.ytdMdd : null),
     mdd: mf ? null
        : (pf.mdd!=null ? pf.mdd
        : (p.maxDrawdown!=null && p.maxDrawdown!==0 ? -Math.abs(p.maxDrawdown) : null)),
@@ -1379,7 +1420,7 @@ function getPerf(p){
 }
 function sortedProducts(list){
   const k = STATE.sortKey, asc = STATE.sortAsc?1:-1;
-  const perfKeys = ['d1','w1','m1','m3','m6','y1'];
+  const perfKeys = ['d1','w1','m1','m3','m6','y1','ytd','ytdMdd'];
   const getVal = p => {
     if(perfKeys.includes(k)){ const v = getPerf(p)[k]; return (v==null||isNaN(v))?-Infinity:v; }
     if(k==='scale'){ const v = getPerf(p).scale; return (v==null||isNaN(v))?-Infinity:v; }
@@ -1601,8 +1642,8 @@ function renderBubble(){
 
   bubbleChart.setOption({
     backgroundColor:'transparent',
-    // top 加大到 48：给 graphic"★右上方..."腾出垂直空间，避免与 .panel-hint 文字重叠
-    grid:{ left:56, right:30, top:48, bottom:64, containLabel:true },
+    // graphic 已移除，恢复 top:28 给散点更多绘图空间
+    grid:{ left:56, right:30, top:28, bottom:64, containLabel:true },
     legend:{ bottom:4, left:'center', itemWidth:10, itemHeight:10, textStyle:{color:'#B4BAC8',fontSize:12}, icon:'circle' },
     // X 轴：最大回撤（负值），数值由左到右递增（更接近 0 = 回撤更浅 = 更好）
     xAxis:{ type:'value', name:'最大回撤(%)  回撤越浅 →', nameLocation:'middle', nameGap:38,
@@ -1614,10 +1655,8 @@ function renderBubble(){
     yAxis:{ type:'value', name:'↑ 近一年收益(%)', nameTextStyle:{color:'#7A8294',fontSize:11,padding:[0,0,0,-30]},
       axisLine:{lineStyle:{color:'#232B3F'}}, axisLabel:{color:'#7A8294',formatter:v=>v+'%'},
       splitLine:{lineStyle:{color:'#1A2032',type:'dashed'}}, min:yMin, max:yMax },
-    // 四象限提示：right:30 top:20 —— 落在 grid 上方留白带（top:48）内，不再侵入图表区
-    graphic: [
-      { type:'text', right:30, top:20, style:{ text:'★ 右上方 = 高收益 + 低回撤 = 最优', fill:'#FFB800', fontSize:10, fontWeight:600 } }
-    ],
+    // 四象限提示已移到 panel-hint（HTML 层），不再用 echarts graphic 绝对定位，
+    // 避免与 panel-hint 文字在 canvas 顶部叠压
     tooltip:{ backgroundColor:'rgba(15,20,34,0.96)', borderColor:'#232B3F', borderWidth:1,
       confine:true,  // 防止 tooltip 越出图表容器边界
       textStyle:{color:'#E5E7EB',fontSize:12}, padding:12,
@@ -1818,6 +1857,13 @@ function renderTable(){
     }
     return rCell(pf[key], true);
   };
+  // 最大回撤单元格：回撤是风险指标，无论数值大小统一红色（与风险收益矩阵 tooltip 口径一致），
+  // 不沿用 rCell 的"负=绿色"语义，避免回撤越深显示越绿的误导。
+  const mddCell = (v) => {
+    if(v==null||isNaN(v)) return '<span style="color:var(--text-4)">--</span>';
+    if(v===0) return '<span style="color:var(--text-3)">0.00</span>';
+    return '<span style="color:#FF5C5C;font-weight:500">'+v.toFixed(2)+'</span>';
+  };
   tbody.innerHTML = list.map(p=>{
     const sm = statusInfo(p);
     const pf = DS.perfMap[p.code] || {};
@@ -1842,6 +1888,8 @@ function renderTable(){
       '<td class="num">'+safeCell(p,'w1')+'</td>'+
       '<td class="num">'+rCell(pf.m1,true)+'</td>'+
       '<td class="num">'+rCell(pf.y1,true)+'</td>'+
+      '<td class="num">'+rCell(pf.ytd,true)+'</td>'+
+      '<td class="num">'+mddCell(pf.ytdMdd)+'</td>'+
       '<td>'+l3Tag+'</td></tr>';
   }).join('');
   document.querySelectorAll('#ptable thead th').forEach(th=>{
