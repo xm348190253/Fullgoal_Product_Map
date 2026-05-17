@@ -378,12 +378,13 @@ body{background-image:radial-gradient(1200px 600px at 12% -10%,rgba(0,200,83,0.0
 <div class="ticker-bar" id="tickerBar">
   <div class="ticker-label">市场脉搏</div>
   <div class="ticker-items" id="tickerItems">
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">沪深300</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证500</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">上证综指</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">科创50</span><span class="ticker-item-val">--</span></span>
     <span class="ticker-item ticker-flat"><span class="ticker-item-name">创业板指</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证红利</span><span class="ticker-item-val">--</span></span>
     <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生指数</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">中证转债</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生科技</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">纳斯达克</span><span class="ticker-item-val">--</span></span>
+    <span class="ticker-item ticker-flat"><span class="ticker-item-name">标普500</span><span class="ticker-item-val">--</span></span>
   </div>
   <div class="ticker-tail" id="tickerTail">市场指数 · 东方财富 push2.eastmoney.com</div>
 </div>
@@ -1182,12 +1183,13 @@ async function loadAllPerformance(codes){
 //    字段：f2=最新价，f3=涨跌幅%，f4=涨跌额，f12=代码，f14=名称（fltt=2 表示数值已按 2 位小数缩放）
 function loadIndexQuotes(){
   const symbols = [
-    {secid:'1.000300', name:'沪深300'},
-    {secid:'1.000905', name:'中证500'},
-    {secid:'0.399006', name:'创业板指'},
-    {secid:'1.000922', name:'中证红利'},
-    {secid:'100.HSI',  name:'恒生指数'},
-    {secid:'1.000832', name:'中证转债'}
+    {secid:'1.000001',  name:'上证综指'},
+    {secid:'1.000688',  name:'科创50'},
+    {secid:'0.399006',  name:'创业板指'},
+    {secid:'100.HSI',   name:'恒生指数'},
+    {secid:'124.HSTECH',name:'恒生科技'},
+    {secid:'100.NDX',   name:'纳斯达克'},
+    {secid:'100.SPX',   name:'标普500'}
   ];
   return new Promise(resolve=>{
     const cbName = 'jsonp_idx_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
