@@ -864,13 +864,44 @@ async function loadPingzhong(code){
   return result;
 }
 
+// 从 pingzhongdata 的 Data_holderStructure 解析「机构持有比例」最新披露值
+// 结构：{ series:[{name:'机构持有比例',data:[..%..]}, {个人..}, {内部..}], categories:[日期..] }
+// 末位可能为 null（当期未披露），向前找最后一个有效值，并取同索引日期
+function parseInstHold(raw){
+  try{
+    const hs = raw && raw.Data_holderStructure;
+    if(!hs || !Array.isArray(hs.series)) return null;
+    const s = hs.series.find(x=>x && /机构/.test(x.name||''));
+    if(!s || !Array.isArray(s.data)) return null;
+    const cats = Array.isArray(hs.categories) ? hs.categories : [];
+    for(let i=s.data.length-1;i>=0;i--){
+      const v = +s.data[i];
+      if(isFinite(v)) return { ratio:+v.toFixed(2), date: cats[i]||null };
+    }
+  }catch(_){}
+  return null;
+}
+
+// 机构持仓占比展示：机构销售视角 —— 占比越高越偏「机构定制/委外」属性
+function fmtInstHold(ratio, date){
+  if(ratio==null||isNaN(ratio)) return '<span style="color:var(--text-4)">加载中…</span>';
+  let tag, col;
+  if(ratio>=80){ tag='机构主导'; col='#4CCDC4'; }
+  else if(ratio>=50){ tag='机构为主'; col='#4CCDC4'; }
+  else if(ratio>=20){ tag='机构散户均衡'; col='#E5E7EB'; }
+  else { tag='散户为主'; col='#7A8294'; }
+  const ds = date ? ('<span style="font-size:10px;color:var(--text-4);font-weight:400;margin-left:4px">截至'+date+'</span>') : '';
+  return '<span style="color:'+col+'">'+(+ratio).toFixed(2)+'%</span>'+
+         '<span style="font-size:10px;color:'+col+';font-weight:500;margin-left:5px;padding:1px 5px;border:1px solid '+col+'55;border-radius:3px">'+tag+'</span>'+ds;
+}
+
 // ② 近期业绩加载器（从 pingzhongdata 提取 昨日 / 近1周 / 近1月 / 近3月 / 近6月 / 近1年 + 规模 + 经理）
 async function loadPerformance(code){
   // 命中即返但要确保关键字段已有（rankhandler 填的可能没有 scale/manager，仍需走 pingzhongdata）
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v7:'+code);
+    const cached = localStorage.getItem('zo_perf_v8:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
@@ -973,8 +1004,11 @@ async function loadPerformance(code){
 
   // 合并：保留 rankhandler 已经填好的字段，pingzhongdata 仅补缺失的 scale/manager 以及更精确的 d1/w1
   // 货币基金对 d1/w1/mdd/dwjz 直接锁定为 null，避免被 rankhandler 旧值或缓存覆盖回错值。
+  const ih = parseInstHold(raw);
   const prev = DS.perfMap[code] || {};
   DS.perfMap[code] = {
+    instHold:     ih ? ih.ratio : (prev.instHold!=null?prev.instHold:null),
+    instHoldDate: ih ? ih.date  : (prev.instHoldDate||null),
     d1: mf ? null : ((d1!=null)?d1:prev.d1),
     w1: mf ? null : ((w1!=null)?w1:prev.w1),
     wfsy: mf ? (wfsy!=null?wfsy:(prev.wfsy||null)) : null,
@@ -991,7 +1025,7 @@ async function loadPerformance(code){
     dwjz: mf ? null : ((lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null)),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v7:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('zo_perf_v8:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
@@ -2196,13 +2230,13 @@ async function findMarketCompetitors(p, n){
   if(filtered.length < (n||3)) filtered = enriched;
 
   // ----- 打分公式 -----
-  // scale 权重 ×5（机构销售最重视），y1 权重 ×1.5，mdd ×1.0；主题重合度作为负向调整 -3
+  // scale 权重 ×9（机构销售最重视，已上调）；y1 权重 ×1.5，mdd ×1.0；主题重合度作为负向调整 -3
   filtered.forEach(c=>{
     const scd  = (myScale!=null && c.scale!=null) ? Math.abs(Math.log((myScale+1)/(c.scale+1))) : 5;
     const y1d  = (myY1!=null && c.y1!=null) ? Math.abs(myY1 - c.y1)/100 : 0.5;
     const mddd = 0.3; // mdd 在 enriched 阶段没拉，留中性权重位
     const themeBoost = themesOverlap(myThemes, c._themes||[]);
-    c._score = scd*5 + y1d*1.5 + mddd*1.0 - themeBoost*3;
+    c._score = scd*9 + y1d*1.5 + mddd*1.0 - themeBoost*3;
   });
   const winners = filtered.sort((a,b)=>a._score-b._score).slice(0, n||3);
   winners._matchTier = matchTier;
@@ -2257,7 +2291,7 @@ function tabCompetitorHtml(p){
   return '<div class="dr-section">'+
     '<div class="dr-section-title">市场同类对比 <span class="src-badge live" style="background:rgba(76,205,196,0.15);color:var(--teal)">天天基金 · 家族合并口径</span></div>'+
     '<div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.55">'+
-    '机构销售口径：<b style="color:var(--text-2)">行业主题</b> 严格对齐 → <b style="color:var(--text-2)">投资类型</b> 一致 → <b style="color:var(--text-2)">规模</b> 量级相近，匹配 3 只主流竞品。'+
+    '机构销售口径：<b style="color:var(--text-2)">行业主题</b> 严格对齐 → <b style="color:var(--text-2)">投资类型</b> 一致 → <b style="color:var(--text-2)">规模</b> 量级优先（权重已上调），匹配 3 只主流竞品。'+
     '<br>⚠ 风格判断仍请人工二次确认；同主题不足 3 只时自动降级，UI 会提示。</div>'+
     '<div id="rivalArea" data-code="'+p.code+'"><div style="color:var(--text-3);font-size:12px;padding:20px 0">加载中…（首次需联网拉取市场基金索引，约 3 秒）</div></div>'+
     '<div id="rivalCompareChart" style="width:100%;height:280px;margin-top:14px;display:none"></div>'+
@@ -2417,6 +2451,7 @@ function openDrawer(code){
   const pf = DS.perfMap[p.code] || {};
   const effScale = getPerf(p).scale;
   const scaleDisplay = (effScale||0)>0 ? (fmt.scale(effScale)+' 亿') : '<span style="color:var(--text-4)">业绩加载中…</span>';
+  const instHoldDisplay = fmtInstHold(pf.instHold, pf.instHoldDate);
   const html = '<div class="dr-head">'+
     '<div class="dr-name">'+p.name+'</div>'+
     '<div class="dr-code">代码 '+p.code+' · '+subDisplay+'</div>'+
@@ -2426,6 +2461,7 @@ function openDrawer(code){
     '<div class="dr-meta">'+
     '<div class="dr-meta-item"><span class="dr-meta-label">投资类型</span><span style="color:'+l1Color(p.l1)+';font-weight:600">'+p.l1+' · '+p.l2+' · '+p.l3+'</span></div>'+
     '<div class="dr-meta-item"><span class="dr-meta-label">规模</span><span style="font-weight:600">'+scaleDisplay+'</span></div>'+
+    '<div class="dr-meta-item"><span class="dr-meta-label">机构持仓占比</span><span id="drInstHold" style="font-weight:600">'+instHoldDisplay+'</span></div>'+
     '<div class="dr-meta-item"><span class="dr-meta-label">业绩比较基准</span><span>'+(p.benchmark||'--')+'</span></div>'+
     '</div></div>'+
     '<div class="dr-tabs" id="drTabs">'+
@@ -2487,6 +2523,16 @@ function renderMiniChart(p){
       const meta = drawerBody && drawerBody.querySelector('.dr-mini-chart-meta');
       if(meta) meta.innerHTML = '<span style="color:var(--text-4)">净值数据加载失败</span><span></span>';
       return;
+    }
+    // 顺带回填机构持仓占比：首次打开抽屉时 perfMap 可能尚无该字段
+    const ihNow = parseInstHold(data);
+    if(ihNow){
+      const pm = DS.perfMap[p.code] || (DS.perfMap[p.code]={});
+      pm.instHold = ihNow.ratio; pm.instHoldDate = ihNow.date;
+      if(STATE.selectedCode===p.code && drawerBody){
+        const ihEl = drawerBody.querySelector('#drInstHold');
+        if(ihEl) ihEl.innerHTML = fmtInstHold(ihNow.ratio, ihNow.date);
+      }
     }
     const trend = data.Data_netWorthTrend.slice(-120);
     const ys = trend.map(t=>+t.y);
