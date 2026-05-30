@@ -199,6 +199,9 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .cell-neg{color:var(--red)}
 .cell-tags{display:flex;gap:4px;flex-wrap:wrap}
 .cell-tag{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid currentColor;opacity:.85}
+.fav-star{cursor:pointer;color:var(--text-4);margin-right:7px;font-size:14px;transition:color .15s,transform .15s;display:inline-block}
+.fav-star:hover{color:var(--gold);transform:scale(1.2)}
+.fav-star.on{color:var(--gold)}
 
 /* Drawer */
 .drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,0.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:90;backdrop-filter:blur(2px)}
@@ -491,7 +494,11 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 <nav class="chip-bar" id="chipBar">
   <div class="chip-bar-label">一级大类</div>
   <button class="chip active" data-l1="ALL">全部产品 <span class="chip-count" id="chipCountALL"></span></button>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+    <input id="searchBox" type="search" placeholder="搜索 名称 / 代码 / 经理" autocomplete="off"
+      style="background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text-1);font-size:12px;padding:6px 12px;border-radius:999px;width:190px;outline:none;font-family:inherit;backdrop-filter:blur(var(--blur))">
+    <button id="favToggle" class="chip" style="padding:6px 12px;font-size:12px" title="只看自选产品">☆ 自选</button>
+    <button id="clearFilters" class="chip" style="padding:6px 12px;font-size:12px;display:none" title="清除全部筛选与搜索">✕ 清除筛选</button>
     <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3);cursor:pointer;user-select:none">
       <input type="checkbox" id="toggleShares" style="accent-color:var(--teal);cursor:pointer">
       <span>显示份额变体（A/C/E…）</span>
@@ -555,7 +562,10 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 <section class="panel panel-table">
   <div class="panel-header">
     <div class="panel-title">产品明细</div>
-    <div class="panel-hint" id="tableHint">点击表头排序 · 点击行查看详情</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-left:auto">
+      <div class="panel-hint" id="tableHint">点击表头排序 · 点击行查看详情</div>
+      <button id="exportBtn" class="chip" style="padding:6px 13px;font-size:12px;flex-shrink:0" title="导出当前筛选结果为 CSV（可用 Excel 打开）">⬇ 导出CSV</button>
+    </div>
   </div>
   <div class="table-wrap">
     <table class="ptable" id="ptable">
@@ -886,7 +896,11 @@ PRODUCTS.forEach(p=>{ p._themes = detectTheme(p); });
 // ============================================================
 // 主交互逻辑
 // ============================================================
-const STATE = { l1:'ALL', l2:'ALL', l3:'ALL', showAllShares:false, sortKey:'scale', sortAsc:false, selectedCode:null, activeTab:'overview' };
+const STATE = { l1:'ALL', l2:'ALL', l3:'ALL', showAllShares:false, sortKey:'scale', sortAsc:false, selectedCode:null, activeTab:'overview', search:'', favOnly:false };
+// 自选清单（localStorage 持久化，跨会话保留销售自己常用的产品）
+const FAVS = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('zo_favs')||'[]')); }catch(_){ return new Set(); } })();
+function isFav(code){ return FAVS.has(code); }
+function toggleFav(code){ if(FAVS.has(code)) FAVS.delete(code); else FAVS.add(code); try{ localStorage.setItem('zo_favs', JSON.stringify([...FAVS])); }catch(_){} }
 let bubbleChart=null, treeChart=null, miniChart=null, compareChart=null, radarChart=null;
 
 // ============================================================
@@ -1553,11 +1567,20 @@ function familyScale(p){
   return has ? sum : null;
 }
 function filteredProducts(){
-  return PRODUCTS.filter(p =>
-    (STATE.l1==='ALL' || p.l1===STATE.l1) &&
-    (STATE.l2==='ALL' || p.l2===STATE.l2) &&
-    (STATE.l3==='ALL' || p.l3===STATE.l3) &&
-    sharePasses(p));
+  const q = (STATE.search||'').trim().toLowerCase();
+  return PRODUCTS.filter(p => {
+    if(!((STATE.l1==='ALL' || p.l1===STATE.l1) &&
+         (STATE.l2==='ALL' || p.l2===STATE.l2) &&
+         (STATE.l3==='ALL' || p.l3===STATE.l3) &&
+         sharePasses(p))) return false;
+    if(STATE.favOnly && !FAVS.has(p.code)) return false;
+    if(q){
+      const mgr = (DS.perfMap[p.code] && DS.perfMap[p.code].manager) || p.manager || '';
+      const hay = (p.name+' '+p.code+' '+mgr).toLowerCase();
+      if(hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
 }
 // 业绩字段统一从 perfMap 读取（兜底 PRODUCTS 自带的 annualReturn / scale）
 function getPerf(p){
@@ -2034,6 +2057,12 @@ function renderTable(){
     if(v===0) return '<span style="color:var(--text-3)">0.00</span>';
     return '<span style="color:#FF5C5C;font-weight:500">'+v.toFixed(2)+'</span>';
   };
+  if(!list.length){
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:44px 12px;color:var(--text-3)">未找到符合条件的产品 — 可调整筛选或点击「✕ 清除筛选」</td></tr>';
+    document.querySelectorAll('#ptable thead th').forEach(th=>{ const a=th.querySelector('.sort-arrow'); if(a) a.remove(); });
+    updateTableHint(list);
+    return;
+  }
   tbody.innerHTML = list.map(p=>{
     const sm = statusInfo(p);
     const pf = DS.perfMap[p.code] || {};
@@ -2049,7 +2078,8 @@ function renderTable(){
       ? '<span class="src-badge q" title="份额变体">'+p.shareClass+'</span>' : '';
     const l3Tag = '<span class="cell-sub-tag" title="三级细分">'+(p.l3||'--')+'</span>';
     return '<tr data-code="'+p.code+'">'+
-      '<td><span class="cell-status-dot" style="background:'+sm.color+'" title="'+escapeHtml(p.status.label)+'"></span>'+
+      '<td><span class="fav-star'+(isFav(p.code)?' on':'')+'" data-fav="'+p.code+'" title="加入 / 移出自选">'+(isFav(p.code)?'★':'☆')+'</span>'+
+        '<span class="cell-status-dot" style="background:'+sm.color+'" title="'+escapeHtml(p.status.label)+'"></span>'+
         '<span class="cell-name">'+p.name+'</span><span class="cell-code">'+p.code+'</span>'+shareTag+sanityFlag+'</td>'+
       '<td>'+mgrCell+'</td>'+
       '<td><span class="cell-cat-badge" style="color:'+l1Color(p.l1)+';border:1px solid '+l1Color(p.l1)+'40">'+p.l1+'</span></td>'+
@@ -2094,9 +2124,82 @@ function bindTableEvents(){
     });
   });
   document.getElementById('ptableBody').addEventListener('click', e=>{
+    const star = e.target.closest('.fav-star');
+    if(star && star.dataset.fav){
+      e.stopPropagation();
+      toggleFav(star.dataset.fav);
+      renderTable(); renderKpi(); updatePoolStat();
+      return;
+    }
     const tr = e.target.closest('tr');
     if (tr && tr.dataset.code) openDrawer(tr.dataset.code);
   });
+}
+
+// ---------- 工具栏：搜索 / 自选 / 清除筛选 / 导出 CSV ----------
+function anyFilterActive(){
+  return STATE.l1!=='ALL' || STATE.l2!=='ALL' || STATE.l3!=='ALL' || !!(STATE.search||'').trim() || STATE.favOnly;
+}
+function updateClearBtn(){
+  const btn = document.getElementById('clearFilters'); if(!btn) return;
+  btn.style.display = anyFilterActive() ? '' : 'none';
+}
+function clearAllFilters(){
+  STATE.l1='ALL'; STATE.l2='ALL'; STATE.l3='ALL'; STATE.search=''; STATE.favOnly=false;
+  const sb=document.getElementById('searchBox'); if(sb) sb.value='';
+  const ft=document.getElementById('favToggle'); if(ft){ ft.classList.remove('active'); ft.textContent='☆ 自选'; }
+  document.querySelectorAll('#chipBar .chip[data-l1]').forEach(c=>c.classList.toggle('active', c.dataset.l1==='ALL'));
+  renderSubChips();
+  renderAll();
+}
+function exportCsv(){
+  const list = sortedProducts(filteredProducts());
+  if(!list.length){ showToast('当前没有可导出的产品。','warn'); return; }
+  const hdr = ['产品名称','代码','基金经理','一级','二级','三级','规模(亿)','昨日(%或万份收益)','近期(%或七日年化)','近一月(%)','近一年(%)','今年以来(%)','今年最大回撤(%)','是否自选'];
+  const rows = list.map(p=>{
+    const pf = DS.perfMap[p.code]||{};
+    const gp = getPerf(p);
+    const mf = isMoneyFund(p.code);
+    const mgr = pf.manager||p.manager||'';
+    const day = mf ? (pf.wfsy!=null?pf.wfsy:'') : (pf.d1!=null?pf.d1:'');
+    const wk  = mf ? (pf.qrnh!=null?pf.qrnh:'') : (pf.w1!=null?pf.w1:'');
+    return [p.name, p.code, mgr, p.l1, p.l2, p.l3,
+      (gp.scale!=null?gp.scale:''), day, wk,
+      (pf.m1!=null?pf.m1:''), (pf.y1!=null?pf.y1:''), (pf.ytd!=null?pf.ytd:''), (pf.ytdMdd!=null?pf.ytdMdd:''),
+      isFav(p.code)?'★':''];
+  });
+  const esc = v => { v=(v==null?'':String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+  let latest=''; list.forEach(p=>{ const jz=(DS.perfMap[p.code]||{}).jzrq; if(jz&&jz>latest) latest=jz; });
+  const meta = '# 中欧基金产品全景导出 · 数据截至 '+(latest||'--')+' · 数据来自天天基金/东方财富公开接口 · 业绩以中欧基金官网披露为准\r\n';
+  const csv = meta + [hdr].concat(rows).map(r=>r.map(esc).join(',')).join('\r\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}); // BOM：让 Excel 正确识别中文 UTF-8
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '中欧基金产品全景_'+(latest||new Date().toISOString().slice(0,10))+'.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  showToast('已导出 '+list.length+' 只产品到 CSV。','info');
+}
+function bindToolbar(){
+  const sb = document.getElementById('searchBox');
+  if(sb){
+    let t=null;
+    sb.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t = setTimeout(()=>{ STATE.search = sb.value; renderAll(); }, 120);
+    });
+  }
+  const ft = document.getElementById('favToggle');
+  if(ft) ft.addEventListener('click', ()=>{
+    STATE.favOnly = !STATE.favOnly;
+    ft.classList.toggle('active', STATE.favOnly);
+    ft.textContent = STATE.favOnly ? '★ 自选' : '☆ 自选';
+    renderAll();
+  });
+  const cf = document.getElementById('clearFilters');
+  if(cf) cf.addEventListener('click', clearAllFilters);
+  const eb = document.getElementById('exportBtn');
+  if(eb) eb.addEventListener('click', exportCsv);
 }
 
 // ---------- 抽屉 Tab ----------
@@ -2693,7 +2796,7 @@ function refreshChipCounts(){
     if(span) span.textContent = passList.filter(p=>p.l1===l1).length;
   });
 }
-function renderAll(){ refreshChipCounts(); renderKpi(); renderBubble(); renderTree(); renderTable(); updatePoolStat(); updateHealthBadge(); }
+function renderAll(){ refreshChipCounts(); renderKpi(); renderBubble(); renderTree(); renderTable(); updatePoolStat(); updateHealthBadge(); updateClearBtn(); }
 
 // ---------- 数据健康面板 ----------
 function updateHealthBadge(){
@@ -2743,6 +2846,7 @@ window.__startApp = function(){
   bubbleChart = echarts.init(document.getElementById('chartBubble'));
   treeChart = echarts.init(document.getElementById('chartTree'));
   bindTableEvents();
+  bindToolbar();
   bindDrawerEvents();
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.getElementById('drawerMask').addEventListener('click', closeDrawer);
