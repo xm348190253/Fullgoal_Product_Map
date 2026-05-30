@@ -195,8 +195,9 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .cell-name{font-weight:500}
 .cell-code{color:var(--text-3);font-size:11px;margin-left:6px}
 .cell-cat-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:var(--bg-3)}
-.cell-pos{color:var(--green)}
-.cell-neg{color:var(--red)}
+.cell-pos{color:var(--red)}/* 中国惯例：红涨 —— 与抽屉/气泡图/行情条口径统一 */
+.cell-neg{color:var(--green)}/* 绿跌 */
+.dir-arrow{font-size:9px;margin-left:3px;opacity:.7;vertical-align:1px}
 .cell-tags{display:flex;gap:4px;flex-wrap:wrap}
 .cell-tag{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid currentColor;opacity:.85}
 .fav-star{cursor:pointer;color:var(--text-4);margin-right:7px;font-size:14px;transition:color .15s,transform .15s;display:inline-block}
@@ -224,8 +225,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .dr-metric:hover{transform:translateY(-2px)}
 .dr-metric-label{font-size:11px;color:var(--text-3);margin-bottom:4px}
 .dr-metric-value{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
-.dr-metric.pos .dr-metric-value{color:var(--green)}
-.dr-metric.neg .dr-metric-value{color:var(--red)}
+.dr-metric.pos .dr-metric-value{color:var(--red)}/* 红涨：与全站口径统一 */
+.dr-metric.neg .dr-metric-value{color:var(--green)}/* 绿跌 */
 .dr-metric.neutral .dr-metric-value{color:var(--text-1)}
 .dr-mgr{display:flex;gap:14px;align-items:flex-start}
 .dr-mgr-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;flex-shrink:0}
@@ -338,9 +339,7 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .loading-text{font-size:12px;color:var(--text-3)}
 .loading-error{color:var(--red);font-size:13px;text-align:center;max-width:400px;line-height:1.6}
 
-/* Responsive */
-@media (max-width:1280px){.main-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.panel-table{margin-left:14px;margin-right:14px}}
-@media (max-width:720px){:root,html[data-theme="light"]{--blur:10px}.kpi-grid{grid-template-columns:1fr}.topbar{padding:14px}.chip-bar{padding:12px 14px}.main-grid{padding:14px}.drawer{width:100%;border-radius:0}}
+/* Responsive 媒体查询统一放到样式表末尾（确保覆盖后面"新增"段的基础规则，见文件尾） */
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:10px;height:10px}
@@ -438,6 +437,20 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 
 /* 估值 tab badge */
 .tab-badge.live{background:rgba(0,200,83,0.18);color:var(--green)}
+
+/* ============================================================
+   Responsive —— 放在样式表最末尾，确保媒体查询能覆盖前面所有基础规则
+   覆盖 1920 / 1440（默认）/ iPad 横竖屏 / 手机
+   ============================================================ */
+@media (max-width:1440px){.main-grid{gap:12px}.chart-box{height:480px}}
+/* 笔记本窄屏 / iPad 横屏：主图堆叠为单列，KPI 两列 */
+@media (max-width:1180px){.main-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.panel-table{margin-left:14px;margin-right:14px}.chart-box{height:440px}}
+/* iPad 竖屏 / 小窗：顶栏与筛选条换行避免拥挤 */
+@media (max-width:860px){.topbar{flex-wrap:wrap;gap:10px}.topbar-right{gap:12px;flex-wrap:wrap;row-gap:8px}.chart-box{height:380px}.main-grid{padding:14px}.kpi-value{font-size:25px}}
+/* 手机横屏 */
+@media (max-width:720px){:root,html[data-theme="light"]{--blur:10px}.kpi-grid{grid-template-columns:1fr}.topbar{padding:14px}.chip-bar{padding:12px 14px}.main-grid{padding:14px}.drawer{width:100%;border-radius:0}#searchBox{width:150px}}
+/* 手机竖屏：隐藏次要信息，主体内容优先 */
+@media (max-width:480px){.kpi-grid{grid-template-columns:1fr}.kpi-value{font-size:23px}.ds-stack{display:none}.legend-group{display:none}.chart-box{height:320px}#searchBox{width:130px}.panel-hint{max-width:100%}}
 </style>
 </head>
 <body>
@@ -939,7 +952,11 @@ function applyChartTheme(){
 function bindThemeToggle(){
   const btn = document.getElementById('themeToggle');
   if(!btn) return;
-  const sync = ()=>{ btn.textContent = document.documentElement.dataset.theme==='light' ? '☀' : '☾'; };
+  const sync = ()=>{
+    const light = document.documentElement.dataset.theme==='light';
+    btn.textContent = light ? '☀' : '☾';
+    btn.title = light ? '当前浅色主题，点击切换深色' : '当前深色主题，点击切换浅色';
+  };
   sync();
   btn.addEventListener('click', ()=>{
     const next = document.documentElement.dataset.theme==='light' ? 'dark' : 'light';
@@ -2034,7 +2051,8 @@ function renderTable(){
   const rCell = (v, signed)=>{
     if(v==null||isNaN(v)) return '<span style="color:var(--text-4)">--</span>';
     const cls = v>0?'cell-pos':v<0?'cell-neg':'';
-    return '<span class="'+cls+'">'+(signed?fmt.signed(v,2):fmt.num(v,2))+'</span>';
+    const arrow = v>0?'<span class="dir-arrow">▲</span>':v<0?'<span class="dir-arrow">▼</span>':'';
+    return '<span class="'+cls+'">'+(signed?fmt.signed(v,2):fmt.num(v,2))+arrow+'</span>';
   };
   // 货币基金按官方披露口径展示：昨日列 = 每万份收益(元，wfsy)，近期列 = 七日年化(%，qrnh)
   // 非货币基金保持原口径：昨日列 = d1(%)，近期列 = w1(%)
