@@ -250,53 +250,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .dr-tab-pane.active{display:block}
 .dr-status-row{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--text-3)}
 
-/* Attribution */
-.attr-period{font-size:11px;color:var(--text-3);letter-spacing:.5px;margin-bottom:14px}
-.attr-total{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;margin-bottom:4px}
-.attr-total.pos{color:var(--green)}
-.attr-total.neg{color:var(--red)}
-.attr-total-label{font-size:11px;color:var(--text-3);margin-bottom:18px}
-.attr-stack{display:flex;height:26px;border-radius:6px;overflow:hidden;margin-bottom:14px;background:var(--bg-3)}
-.attr-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:rgba(0,0,0,0.85);white-space:nowrap;transition:opacity .2s}
-.attr-seg:hover{opacity:.85}
-.attr-table{width:100%;font-size:12px;border-collapse:collapse}
-.attr-table td{padding:8px 0;border-bottom:1px solid var(--border-soft)}
-.attr-table td:first-child{display:flex;align-items:center;gap:8px;color:var(--text-2)}
-.attr-table .attr-color{width:10px;height:10px;border-radius:2px}
-.attr-table .attr-val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
-
-/* Client Fit */
-.fit-grid{display:grid;grid-template-columns:1fr;gap:14px}
-.fit-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:14px 16px;box-shadow:0 1px 0 var(--glass-hi) inset}
-.fit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.fit-name{font-size:13px;font-weight:600;color:var(--text-1)}
-.fit-score-big{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--teal)}
-.fit-bar{height:5px;background:var(--bg-3);border-radius:999px;overflow:hidden;margin-bottom:8px}
-.fit-bar-fill{height:100%;border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
-.fit-note{font-size:12px;color:var(--text-2);line-height:1.55}
-
-/* IFRS9 + capital */
-.reg-block{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 0 var(--glass-hi) inset}
-.reg-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0}
-.reg-row+.reg-row{border-top:1px solid var(--border-soft)}
-.reg-label{font-size:11px;color:var(--text-3);letter-spacing:.5px;min-width:78px;padding-top:4px;text-transform:uppercase}
-.reg-content{flex:1}
-.ifrs-badge{display:inline-block;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
-.ifrs-badge.fvoci{background:rgba(0,200,83,0.15);color:var(--green);border:1px solid var(--green)}
-.ifrs-badge.fvpl{background:rgba(255,140,66,0.15);color:#FF8C42;border:1px solid #FF8C42}
-.ifrs-badge.both{background:rgba(78,205,196,0.15);color:var(--teal);border:1px solid var(--teal)}
-.reg-note{font-size:12px;color:var(--text-2);line-height:1.55}
-.cap-factor{font-size:22px;font-weight:700;color:var(--text-1);font-variant-numeric:tabular-nums;margin-bottom:4px}
-.cap-factor::after{content:'%';font-size:14px;color:var(--text-3);margin-left:2px}
-
-/* Pitch */
-.pitch-block{background:var(--glass-bg);border:1px solid var(--glass-border);border-left:3px solid var(--accent);border-radius:0 var(--r-md) var(--r-md) 0;padding:12px 16px;margin-bottom:14px;box-shadow:0 1px 0 var(--glass-hi) inset}
-.pitch-block-title{font-size:11px;color:var(--accent);letter-spacing:1.5px;font-weight:700;margin-bottom:8px;text-transform:uppercase}
-.pitch-opening{font-size:14px;color:var(--text-1);line-height:1.65;font-weight:500}
-.pitch-highlights{list-style:none;padding:0;margin:0;counter-reset:hl-counter}
-.pitch-highlights li{position:relative;padding:6px 0 6px 22px;font-size:13px;color:var(--text-2);line-height:1.55}
-.pitch-highlights li::before{content:counter(hl-counter);counter-increment:hl-counter;position:absolute;left:0;top:6px;width:16px;height:16px;background:var(--green-soft);color:var(--green);font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.pitch-cta{background:var(--gold-soft);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:var(--text-1);line-height:1.55;margin-top:6px}
+/* 注：Attribution / Client Fit / IFRS9+capital / Pitch 四组样式对应的功能均已下线，
+   其 CSS 为死代码，已移除（如需恢复见 git 历史）。 */
 
 /* Flag */
 .flag-list{display:flex;flex-direction:column;gap:8px}
@@ -307,28 +262,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .flag-item.warn .flag-icon{background:var(--gold);color:#000}
 .flag-item.info .flag-icon{background:var(--teal);color:#000}
 
-/* Q&A */
-.qa-list{display:flex;flex-direction:column;gap:10px}
-.qa-item{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--r-md);overflow:hidden}
-.qa-q{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-1);line-height:1.5;user-select:none;transition:background .12s}
-.qa-q:hover{background:var(--bg-3)}
-.qa-q-mark{flex-shrink:0;width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.qa-q-text{flex:1}
-.qa-toggle{font-size:16px;color:var(--text-3);transition:transform .2s;flex-shrink:0}
-.qa-item.open .qa-toggle{transform:rotate(45deg);color:var(--green)}
-.qa-a{display:none;padding:0 14px 12px 44px;font-size:12px;color:var(--text-2);line-height:1.65;border-top:1px solid var(--border-soft)}
-.qa-item.open .qa-a{display:block;padding-top:10px}
-
-/* Competitor */
-.comp-list{display:flex;flex-direction:column;gap:10px}
-.comp-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:12px 14px;box-shadow:0 1px 0 var(--glass-hi) inset;transition:transform .18s ease,box-shadow .18s ease}
-.comp-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-1)}
-.comp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
-.comp-name{font-size:13px;font-weight:600;color:var(--text-1)}
-.comp-meta{font-size:11px;color:var(--text-3)}
-.comp-vs{display:inline-block;font-size:9px;color:var(--text-3);letter-spacing:1.5px;margin-bottom:6px;font-weight:700}
-.comp-win{font-size:12px;color:var(--text-1);line-height:1.55;padding:8px 10px;background:rgba(0,200,83,0.06);border-left:2px solid var(--green);border-radius:0 4px 4px 0}
-.comp-win::before{content:'✓ ';color:var(--green);font-weight:700}
+/* 注：Q&A、Competitor(comp-*) 样式对应功能已下线（竞品对比现用 rival-table + alt-* 卡片），
+   其 CSS 为死代码，已移除。 */
 
 /* Footer & loading */
 .footer{text-align:center;font-size:11px;color:var(--text-4);padding:28px 28px 20px}
@@ -637,8 +572,19 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 <!-- 数据 + 主逻辑 -->
 <script>
 // ============================================================
-// 中欧基金产品数据
-// ============================================================
+// 中欧基金产品全景 · 主逻辑（单文件内联，按下列模块顺序排列）
+// ------------------------------------------------------------
+//  1. CONFIG / 缓存新鲜度 / 全局错误兜底     —— 见下方
+//  2. 投资类型三级分类 + 产品池构建           —— INVEST_HIERARCHY / assignInvestType / mergeZoFundPool
+//  3. 数据获取层（JSONP）                     —— jsonpLoad / loadPingzhong / loadPerformance /
+//                                                loadBatchRank / loadAllPerformance / loadIndexQuotes
+//  4. 算法与派生                              —— familyScale / findInternalAlternatives /
+//                                                buildEventTimeline / runSanityChecks
+//  5. 渲染层                                  —— renderChips / renderKpi / renderBubble /
+//                                                renderTree / renderTable / openDrawer / tab*Html
+//  6. 工具栏与交互                            —— bindToolbar(搜索/自选/导出) / bindTableEvents /
+//                                                bindDrawerEvents / bindThemeToggle
+//  7. 启动时序                                —— window.__startApp（首屏→行情→批量业绩）
 // ============================================================
 // 全局可调参数（集中管理，便于调优与口径一致）
 // ============================================================
@@ -2735,8 +2681,6 @@ function bindDrawerEvents(){
     // 内部平替卡片跳转
     const alt = e.target.closest('.alt-card');
     if(alt && alt.dataset.jump){ openDrawer(alt.dataset.jump); return; }
-    const q = e.target.closest('.qa-q');
-    if (q) q.closest('.qa-item').classList.toggle('open');
   });
 }
 function renderMiniChart(p){
