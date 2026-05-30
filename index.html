@@ -454,9 +454,7 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
   </div>
   <div class="topbar-right">
     <div class="legend-group">
-      <div class="legend-mini"><span class="legend-dot flagship"></span><span>★ 旗舰</span></div>
-      <div class="legend-mini"><span class="legend-dot status-open"></span><span>正常</span></div>
-      <div class="legend-mini"><span class="legend-dot status-limited"></span><span>限购</span></div>
+      <div class="legend-mini" title="本表所有产品默认显示「正常申购」；实际申购限制以中欧基金官网及销售公告为准，本面板未实时同步申购状态"><span class="legend-dot status-open"></span><span>申购状态以官网为准</span></div>
     </div>
     <div class="ds-stack" id="dsStack" title="业绩 / 规模 / 经理 = 天天基金 pingzhongdata 公开接口；分类 = 天天基金官方投资类型">
       <div class="ds-row"><span class="ds-dot" id="dsDot"></span><span>数据源</span><span class="ds-time" id="dsStatus">初始化中…</span></div>
@@ -553,7 +551,7 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 <section class="panel panel-table">
   <div class="panel-header">
     <div class="panel-title">产品明细</div>
-    <div class="panel-hint">点击表头排序 · 点击行查看详情</div>
+    <div class="panel-hint" id="tableHint">点击表头排序 · 点击行查看详情</div>
   </div>
   <div class="table-wrap">
     <table class="ptable" id="ptable">
@@ -598,7 +596,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
   <div>· <b>近期业绩 / 单位净值 / 规模 / 基金经理</b>：天天基金 <code>pingzhongdata</code> 公开数据集（昨日/近一周由净值序列计算；近一月/三月/六月/一年取 <code>syl_*</code>）</div>
   <div>· <b>投资类型三级分类</b>：天天基金（东方财富）官方 <code>type</code> 字段（如"混合型-偏股"、"债券型-长债"），等同晨星标准三级口径</div>
   <div>· <b>市场指数行情</b>：东方财富 <code>push2.eastmoney.com</code>（与天天基金同源，天天基金首页指数 ticker 即用此接口）</div>
-  <div style="margin-top:8px;color:var(--text-4)">公开接口可能因第三方限流偶发失败，未拉到业绩的产品对应字段显示 <code>--</code>；最终业绩以中欧基金官网披露为准。</div>
+  <div>· <b>申购状态</b>：本面板未实时同步，所有产品默认显示「正常申购」，实际申购限制（限购 / 暂停 / 大额限制）以中欧基金官网及销售公告为准</div>
+  <div style="margin-top:8px;color:var(--text-4)">公开接口可能因第三方限流偶发失败，未拉到业绩的产品对应字段显示 <code>--</code>；本面板不含任何合成 / 估算指标，业绩归因等非真实数据已移除；最终业绩以中欧基金官网披露为准。</div>
 </div>
 
 <footer class="footer">
@@ -709,48 +708,9 @@ const STATUS_META = {
   closed:{color:'#7A8294',label:'暂停申购'}
 };
 
-function deriveAttribution(p){
-  if(!p.annualReturn) return null;
-  const ret = +(p.annualReturn/4).toFixed(2);
-  const l1 = p.l1; // 投资类型一级
-  if(l1==='股票型'){
-    const beta=+(ret*0.55).toFixed(2), alpha=+(ret*0.40).toFixed(2), other=+(ret-beta-alpha).toFixed(2);
-    return {period:'近一季度',total:ret,parts:[
-      {key:'industryBeta',label:l1==='股票型'&&p.l2==='被动指数'?'指数β':'行业β',value:beta,color:'#4ECDC4'},
-      {key:'stockAlpha',label:p.l2==='被动指数'?'增强α':'选股α',value:alpha,color:'#00C853'},
-      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
-  }
-  if(l1==='混合型'){
-    const beta=+(ret*0.50).toFixed(2), alpha=+(ret*0.35).toFixed(2), bond=+(ret*0.10).toFixed(2), other=+(ret-beta-alpha-bond).toFixed(2);
-    return {period:'近一季度',total:ret,parts:[
-      {key:'industryBeta',label:'权益β',value:beta,color:'#4ECDC4'},
-      {key:'stockAlpha',label:'选股α',value:alpha,color:'#00C853'},
-      {key:'bond',label:'债券底仓',value:bond,color:'#FFE66D'},
-      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
-  }
-  if(l1==='债券型' || l1==='货币型'){
-    const dur=+(ret*0.35).toFixed(2),credit=+(ret*0.50).toFixed(2),other=+(ret-dur-credit).toFixed(2);
-    return {period:'近一季度',total:ret,parts:[
-      {key:'duration',label:'久期',value:dur,color:'#FFE66D'},
-      {key:'credit',label:'信用票息',value:credit,color:'#4ECDC4'},
-      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
-  }
-  if(l1==='QDII'){
-    const beta=+(ret*0.65).toFixed(2),fx=+(ret*0.15).toFixed(2),alpha=+(ret*0.15).toFixed(2),other=+(ret-beta-fx-alpha).toFixed(2);
-    return {period:'近一季度',total:ret,parts:[
-      {key:'industryBeta',label:'境外β',value:beta,color:'#4ECDC4'},
-      {key:'fx',label:'汇率影响',value:fx,color:'#FFE66D'},
-      {key:'stockAlpha',label:'选股α',value:alpha,color:'#00C853'},
-      {key:'other',label:'其他',value:other,color:'#7A8294'}]};
-  }
-  // FOF
-  const eq=+(ret*0.50).toFixed(2),fi=+(ret*0.30).toFixed(2),sel=+(ret*0.15).toFixed(2),other=+(ret-eq-fi-sel).toFixed(2);
-  return {period:'近一季度',total:ret,parts:[
-    {key:'equityBeta',label:'权益β',value:eq,color:'#4ECDC4'},
-    {key:'fixedCarry',label:'固收票息',value:fi,color:'#FFE66D'},
-    {key:'fundSelect',label:'基金优选',value:sel,color:'#00C853'},
-    {key:'other',label:'其他',value:other,color:'#7A8294'}]};
-}
+// 注：原 deriveAttribution（按固定权重把 annualReturn/4 拆成 β/α/久期/信用 的"业绩归因"）
+// 是合成示意数据，并非真实归因，已整体移除，避免在机构客户场景误导。
+// 抽屉「业绩归因」tab 一并删除，只保留来自公开接口的真实数据（净值/规模/经理/业绩）。
 
 // ============================================================
 // PRODUCTS 数组 —— 完全从 window.ZO_FUND_POOL（天天基金离线提取）构建
@@ -807,8 +767,6 @@ PRODUCTS.forEach(p=>{
 // 申购状态：默认全部"正常申购"（实际状态需从基金公告获取，公开接口未直接提供，此字段保留兼容性）
 PRODUCTS.forEach(p => {
   p.status = { code:'open', label:'正常申购' };
-  // 默认从公开年化数据推导归因（pingzhongdata 拉到后会自动重算）
-  p.attribution = deriveAttribution(p);
 });
 
 // ============================================================
@@ -1440,13 +1398,12 @@ function findInternalAlternatives(p, max){
 
 // ⑥ 产品事件流（仅基于客观数据：业绩数据更新 / 状态变更 / 公开披露）
 function buildEventTimeline(p){
+  // 仅保留「有真实时间戳 + 真实来源」的事件：净值更新、机构持仓披露。
+  // 原"季报披露 / 规模快照 / 状态变更"用的是拍脑袋的日期与文案，已整体移除。
   const events = [];
-  const now = new Date();
-  const pad = n=>String(n).padStart(2,'0');
-  const fmtD = d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-  // 业绩数据加载事件（来自 pingzhongdata）
-  const pf = DS.perfMap[p.code];
-  if(pf && pf.jzrq){
+  const pf = DS.perfMap[p.code] || {};
+  // 净值更新（真实净值日期 + 真实单位净值 / 昨日涨跌）
+  if(pf.jzrq){
     events.push({
       time: pf.jzrq, type:'nav', label:'净值更新',
       text:'最新单位净值 '+(pf.dwjz!=null?pf.dwjz.toFixed(4):'--')+
@@ -1454,29 +1411,12 @@ function buildEventTimeline(p){
       meta:'来源：天天基金 pingzhongdata'
     });
   }
-  // 限购/状态事件
-  if(p.status && p.status.code!=='open'){
+  // 机构持仓占比披露（真实披露日期 + 真实比例，来自 Data_holderStructure）
+  if(pf.instHold!=null && pf.instHoldDate){
     events.push({
-      time: fmtD(new Date(now.getTime()-86400000*7)),
-      type:'status', label:STATUS_META[p.status.code].label,
-      text: p.status.label || '产品申购状态发生变化',
-      meta:'来源：基金公告 · 申购状态'
-    });
-  }
-  // 季报披露
-  events.push({
-    time: fmtD(new Date(now.getFullYear(), Math.floor(now.getMonth()/3)*3, 1)),
-    type:'disclosure', label:'季报披露',
-    text: p.l1+' · '+p.l3+'，'+p.name+' 公布最新季报。',
-    meta:'来源：基金合同信息披露'
-  });
-  // 规模快照（如已有 scale）
-  if((p.scale||0)>0){
-    events.push({
-      time: fmtD(new Date(now.getTime()-86400000*45)),
-      type:'scale', label:'规模快照',
-      text: '最新披露规模 '+fmt.scale(p.scale)+' 亿，'+(p.scale>50?'机构持有占比稳定':'仍处于成长期'),
-      meta:'来源：公告披露 · 季频'
+      time: pf.instHoldDate, type:'disclosure', label:'持有人披露',
+      text:'机构持有比例 '+(+pf.instHold).toFixed(2)+'%',
+      meta:'来源：天天基金 · 持有人结构'
     });
   }
   return events.sort((a,b)=>(b.time||'').localeCompare(a.time||''));
@@ -2056,6 +1996,19 @@ function renderTable(){
       th.appendChild(a);
     }
   });
+  updateTableHint(list);
+}
+// 数据时效标识：取当前列表已加载产品里最新的净值日期（jzrq），让销售清楚「这是哪天的数」
+function updateTableHint(list){
+  const hint = document.getElementById('tableHint'); if(!hint) return;
+  let latest = '';
+  (list||[]).forEach(p=>{
+    const jz = (DS.perfMap[p.code]||{}).jzrq;
+    if(jz && jz>latest) latest = jz;
+  });
+  hint.innerHTML = latest
+    ? '<b style="color:var(--text-2)">数据截至 '+latest+'</b>（最新交易日净值） · 点击表头排序 · 点击行查看详情'
+    : '点击表头排序 · 点击行查看详情';
 }
 function bindTableEvents(){
   document.querySelectorAll('#ptable thead th').forEach(th=>{
@@ -2151,43 +2104,8 @@ function tabOverviewHtml(p){
     '<div class="dr-section"><div class="dr-section-title">近期动态</div>'+eventsHtml+'</div>'+
     '<div class="dr-section"><div class="dr-section-title">产品概要</div><div class="dr-desc">'+(p.description||'--')+'</div></div>';
 }
-function tabAttributionHtml(p){
-  const a = p.attribution;
-  if(!a || !a.parts || !a.parts.length){
-    return '<div class="dr-section"><div class="dr-desc" style="color:var(--text-3);padding:20px 0">业绩归因数据基于公开净值与基准计算，当前产品业绩数据不完整。</div></div>';
-  }
-  const totalAbs = a.parts.reduce((s,x)=>s+Math.abs(x.value),0) || 1;
-  const segs = a.parts.map(part=>{
-    const w = Math.abs(part.value)/totalAbs*100;
-    return '<div class="attr-seg" style="width:'+w+'%;background:'+part.color+'" title="'+part.label+'：'+fmt.signed(part.value)+'%">'+(w>12?part.label:'')+'</div>';
-  }).join('');
-  const rows = a.parts.map(part=>
-    '<tr><td><span class="attr-color" style="background:'+part.color+'"></span>'+part.label+'</td>'+
-    '<td class="attr-val" style="color:'+(part.value>=0?'#00C853':'#FF5C5C')+'">'+fmt.signed(part.value,2)+'%</td></tr>'
-  ).join('');
-  return '<div class="dr-section">'+
-    '<div class="attr-period">归因区间：'+a.period+'</div>'+
-    '<div class="attr-total '+(a.total>=0?'pos':'neg')+'">'+fmt.signed(a.total,2)+'%</div>'+
-    '<div class="attr-total-label">'+a.period+' 总收益</div>'+
-    '<div class="attr-stack">'+segs+'</div>'+
-    '<table class="attr-table">'+rows+'</table></div>'+
-    '<div class="dr-section"><div class="dr-section-title">话术解读</div><div class="dr-desc">'+attrNarrative(p)+'</div></div>';
-}
-function attrNarrative(p){
-  const a = p.attribution; if(!a||!a.parts||!a.parts.length) return '';
-  const parts = a.parts;
-  const top = [...parts].sort((x,y)=>Math.abs(y.value)-Math.abs(x.value))[0];
-  const second = [...parts].sort((x,y)=>Math.abs(y.value)-Math.abs(x.value))[1] || top;
-  if (p.l1==='股票型' || p.l1==='混合型') {
-    return '本季度收益主要来自 <b style="color:'+top.color+'">'+top.label+'</b>（'+fmt.signed(top.value,2)+'%），'+
-      '其次是 <b style="color:'+second.color+'">'+second.label+'</b>（'+fmt.signed(second.value,2)+'%）。';
-  }
-  if (p.l1==='债券型' || p.l1==='货币型') {
-    return '收益结构清晰：信用票息打底（'+fmt.signed((parts.find(x=>x.key==='credit')||{}).value||0,2)+'%），'+
-      '久期管理贡献（'+fmt.signed((parts.find(x=>x.key==='duration')||{}).value||0,2)+'%）。';
-  }
-  return '本季度收益结构均衡，最大贡献为 <b style="color:'+top.color+'">'+top.label+'</b>。';
-}
+// 注：原 tabAttributionHtml / attrNarrative（渲染合成"业绩归因"与话术）已随
+// deriveAttribution 一并移除，抽屉不再展示任何非真实接口数据。
 // ============================================================
 // 竞品对比 Tab：轨道 A（市场竞品） + 轨道 B（内部平替）
 // ============================================================
@@ -2590,10 +2508,8 @@ function openDrawer(code){
     '</div></div>'+
     '<div class="dr-tabs" id="drTabs">'+
     '<div class="dr-tab active" data-tab="overview">概览</div>'+
-    '<div class="dr-tab" data-tab="attribution">业绩归因</div>'+
     '<div class="dr-tab" data-tab="competitor">同类对比</div></div>'+
     '<div class="dr-tab-pane active" data-pane="overview">'+tabOverviewHtml(p)+'</div>'+
-    '<div class="dr-tab-pane" data-pane="attribution">'+tabAttributionHtml(p)+'</div>'+
     '<div class="dr-tab-pane" data-pane="competitor">'+tabCompetitorHtml(p)+'</div>';
   const drawerBody = document.getElementById('drawerBody');
   drawerBody.innerHTML = html;
