@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>中欧基金 · 产品全景</title>
 
-<!-- ECharts 预连接 + 预加载：让 echarts.min.js 与 products_full.js 并行下载，缩短首屏 -->
+<!-- ECharts 预加载：本地副本优先（离线 / 内网双击即可秒开），CDN 仅作兜底 -->
+<link rel="preload" as="script" href="echarts.min.js">
 <link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://unpkg.com">
 <link rel="dns-prefetch" href="https://lib.baomitu.com">
-<link rel="preload" as="script" href="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js">
 <script>
 // 主题：尽早应用，避免首屏闪烁
 try{ document.documentElement.dataset.theme = (localStorage.getItem('zo_theme')==='light'?'light':'dark'); }catch(e){ document.documentElement.dataset.theme='dark'; }
 </script>
 <script>
-// ECharts 多源 fallback：bootcdn(国内) → jsdelivr → unpkg → baomitu
+// ECharts 多源 fallback：本地副本(echarts.min.js) → bootcdn(国内) → jsdelivr → unpkg → baomitu
+// 本地优先：离线 / 内网双击场景无需联网即可出图；本地文件缺失则自动降级到 CDN。
 // 在 <head> 内立即发起下载，与 products_full.js 解析并行；执行门控见 __startApp 守卫
 // DOM 就绪 + __startApp 已定义后才真正启动（避免 head 提前 onload 早于 body 解析）
 window.__bootOnce = false;
@@ -32,6 +33,7 @@ window.__tryBoot = function(){
   window.__startApp();
 };
 window.__echartsTries = [
+  'echarts.min.js',                                                  // ← 本地副本，离线/内网优先
   'https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js',
   'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js',
   'https://unpkg.com/echarts@5.5.0/dist/echarts.min.js',
@@ -460,6 +462,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
       <div class="ds-row"><span class="ds-dot" id="dsDot"></span><span>数据源</span><span class="ds-time" id="dsStatus">初始化中…</span></div>
       <div class="ds-row"><span>最近刷新</span><span class="ds-time" id="dsRefresh">--</span></div>
     </div>
+    <button id="refreshBtn" title="清除本地缓存并重新拉取最新业绩 / 行情数据"
+      style="background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text-2);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:15px;font-family:inherit;backdrop-filter:blur(var(--blur))">↻</button>
     <button id="healthBtn" title="数据健康面板：查看数据合理性自检异常清单"
       style="background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text-2);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px;position:relative;font-family:inherit;backdrop-filter:blur(var(--blur))">
       🔔<span id="healthBadge" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10px;border-radius:8px;padding:1px 5px;min-width:14px;display:none"></span>
@@ -612,6 +616,61 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 // ============================================================
 // 中欧基金产品数据
 // ============================================================
+// ============================================================
+// 全局可调参数（集中管理，便于调优与口径一致）
+// ============================================================
+const CONFIG = {
+  PERF_CONCURRENCY:   12,            // pingzhongdata 批量并发（过高易被东方财富限流，原 32 偏激进）
+  PINGZHONG_TIMEOUT:  8000,          // 单只 pingzhongdata 超时(ms)
+  RANK_TIMEOUT:       30000,         // rankhandler 批量超时(ms)
+  PERF_CACHE_SAMEDAY: true,          // 业绩缓存仅「当日」有效（跨日强制刷新，保证净值时效）
+  PERF_CACHE_MAX_MS:  7*24*3600*1000,// 兜底上限：即便关闭按日失效，最长也不超过 7 天
+  RANK_CACHE_MS:      30*60*1000,    // rankhandler 缓存 30 分钟
+  CB_FAIL_THRESHOLD:  25,            // 连续失败达到此数 → 触发熔断冷却（防限流雪崩）
+  CB_COOLDOWN_MS:     2000,          // 熔断冷却时长(ms)
+  PERF_MAX_LOAD_MS:   120000         // 单批业绩加载总预算上限(ms)，超时停止补拉并标记"部分未加载"
+};
+// 业绩缓存是否仍新鲜：按日失效（同一自然日内有效）+ 7 天硬上限
+function perfCacheFresh(t){
+  if(!t) return false;
+  if((Date.now()-t) > CONFIG.PERF_CACHE_MAX_MS) return false;
+  if(CONFIG.PERF_CACHE_SAMEDAY){
+    const a=new Date(t), b=new Date();
+    if(a.getFullYear()!==b.getFullYear()||a.getMonth()!==b.getMonth()||a.getDate()!==b.getDate()) return false;
+  }
+  return true;
+}
+
+// ============================================================
+// 全局错误兜底：任何未捕获异常 / Promise 拒绝 → 轻量 toast 提示，不白屏
+// 尽早注册，以便捕获后续脚本执行与异步渲染中的运行时错误
+// ============================================================
+function showToast(msg, kind){
+  let host = document.getElementById('zoToastHost');
+  if(!host){
+    if(!document.body){ return; }
+    host = document.createElement('div');
+    host.id = 'zoToastHost';
+    host.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none';
+    document.body.appendChild(host);
+  }
+  const el = document.createElement('div');
+  el.style.cssText = 'pointer-events:auto;max-width:320px;padding:11px 14px;border-radius:10px;font-size:12px;line-height:1.5;color:#EAECF1;background:rgba(20,25,38,0.92);border:1px solid '+(kind==='error'?'rgba(255,92,92,0.5)':'rgba(255,184,0,0.5)')+';box-shadow:0 8px 30px rgba(0,0,0,0.45);backdrop-filter:blur(10px)';
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(function(){ el.style.transition='opacity .4s'; el.style.opacity='0'; setTimeout(function(){ el.remove(); },400); }, 5000);
+}
+let __lastErrToast = 0;
+window.addEventListener('error', function(e){
+  // 资源加载错误（script/img/link）噪音大且已有各自兜底（ECharts 多源、净值 --），忽略
+  if(e && e.target && e.target!==window && /SCRIPT|IMG|LINK/.test(e.target.tagName||'')) return;
+  try{ if(typeof DS!=='undefined' && DS.errors) DS.errors.push({t:Date.now(), msg:String((e&&e.message)||e)}); }catch(_){}
+  const now=Date.now(); if(now-__lastErrToast>4000){ __lastErrToast=now; showToast('页面出现一个异常，部分内容可能未刷新，可刷新页面重试。','error'); }
+});
+window.addEventListener('unhandledrejection', function(e){
+  try{ if(typeof DS!=='undefined' && DS.errors) DS.errors.push({t:Date.now(), msg:'promise: '+String(e&&e.reason)}); }catch(_){}
+});
+
 // ============================================================
 // 投资类型 · 三级分类（基于天天基金 / 晨星公开 type 字段）
 // 一级（大类） → 二级（策略） → 三级（细分）
@@ -926,7 +985,7 @@ async function loadPingzhong(code){
   // 加载后取出来再清掉，避免污染
   const before = Object.keys(window).filter(k=>k.startsWith('Data_'));
   try{
-    await jsonpLoad('https://fund.eastmoney.com/pingzhongdata/'+code+'.js?v='+Date.now(), 8000);
+    await jsonpLoad('https://fund.eastmoney.com/pingzhongdata/'+code+'.js?v='+Date.now(), CONFIG.PINGZHONG_TIMEOUT);
   }catch(e){ return null; }
   const result = {};
   ['Data_netWorthTrend','Data_grandTotal','Data_rateInSimilarType','Data_performanceEvaluation',
@@ -976,12 +1035,12 @@ function fmtInstHold(ratio, date){
 async function loadPerformance(code){
   // 命中即返但要确保关键字段已有（rankhandler 填的可能没有 scale/manager，仍需走 pingzhongdata）
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
-  // localStorage 缓存：7d 内直接命中，大幅减少 pingzhongdata 请求
+  // localStorage 缓存：按「自然日」失效（跨日强制刷新，保证净值时效），命中则免去 pingzhongdata 请求
   try{
     const cached = localStorage.getItem('zo_perf_v8:'+code);
     if(cached){
       const obj = JSON.parse(cached);
-      if(obj && obj.t && (Date.now()-obj.t) < 7*24*3600*1000 && obj.d){
+      if(obj && obj.t && perfCacheFresh(obj.t) && obj.d){
         // 合并到现有（不覆盖已通过 rankhandler 拉到的更新数据）
         DS.perfMap[code] = Object.assign({}, obj.d, DS.perfMap[code]||{});
         if(DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
@@ -1118,7 +1177,7 @@ function loadBatchRank(){
     const cached = localStorage.getItem('zo_rank_v5');
     if(cached){
       const obj = JSON.parse(cached);
-      if(obj && obj.t && (Date.now()-obj.t)<30*60*1000 && obj.map){
+      if(obj && obj.t && (Date.now()-obj.t)<CONFIG.RANK_CACHE_MS && obj.map){
         let n = 0;
         Object.keys(obj.map).forEach(code=>{
           const prev = DS.perfMap[code]||{};
@@ -1154,7 +1213,7 @@ function loadBatchRank(){
     const url = 'https://fund.eastmoney.com/data/rankhandler.aspx?op=ph&dt=kf&ft=all&rs=&gs=0&sc=zzf&st=desc'
       + '&sd=' + fmtD(sd) + '&ed=' + fmtD(ed)
       + '&qdii=&tabSubtype=,,,,,&pi=1&pn=30000&dx=1&v=' + Date.now();
-    jsonpLoad(url, 30000).then(()=>{
+    jsonpLoad(url, CONFIG.RANK_TIMEOUT).then(()=>{
       try{
         const r = window.rankData;
         if(!r || !r.datas){ resolve(0); return; }
@@ -1214,10 +1273,15 @@ function loadBatchRank(){
 
 // ③ 批量加载所有主份额业绩（滑动窗口，20 并发，每完成 8 只刷新一次 UI）
 async function loadAllPerformance(codes){
-  const concurrency = 32;
+  const concurrency = CONFIG.PERF_CONCURRENCY;
   let ok = 0, fail = 0;
   let cursor = 0;
   let sinceLastRefresh = 0;
+  let consecutiveFails = 0;          // 熔断计数（跨 worker 共享）
+  let cooldownUntil = 0;             // 熔断冷却截止时间戳
+  let aborted = false;               // 总预算超时后置位，停止后续补拉
+  const deadline = Date.now() + CONFIG.PERF_MAX_LOAD_MS;
+  const sleep = ms => new Promise(r=>setTimeout(r, ms));
   const refreshUI = () => {
     updateDataSourceUI(ok, fail, codes.length);
     if(typeof window.__refreshAfterPerf === 'function') window.__refreshAfterPerf();
@@ -1225,31 +1289,41 @@ async function loadAllPerformance(codes){
   const codeIndex = new Map(PRODUCTS.map(p=>[p.code, p]));
   async function worker(){
     while(cursor < codes.length){
+      if(aborted) return;
+      // 总预算超时 → 停止补拉（剩余产品保持 -- ，由数据源状态条显示"部分未加载"）
+      if(Date.now() > deadline){ aborted = true; return; }
+      // 熔断冷却：连续失败过多时所有 worker 一起退避，避免持续撞限流形成雪崩
+      if(cooldownUntil && Date.now() < cooldownUntil){ await sleep(cooldownUntil - Date.now()); }
       const i = cursor++;
       const code = codes[i];
+      if(code===undefined) return;
       try {
         const r = await loadPerformance(code);
         if(r){
-          ok++;
+          ok++; consecutiveFails = 0;
           const prod = codeIndex.get(code);
           if(prod){
             if((!prod.scale || prod.scale===0) && r.scale) prod.scale = r.scale;
             if((!prod.manager || prod.manager==='-') && r.manager) prod.manager = r.manager;
             if((!prod.annualReturn || prod.annualReturn===0) && r.y1!=null) prod.annualReturn = r.y1;
           }
-        } else fail++;
-      } catch(_) { fail++; }
-      sinceLastRefresh++;
-      if(sinceLastRefresh >= 8){
-        sinceLastRefresh = 0;
-        refreshUI();
+        } else { fail++; consecutiveFails++; }
+      } catch(_) { fail++; consecutiveFails++; }
+      // 触发熔断：连续失败达阈值 → 设冷却窗口并清零计数
+      if(consecutiveFails >= CONFIG.CB_FAIL_THRESHOLD){
+        consecutiveFails = 0;
+        cooldownUntil = Date.now() + CONFIG.CB_COOLDOWN_MS;
+        const st = document.getElementById('dsStatus');
+        if(st) st.textContent = '接口繁忙，已自动降速…';
       }
+      sinceLastRefresh++;
+      if(sinceLastRefresh >= 8){ sinceLastRefresh = 0; refreshUI(); }
     }
   }
   const workers = Array(Math.min(concurrency, codes.length)).fill(0).map(worker);
   await Promise.all(workers);
   refreshUI();
-  return { success: ok, fail };
+  return { success: ok, fail, aborted };
 }
 
 // ③ 指数行情：东方财富 push2 接口（与天天基金同源，天天基金首页指数 ticker 用的就是这个）
@@ -2672,6 +2746,13 @@ window.__startApp = function(){
   bindDrawerEvents();
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.getElementById('drawerMask').addEventListener('click', closeDrawer);
+  // 手动刷新：清除业绩 / 行情缓存后重载，强制拉取当日最新数据（保留 7 天的市场索引缓存）
+  const refreshBtn = document.getElementById('refreshBtn');
+  if(refreshBtn) refreshBtn.addEventListener('click', ()=>{
+    refreshBtn.style.transition='transform .6s'; refreshBtn.style.transform='rotate(360deg)';
+    try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('zo_perf')===0 || k.indexOf('zo_rank')===0) localStorage.removeItem(k); }); }catch(_){}
+    setTimeout(()=>location.reload(), 220);
+  });
   // 数据健康面板
   document.getElementById('healthBtn').addEventListener('click', openHealthPanel);
   document.getElementById('healthClose').addEventListener('click', closeHealthPanel);
