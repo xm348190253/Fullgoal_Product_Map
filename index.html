@@ -624,7 +624,8 @@ function showToast(msg, kind){
     document.body.appendChild(host);
   }
   const el = document.createElement('div');
-  el.style.cssText = 'pointer-events:auto;max-width:320px;padding:11px 14px;border-radius:10px;font-size:12px;line-height:1.5;color:#EAECF1;background:rgba(20,25,38,0.92);border:1px solid '+(kind==='error'?'rgba(255,92,92,0.5)':'rgba(255,184,0,0.5)')+';box-shadow:0 8px 30px rgba(0,0,0,0.45);backdrop-filter:blur(10px)';
+  const borderColor = kind==='error' ? 'rgba(255,92,92,0.55)' : kind==='warn' ? 'rgba(255,184,0,0.55)' : 'rgba(78,205,196,0.55)';
+  el.style.cssText = 'pointer-events:auto;max-width:320px;padding:11px 14px;border-radius:10px;font-size:12px;line-height:1.5;color:#EAECF1;background:rgba(20,25,38,0.92);border:1px solid '+borderColor+';box-shadow:0 8px 30px rgba(0,0,0,0.45);backdrop-filter:blur(10px)';
   el.textContent = msg;
   host.appendChild(el);
   setTimeout(function(){ el.style.transition='opacity .4s'; el.style.opacity='0'; setTimeout(function(){ el.remove(); },400); }, 5000);
@@ -2092,7 +2093,9 @@ function bindTableEvents(){
     if(star && star.dataset.fav){
       e.stopPropagation();
       toggleFav(star.dataset.fav);
-      renderTable(); renderKpi(); updatePoolStat();
+      // 「只看自选」开启时，增删收藏会改变当前集合 → 必须整体重渲（含气泡图/Treemap）；
+      // 关闭时集合不变，只需刷新表格里的星标图标即可。
+      if(STATE.favOnly) renderAll(); else renderTable();
       return;
     }
     const tr = e.target.closest('tr');
@@ -2136,7 +2139,7 @@ function exportCsv(){
   let latest=''; list.forEach(p=>{ const jz=(DS.perfMap[p.code]||{}).jzrq; if(jz&&jz>latest) latest=jz; });
   const meta = '# 中欧基金产品全景导出 · 数据截至 '+(latest||'--')+' · 数据来自天天基金/东方财富公开接口 · 业绩以中欧基金官网披露为准\r\n';
   const csv = meta + [hdr].concat(rows).map(r=>r.map(esc).join(',')).join('\r\n');
-  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}); // BOM：让 Excel 正确识别中文 UTF-8
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}); // BOM(U+FEFF)：让 Excel 正确识别中文 UTF-8
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = '中欧基金产品全景_'+(latest||new Date().toISOString().slice(0,10))+'.csv';
