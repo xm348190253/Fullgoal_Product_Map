@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>中欧基金 · 产品全景</title>
+<title>富国基金 · 产品全景</title>
 
 <!-- ECharts 预加载：本地副本优先（离线 / 内网双击即可秒开），CDN 仅作兜底 -->
 <link rel="preload" as="script" href="echarts.min.js">
@@ -13,7 +13,7 @@
 <link rel="dns-prefetch" href="https://lib.baomitu.com">
 <script>
 // 主题：尽早应用，避免首屏闪烁
-try{ document.documentElement.dataset.theme = (localStorage.getItem('zo_theme')==='light'?'light':'dark'); }catch(e){ document.documentElement.dataset.theme='dark'; }
+try{ document.documentElement.dataset.theme = (localStorage.getItem('fg_theme')==='light'?'light':'dark'); }catch(e){ document.documentElement.dataset.theme='dark'; }
 </script>
 <script>
 // ECharts 多源 fallback：本地副本(echarts.min.js) → bootcdn(国内) → jsdelivr → unpkg → baomitu
@@ -118,7 +118,7 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .theme-toggle:hover{color:var(--text-1);transform:translateY(-1px);box-shadow:var(--shadow-1)}
 .brand{display:flex;align-items:center;gap:14px}
 .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--green) 0%,#00875A 100%);border-radius:11px;position:relative;box-shadow:0 6px 18px var(--accent-glow),0 1px 0 rgba(255,255,255,0.25) inset}
-.brand-mark::after{content:'CE';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;letter-spacing:.5px}
+.brand-mark::after{content:'FG';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;letter-spacing:.5px}
 .brand-title{font-size:17px;font-weight:700;letter-spacing:.4px;color:var(--text-1)}
 .brand-sub{font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:1.5px;margin-left:6px}
 .brand-tag{font-size:12px;color:var(--text-3);margin-top:2px}
@@ -293,10 +293,16 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .ds-time{color:var(--text-1);font-weight:500}
 
 /* === 新增：市场脉搏 ticker === */
-.ticker-bar{display:flex;align-items:center;gap:14px;padding:10px 28px;margin-top:4px;border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);background:var(--glass-bg);backdrop-filter:blur(var(--blur)) saturate(160%);-webkit-backdrop-filter:blur(var(--blur)) saturate(160%);overflow-x:auto;white-space:nowrap;scrollbar-width:none;position:relative;z-index:40}
+.ticker-bar{display:flex;align-items:center;gap:14px;padding:10px 28px;margin-top:4px;border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);background:var(--glass-bg);backdrop-filter:blur(var(--blur)) saturate(160%);-webkit-backdrop-filter:blur(var(--blur)) saturate(160%);overflow:hidden;white-space:nowrap;scrollbar-width:none;position:relative;z-index:40}
 .ticker-bar::-webkit-scrollbar{display:none}
 .ticker-label{font-size:10px;color:var(--text-4);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;min-width:64px}
-.ticker-items{display:flex;gap:18px;flex-wrap:nowrap;flex:1}
+.ticker-track-wrap{overflow:hidden;flex:1;min-width:0}
+.ticker-items{display:flex;gap:18px;flex-wrap:nowrap;width:max-content;min-width:100%;will-change:transform}
+.ticker-items.is-static{width:100%}
+.ticker-items.is-marquee{animation:ticker-marquee var(--ticker-duration,28s) linear infinite}
+.ticker-items.is-marquee:hover{animation-play-state:paused}
+.ticker-marquee-gap{display:inline-block;width:36px;flex:0 0 36px}
+@keyframes ticker-marquee{0%{transform:translateX(0)}100%{transform:translateX(calc(-1 * var(--ticker-shift,0px)))}}
 .ticker-item{display:inline-flex;align-items:baseline;gap:6px;font-size:12px;flex-shrink:0;padding:0 4px}
 .ticker-item-name{color:var(--text-2)}
 .ticker-item-val{font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-1)}
@@ -401,13 +407,13 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
   <div class="brand">
     <div class="brand-mark"></div>
     <div>
-      <div class="brand-title">中欧基金 <span class="brand-sub">PRODUCT PANORAMA</span></div>
+      <div class="brand-title">富国基金 <span class="brand-sub">PRODUCT PANORAMA</span></div>
       <div class="brand-tag">产品全景 · 机构销售内部视图</div>
     </div>
   </div>
   <div class="topbar-right">
     <div class="legend-group">
-      <div class="legend-mini" title="本表所有产品默认显示「正常申购」；实际申购限制以中欧基金官网及销售公告为准，本面板未实时同步申购状态"><span class="legend-dot status-open"></span><span>申购状态以官网为准</span></div>
+      <div class="legend-mini" title="本表所有产品默认显示「正常申购」；实际申购限制以富国基金官网及销售公告为准，本面板未实时同步申购状态"><span class="legend-dot status-open"></span><span>申购状态以官网为准</span></div>
     </div>
     <div class="ds-stack" id="dsStack" title="业绩 / 规模 / 经理 = 天天基金 pingzhongdata 公开接口；分类 = 天天基金官方投资类型">
       <div class="ds-row"><span class="ds-dot" id="dsDot"></span><span>数据源</span><span class="ds-time" id="dsStatus">初始化中…</span></div>
@@ -427,14 +433,18 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 <!-- 市场脉搏 ticker（公开行情：天天基金估值接口 + 同源指数） -->
 <div class="ticker-bar" id="tickerBar">
   <div class="ticker-label">市场脉搏</div>
-  <div class="ticker-items" id="tickerItems">
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">上证综指</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">科创50</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">创业板指</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生指数</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生科技</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">纳斯达克</span><span class="ticker-item-val">--</span></span>
-    <span class="ticker-item ticker-flat"><span class="ticker-item-name">标普500</span><span class="ticker-item-val">--</span></span>
+  <div class="ticker-track-wrap">
+    <div class="ticker-items" id="tickerItems">
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">上证指数</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">沪深300</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">创业板指</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">科创50</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生指数</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">恒生科技</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">标普500</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">纳斯达克</span><span class="ticker-item-val">--</span></span>
+      <span class="ticker-item ticker-flat"><span class="ticker-item-name">道琼斯指数</span><span class="ticker-item-val">--</span></span>
+    </div>
   </div>
   <div class="ticker-tail" id="tickerTail">市场指数 · 东方财富 push2.eastmoney.com</div>
 </div>
@@ -558,24 +568,24 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
   <div>· <b>近期业绩 / 单位净值 / 规模 / 基金经理</b>：天天基金 <code>pingzhongdata</code> 公开数据集（昨日/近一周由净值序列计算；近一月/三月/六月/一年取 <code>syl_*</code>）</div>
   <div>· <b>投资类型三级分类</b>：天天基金（东方财富）官方 <code>type</code> 字段（如"混合型-偏股"、"债券型-长债"），等同晨星标准三级口径</div>
   <div>· <b>市场指数行情</b>：东方财富 <code>push2.eastmoney.com</code>（与天天基金同源，天天基金首页指数 ticker 即用此接口）</div>
-  <div>· <b>申购状态</b>：本面板未实时同步，所有产品默认显示「正常申购」，实际申购限制（限购 / 暂停 / 大额限制）以中欧基金官网及销售公告为准</div>
-  <div style="margin-top:8px;color:var(--text-4)">公开接口可能因第三方限流偶发失败，未拉到业绩的产品对应字段显示 <code>--</code>；本面板不含任何合成 / 估算指标，业绩归因等非真实数据已移除；最终业绩以中欧基金官网披露为准。</div>
+  <div>· <b>申购状态</b>：本面板未实时同步，所有产品默认显示「正常申购」，实际申购限制（限购 / 暂停 / 大额限制）以富国基金官网及销售公告为准</div>
+  <div style="margin-top:8px;color:var(--text-4)">公开接口可能因第三方限流偶发失败，未拉到业绩的产品对应字段显示 <code>--</code>；本面板不含任何合成 / 估算指标，业绩归因等非真实数据已移除；最终业绩以富国基金官网披露为准。</div>
 </div>
 
 <footer class="footer">
-  <div>中欧基金产品全景 · 数据全部来自天天基金 / 东方财富公开接口 · 业绩以官方披露为准</div>
+  <div>富国基金产品全景 · 数据全部来自天天基金 / 东方财富公开接口 · 业绩以官方披露为准</div>
 </footer>
 
-<!-- 中欧基金 503 只产品池（来自天天基金 fundcode_search.js 离线提取，window.ZO_FUND_POOL）-->
+<!-- 富国基金产品池（来自天天基金 fundcode_search.js 离线提取，window.FULLGOAL_FUND_POOL）-->
 <script src="products_full.js"></script>
 
 <!-- 数据 + 主逻辑 -->
 <script>
 // ============================================================
-// 中欧基金产品全景 · 主逻辑（单文件内联，按下列模块顺序排列）
+// 富国基金产品全景 · 主逻辑（单文件内联，按下列模块顺序排列）
 // ------------------------------------------------------------
 //  1. CONFIG / 缓存新鲜度 / 全局错误兜底     —— 见下方
-//  2. 投资类型三级分类 + 产品池构建           —— INVEST_HIERARCHY / assignInvestType / mergeZoFundPool
+//  2. 投资类型三级分类 + 产品池构建           —— INVEST_HIERARCHY / assignInvestType / mergeFullgoalFundPool
 //  3. 数据获取层（JSONP）                     —— jsonpLoad / loadPingzhong / loadPerformance /
 //                                                loadBatchRank / loadAllPerformance / loadIndexQuotes
 //  4. 算法与派生                              —— familyScale / findInternalAlternatives /
@@ -664,12 +674,16 @@ const INVEST_HIERARCHY = [
     { key:'普通货币', l3:['货币基金'] }
   ]},
   { l1:'QDII',    color:'#A8DADC', desc:'境外股票 / 海外指数', l2:[
-    { key:'权益QDII', l3:['海外混合','海外指数'] }
+    { key:'权益QDII', l3:['海外股票','海外混合','海外指数'] },
+    { key:'海外债券', l3:['海外债券'] }
   ]},
   { l1:'FOF',     color:'#C77DFF', desc:'基金中基金 / 养老目标', l2:[
     { key:'进取FOF', l3:['FOF-进取型'] },
     { key:'均衡FOF', l3:['FOF-均衡型'] },
     { key:'稳健FOF', l3:['FOF-稳健型'] }
+  ]},
+  { l1:'REITs',   color:'#8FD14F', desc:'公开募集基础设施证券投资基金', l2:[
+    { key:'基础设施REIT', l3:['公募REIT'] }
   ]}
 ];
 const L1_BY_KEY = Object.fromEntries(INVEST_HIERARCHY.map(x=>[x.l1,x]));
@@ -687,15 +701,21 @@ const TYPE_TO_HIER = {
   '债券型-混合二级':   { l1:'债券型', l2:'混合债',   l3:'二级债基' },
   '指数型-固收':       { l1:'债券型', l2:'指数债',   l3:'债券指数' },
   '货币型-普通货币':   { l1:'货币型', l2:'普通货币', l3:'货币基金' },
+  'QDII-普通股票':     { l1:'QDII',   l2:'权益QDII', l3:'海外股票' },
   'QDII-混合偏股':     { l1:'QDII',   l2:'权益QDII', l3:'海外混合' },
+  'QDII-混合债':       { l1:'QDII',   l2:'海外债券', l3:'海外债券' },
+  'QDII-纯债':         { l1:'QDII',   l2:'海外债券', l3:'海外债券' },
   '指数型-海外股票':   { l1:'QDII',   l2:'权益QDII', l3:'海外指数' },
   'FOF-进取型':        { l1:'FOF',    l2:'进取FOF',  l3:'FOF-进取型' },
   'FOF-均衡型':        { l1:'FOF',    l2:'均衡FOF',  l3:'FOF-均衡型' },
-  'FOF-稳健型':        { l1:'FOF',    l2:'稳健FOF',  l3:'FOF-稳健型' }
+  'FOF-稳健型':        { l1:'FOF',    l2:'稳健FOF',  l3:'FOF-稳健型' },
+  '混合型-绝对收益':   { l1:'混合型', l2:'灵活配置', l3:'灵活配置' },
+  '指数型-其他':       { l1:'股票型', l2:'被动指数', l3:'股票指数' },
+  'Reits':             { l1:'REITs',  l2:'基础设施REIT', l3:'公募REIT' }
 };
 
 function assignInvestType(p){
-  // 1) 优先用 type 字段直查（来自 ZO_FUND_POOL）
+  // 1) 优先用 type 字段直查（来自 FULLGOAL_FUND_POOL）
   if(p.type && TYPE_TO_HIER[p.type]) return Object.assign({}, TYPE_TO_HIER[p.type]);
 
   // 2) 兜底：按 legacy category + subCategory + name + benchmark 推断（data.js 38 只精选无 type）
@@ -742,18 +762,18 @@ const STATUS_META = {
 // 抽屉「业绩归因」tab 一并删除，只保留来自公开接口的真实数据（净值/规模/经理/业绩）。
 
 // ============================================================
-// PRODUCTS 数组 —— 完全从 window.ZO_FUND_POOL（天天基金离线提取）构建
+// PRODUCTS 数组 —— 完全从 window.FULLGOAL_FUND_POOL（天天基金离线提取）构建
 // 不再使用任何人工录入的"精选数据"，避免代码错配 / 虚构产品 / 内部演示口径
 // ============================================================
 const PRODUCTS = [];
 
-// 合并中欧基金完整产品池（来自 window.ZO_FUND_POOL，共 ~530 只）
-(function mergeZoFundPool(){
-  if(!window.ZO_FUND_POOL || !Array.isArray(window.ZO_FUND_POOL)) return;
+// 合并富国基金完整产品池（来自 window.FULLGOAL_FUND_POOL）
+(function mergeFullgoalFundPool(){
+  if(!window.FULLGOAL_FUND_POOL || !Array.isArray(window.FULLGOAL_FUND_POOL)) return;
   // 用 code → product 索引而非简单 Set，便于把池里的 type 字段回填到精选产品
   const byCode = new Map(PRODUCTS.map(p=>[p.code, p]));
   let added = 0;
-  window.ZO_FUND_POOL.forEach(f=>{
+  window.FULLGOAL_FUND_POOL.forEach(f=>{
     const exist = byCode.get(f.code);
     if(exist){
       // 精选产品（38 只）补 type / shareClass / isPrimary，让三级分类直接命中 TYPE_TO_HIER
@@ -782,7 +802,7 @@ const PRODUCTS = [];
     });
     added++;
   });
-  console.log('[中欧产品池] 已合并', added, '只新基金，总计', PRODUCTS.length, '只');
+  console.log('[富国产品池] 已合并', added, '只新基金，总计', PRODUCTS.length, '只');
 })();
 
 // 用投资类型三级规则给所有产品打 l1/l2/l3 标签
@@ -858,9 +878,9 @@ PRODUCTS.forEach(p=>{ p._themes = detectTheme(p); });
 // ============================================================
 const STATE = { l1:'ALL', l2:'ALL', l3:'ALL', showAllShares:false, sortKey:'scale', sortAsc:false, selectedCode:null, activeTab:'overview', search:'', favOnly:false };
 // 自选清单（localStorage 持久化，跨会话保留销售自己常用的产品）
-const FAVS = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('zo_favs')||'[]')); }catch(_){ return new Set(); } })();
+const FAVS = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('fg_favs')||'[]')); }catch(_){ return new Set(); } })();
 function isFav(code){ return FAVS.has(code); }
-function toggleFav(code){ if(FAVS.has(code)) FAVS.delete(code); else FAVS.add(code); try{ localStorage.setItem('zo_favs', JSON.stringify([...FAVS])); }catch(_){} }
+function toggleFav(code){ if(FAVS.has(code)) FAVS.delete(code); else FAVS.add(code); try{ localStorage.setItem('fg_favs', JSON.stringify([...FAVS])); }catch(_){} }
 let bubbleChart=null, treeChart=null, miniChart=null, compareChart=null, radarChart=null;
 
 // ============================================================
@@ -908,7 +928,7 @@ function bindThemeToggle(){
   btn.addEventListener('click', ()=>{
     const next = document.documentElement.dataset.theme==='light' ? 'dark' : 'light';
     document.documentElement.dataset.theme = next;
-    try{ localStorage.setItem('zo_theme', next); }catch(e){}
+    try{ localStorage.setItem('fg_theme', next); }catch(e){}
     sync();
     applyChartTheme();
   });
@@ -932,7 +952,7 @@ const DS = {
 // ⚠ 关键：PRODUCTS 里 type 实际值是 "货币型-普通货币" 这种带二级后缀的，必须 startsWith
 //       同时叠加 l1 字段判断（assignInvestType 输出的标准化分类），双保险。
 // ⚠ 注（2026-06）：曾尝试"按净值真实回撤把标称货币、实为价格型的基金纠偏显示 d1/w1"，但实测
-//   发现这类产品（如 001211 中欧滚钱宝货币）单位净值的"下跌"绝大多数是高频分红派息（半月内 7%+3%+2%…
+//   发现这类产品（如货币基金）单位净值的"下跌"绝大多数是高频分红派息（半月内 7%+3%+2%…
 //   还整体上涨），并非价格损失；按单位净值算 d1/w1/回撤会得出 -17% 这种错误数字。故维持保守屏蔽：
 //   宁可显示 --，也不显示被分红扭曲的错误收益。
 function isMoneyFund(code){
@@ -1019,7 +1039,7 @@ async function loadPerformance(code){
   if(DS.perfMap[code] && DS.perfMap[code].scale!=null && DS.perfMap[code].manager) return DS.perfMap[code];
   // localStorage 缓存：按「自然日」失效（跨日强制刷新，保证净值时效），命中则免去 pingzhongdata 请求
   try{
-    const cached = localStorage.getItem('zo_perf_v8:'+code);
+    const cached = localStorage.getItem('fg_perf_v8:'+code);
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && perfCacheFresh(obj.t) && obj.d){
@@ -1143,20 +1163,20 @@ async function loadPerformance(code){
     dwjz: mf ? null : ((lastNav && lastNav.y) ? +lastNav.y : (prev.dwjz||null)),
     jzrq: jzrqStr || prev.jzrq || null
   };
-  try{ localStorage.setItem('zo_perf_v8:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
+  try{ localStorage.setItem('fg_perf_v8:'+code, JSON.stringify({t:Date.now(), d:DS.perfMap[code]})); }catch(_){}
   return DS.perfMap[code];
 }
 
 // ============================================================
 // 批量行情拉取：天天基金 rankhandler.aspx
 // 一次请求覆盖全市场基金的近1日/周/月/3月/6月/1年收益，
-// 比逐个 pingzhongdata 快 10-20 倍（一个请求即可命中 503 只中欧产品的收益）
+// 比逐个 pingzhongdata 快 10-20 倍（一个请求即可命中产品池内基金的收益）
 // 但不含规模/经理 —— 这两项仍需 pingzhongdata 补
 // ============================================================
 function loadBatchRank(){
   // localStorage 短缓存（30 分钟）：避免短时间反复刷
   try{
-    const cached = localStorage.getItem('zo_rank_v5');
+    const cached = localStorage.getItem('fg_rank_v5');
     if(cached){
       const obj = JSON.parse(cached);
       if(obj && obj.t && (Date.now()-obj.t)<CONFIG.RANK_CACHE_MS && obj.map){
@@ -1246,7 +1266,7 @@ function loadBatchRank(){
           count++;
         });
         try{ delete window.rankData; }catch(_){}
-        try{ localStorage.setItem('zo_rank_v5', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
+        try{ localStorage.setItem('fg_rank_v5', JSON.stringify({t:Date.now(),map:batchMap})); }catch(_){}
         resolve(count);
       } catch(e){ resolve(0); }
     }).catch(()=>resolve(0));
@@ -1313,16 +1333,29 @@ async function loadAllPerformance(codes){
 //    返回: jsonp_xxx({"rc":0,"data":{"diff":[{f2,f3,f4,f12,f14},...]}})
 //    secid 前缀：1=上交所，0=深交所，100=港股 / 海外指数
 //    字段：f2=最新价，f3=涨跌幅%，f4=涨跌额，f12=代码，f14=名称（fltt=2 表示数值已按 2 位小数缩放）
+const INDEX_FALLBACK_AS_OF = 'A/H 2026-06-01 收盘 · 美股最近收盘';
+const INDEX_SYMBOLS = [
+  {secid:'1.000001',  name:'上证指数',   fallback:{val:4057.74,  chg:-10.83, pct:-0.27}},
+  {secid:'1.000300',  name:'沪深300',    fallback:{val:4844.26,  chg:-47.86, pct:-0.98}},
+  {secid:'0.399006',  name:'创业板指',   fallback:{val:3950.94,  chg:-87.01, pct:-2.15}},
+  {secid:'1.000688',  name:'科创50',     fallback:{val:1663.69,  chg:null,   pct:-5.00}},
+  {secid:'100.HSI',   name:'恒生指数',   fallback:{val:25398.18, chg:215.79, pct:0.86}},
+  {secid:'124.HSTECH',name:'恒生科技',   fallback:{val:4964.92,  chg:null,   pct:1.65}},
+  {secid:'100.SPX',   name:'标普500',    fallback:{val:7563.63,  chg:43.27,  pct:0.58}},
+  {secid:'100.NDX',   name:'纳斯达克',   fallback:{val:26917.47, chg:242.74, pct:0.91}},
+  {secid:'100.DJI',   name:'道琼斯指数', fallback:{val:50668.97, chg:24.69,  pct:0.05}}
+];
+
+function fallbackIndexQuote(symbol){
+  const fb = symbol.fallback || {};
+  return { name:symbol.name, val:fb.val ?? null, chg:fb.chg ?? null, pct:fb.pct ?? null, fallback:true };
+}
+function fallbackIndexQuotes(){
+  return INDEX_SYMBOLS.map(fallbackIndexQuote);
+}
+
 function loadIndexQuotes(){
-  const symbols = [
-    {secid:'1.000001',  name:'上证综指'},
-    {secid:'1.000688',  name:'科创50'},
-    {secid:'0.399006',  name:'创业板指'},
-    {secid:'100.HSI',   name:'恒生指数'},
-    {secid:'124.HSTECH',name:'恒生科技'},
-    {secid:'100.NDX',   name:'纳斯达克'},
-    {secid:'100.SPX',   name:'标普500'}
-  ];
+  const symbols = INDEX_SYMBOLS;
   return new Promise(resolve=>{
     const cbName = 'jsonp_idx_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
     const url = 'https://push2.eastmoney.com/api/qt/ulist.np/get'
@@ -1334,21 +1367,47 @@ function loadIndexQuotes(){
     window[cbName] = function(resp){
       try{
         const diff = resp && resp.data && resp.data.diff;
-        if(!Array.isArray(diff)){ finish(symbols.map(s=>({name:s.name,val:null,chg:null,pct:null}))); return; }
+        if(!Array.isArray(diff)){ finish(fallbackIndexQuotes()); return; }
         // 按代码回查，保持 ticker 显示顺序与 symbols 一致
         const byCode = {};
         diff.forEach(it=>{ if(it && it.f12!=null) byCode[String(it.f12)] = it; });
         const out = symbols.map(s=>{
           const code = s.secid.split('.')[1];
           const it = byCode[code];
-          if(!it){ return { name:s.name, val:null, chg:null, pct:null }; }
+          if(!it){ return fallbackIndexQuote(s); }
           const val = parseFloat(it.f2), pct = parseFloat(it.f3), chg = parseFloat(it.f4);
-          return { name:s.name, val:isNaN(val)?null:val, chg:isNaN(chg)?null:chg, pct:isNaN(pct)?null:pct };
+          if(isNaN(val)) return fallbackIndexQuote(s);
+          return { name:s.name, val, chg:isNaN(chg)?null:chg, pct:isNaN(pct)?null:pct };
         });
         finish(out);
-      }catch(_){ finish(symbols.map(s=>({name:s.name,val:null,chg:null,pct:null}))); }
+      }catch(_){ finish(fallbackIndexQuotes()); }
     };
-    jsonpLoad(url, 5000).catch(()=>finish(symbols.map(s=>({name:s.name,val:null,chg:null,pct:null}))));
+    jsonpLoad(url, 5000).catch(()=>finish(fallbackIndexQuotes()));
+  });
+}
+
+function enableTickerMarquee(){
+  const wrap = document.getElementById('tickerItems');
+  const viewport = wrap && wrap.parentElement;
+  if(!wrap || !viewport) return;
+  const baseHtml = wrap.dataset.baseHtml || wrap.innerHTML;
+  wrap.classList.remove('is-marquee','is-static');
+  wrap.style.removeProperty('--ticker-shift');
+  wrap.style.removeProperty('--ticker-duration');
+  wrap.innerHTML = baseHtml;
+
+  requestAnimationFrame(()=>{
+    const contentWidth = wrap.scrollWidth;
+    const viewportWidth = viewport.clientWidth;
+    if(contentWidth <= viewportWidth + 4){
+      wrap.classList.add('is-static');
+      return;
+    }
+    const gapWidth = 36;
+    wrap.innerHTML = baseHtml + '<span class="ticker-marquee-gap" aria-hidden="true"></span>' + baseHtml;
+    wrap.style.setProperty('--ticker-shift', (contentWidth + gapWidth) + 'px');
+    wrap.style.setProperty('--ticker-duration', Math.max(24, Math.round((contentWidth + gapWidth) / 38)) + 's');
+    wrap.classList.add('is-marquee');
   });
 }
 
@@ -1356,20 +1415,28 @@ function renderTicker(){
   const items = DS.indexQuotes;
   const wrap = document.getElementById('tickerItems');
   if(!items.length){
-    wrap.innerHTML = '<span class="ticker-item ticker-flat" style="color:var(--text-4);font-size:11px">⚠ 行情接口未响应（可能触发跨域或限流）</span>';
+    DS.indexQuotes = fallbackIndexQuotes();
+    renderTicker();
     return;
   }
-  wrap.innerHTML = items.map(q=>{
+  const html = items.map(q=>{
     if(q.val==null) return '<span class="ticker-item ticker-flat"><span class="ticker-item-name">'+q.name+'</span><span class="ticker-item-val">--</span></span>';
     const cls = q.pct>0 ? 'ticker-up' : q.pct<0 ? 'ticker-down' : 'ticker-flat';
     const sign = q.pct>0?'+':'';
+    const pctText = q.pct==null ? '' : '<span class="ticker-item-chg">'+sign+q.pct.toFixed(2)+'%</span>';
     return '<span class="ticker-item '+cls+'">'+
       '<span class="ticker-item-name">'+q.name+'</span>'+
       '<span class="ticker-item-val">'+q.val.toFixed(2)+'</span>'+
-      '<span class="ticker-item-chg">'+sign+q.pct.toFixed(2)+'%</span></span>';
+      pctText+'</span>';
   }).join('');
+  wrap.dataset.baseHtml = html;
+  wrap.innerHTML = html;
+  enableTickerMarquee();
   const t = new Date();
-  document.getElementById('tickerTail').textContent = '东方财富 push2 · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
+  const hasFallback = items.some(q=>q.fallback);
+  document.getElementById('tickerTail').textContent = hasFallback
+    ? '收盘兜底 · '+INDEX_FALLBACK_AS_OF
+    : '东方财富 push2 · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
 }
 
 function updateDataSourceUI(success, fail, total){
@@ -1402,7 +1469,9 @@ function runSanityChecks(){
     const issues = [];
     const pf = DS.perfMap[p.code] || {};
     if(pf.scale!=null && pf.scale < 0) issues.push('规模为负');
-    if(pf.y1 != null && (pf.y1 > 300 || pf.y1 < -80)) issues.push('近一年收益超出极端区间 [-80%, 300%]');
+    // 单只基金近一年收益在极端行情下可能超过 300%，例如成长/科技主题基金。
+    // 这里只拦截明显不可信的口径错误，避免把真实高收益误报成数据问题。
+    if(pf.y1 != null && (pf.y1 > 500 || pf.y1 < -95)) issues.push('近一年收益超出极端区间 [-95%, 500%]');
     if(pf.d1 != null && Math.abs(pf.d1) > 12) issues.push('昨日涨跌超过 ±12%（疑似数据异常）');
     // 货币基金兜底：上游加载链已屏蔽，但万一漏过会被这里检测出来
     if(isMoneyFund(p.code)){
@@ -2141,12 +2210,12 @@ function exportCsv(){
   });
   const esc = v => { v=(v==null?'':String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
   let latest=''; list.forEach(p=>{ const jz=(DS.perfMap[p.code]||{}).jzrq; if(jz&&jz>latest) latest=jz; });
-  const meta = '# 中欧基金产品全景导出 · 数据截至 '+(latest||'--')+' · 数据来自天天基金/东方财富公开接口 · 业绩以中欧基金官网披露为准\r\n';
+  const meta = '# 富国基金产品全景导出 · 数据截至 '+(latest||'--')+' · 数据来自天天基金/东方财富公开接口 · 业绩以富国基金官网披露为准\r\n';
   const csv = meta + [hdr].concat(rows).map(r=>r.map(esc).join(',')).join('\r\n');
   const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}); // BOM(U+FEFF)：让 Excel 正确识别中文 UTF-8
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = '中欧基金产品全景_'+(latest||new Date().toISOString().slice(0,10))+'.csv';
+  a.download = '富国基金产品全景_'+(latest||new Date().toISOString().slice(0,10))+'.csv';
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 200);
   showToast('已导出 '+list.length+' 只产品到 CSV。','info');
@@ -2267,8 +2336,8 @@ function loadMarketIndex(){
   if(MARKET_FUND_INDEX) return Promise.resolve(MARKET_FUND_INDEX);
   if(MARKET_INDEX_LOADING) return MARKET_INDEX_LOADING;
   try{
-    const cached = localStorage.getItem('zo_market_idx');
-    const ts = +localStorage.getItem('zo_market_idx_ts')||0;
+    const cached = localStorage.getItem('fg_market_idx');
+    const ts = +localStorage.getItem('fg_market_idx_ts')||0;
     if(cached && Date.now()-ts < 7*86400*1000){
       MARKET_FUND_INDEX = JSON.parse(cached);
       return Promise.resolve(MARKET_FUND_INDEX);
@@ -2286,8 +2355,8 @@ function loadMarketIndex(){
       })).filter(x=>x.code && /^\d{6}$/.test(x.code));
       try{
         window.r = before;
-        localStorage.setItem('zo_market_idx', JSON.stringify(idx));
-        localStorage.setItem('zo_market_idx_ts', Date.now());
+        localStorage.setItem('fg_market_idx', JSON.stringify(idx));
+        localStorage.setItem('fg_market_idx_ts', Date.now());
       }catch(_){}
       MARKET_FUND_INDEX = idx;
       MARKET_INDEX_LOADING = false;
@@ -2304,10 +2373,11 @@ const L1_TO_FUNDTYPE = {
   '债券型': ['债券','纯债','短债','中长债','信用债','利率债','一级债基','二级债基','偏债'],
   '货币型': ['货币'],
   'QDII':   ['QDII','沪港深','港股','纳指','美股','全球'],
-  'FOF':    ['FOF','养老','目标日期','目标风险']
+  'FOF':    ['FOF','养老','目标日期','目标风险'],
+  'REITs':  ['REIT','基础设施']
 };
 
-function isZhongOuFund(f){ return f.name && f.name.startsWith('中欧'); }
+function isFullgoalFund(f){ return f.name && f.name.startsWith('富国'); }
 
 async function findMarketCompetitors(p, n){
   const idx = await loadMarketIndex();
@@ -2318,9 +2388,9 @@ async function findMarketCompetitors(p, n){
   const hasMyTheme = myThemes && myThemes.length > 0;
 
   // ----- 粗筛：先按 type 精确，再按 L1 关键词扩展 -----
-  let pool = idx.filter(f=>!isZhongOuFund(f) && f.type===myType);
+  let pool = idx.filter(f=>!isFullgoalFund(f) && f.type===myType);
   if(pool.length < 40) {
-    const extra = idx.filter(f=>!isZhongOuFund(f) && kw.some(k=>(f.type||'').indexOf(k)>=0) && f.type!==myType);
+    const extra = idx.filter(f=>!isFullgoalFund(f) && kw.some(k=>(f.type||'').indexOf(k)>=0) && f.type!==myType);
     pool = pool.concat(extra);
   }
 
@@ -2485,8 +2555,8 @@ function tabCompetitorHtml(p){
     '<div id="rivalCompareChart" style="width:100%;height:280px;margin-top:14px;display:none"></div>'+
     '<div id="rivalRadarChart" style="width:100%;height:260px;margin-top:14px;display:none"></div>'+
     '</div>'+
-    '<div class="dr-section"><div class="dr-section-title">中欧内部平替</div>'+
-    '<div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.55">客户因限购/风格暂不能进本品时，优先推荐同投资类型的非限购中欧产品：</div>'+
+    '<div class="dr-section"><div class="dr-section-title">富国内部平替</div>'+
+    '<div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.55">客户因限购/风格暂不能进本品时，优先推荐同投资类型的非限购富国产品：</div>'+
     altsHtml+'</div>';
 }
 
@@ -2823,7 +2893,7 @@ window.__startApp = function(){
   const refreshBtn = document.getElementById('refreshBtn');
   if(refreshBtn) refreshBtn.addEventListener('click', ()=>{
     refreshBtn.style.transition='transform .6s'; refreshBtn.style.transform='rotate(360deg)';
-    try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('zo_perf')===0 || k.indexOf('zo_rank')===0) localStorage.removeItem(k); }); }catch(_){}
+    try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('fg_perf')===0 || k.indexOf('fg_rank')===0) localStorage.removeItem(k); }); }catch(_){}
     setTimeout(()=>location.reload(), 220);
   });
   // 数据健康面板
@@ -2856,8 +2926,13 @@ window.__startApp = function(){
   window.__refreshAfterPerf = ()=>{ renderTable(); renderKpi(); updatePoolStat(); renderBubble(); renderTree(); runSanityChecks(); updateHealthBadge(); };
   // 1. 行情 ticker
   loadIndexQuotes().then(renderTicker).catch(()=>renderTicker());
+  let tickerResizeTimer = null;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(tickerResizeTimer);
+    tickerResizeTimer = setTimeout(enableTickerMarquee, 120);
+  });
   // 2. 业绩数据：
-  //    Phase A —— rankhandler 批量拉所有产品收益（1 次请求，~3 秒，覆盖全部 503 只 d/w/m/y1）
+  //    Phase A —— rankhandler 批量拉所有产品收益（1 次请求，~3 秒，覆盖全部产品 d/w/m/y1）
   //    Phase B —— pingzhongdata 后台补规模 + 经理（按家族顺序，主份额先、非主份额后）
   const primaryCodes    = PRODUCTS.filter(p=>p.isPrimary!==false).map(p=>p.code);
   const nonPrimaryCodes = PRODUCTS.filter(p=>p.isPrimary===false).map(p=>p.code);
