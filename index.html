@@ -313,6 +313,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .ticker-down{color:#00C853}
 .ticker-flat{color:var(--text-3)}
 .ticker-tail{flex-shrink:0;font-size:10px;color:var(--text-4);padding-left:8px;border-left:1px solid var(--border-soft)}
+.ticker-tail.warn{color:var(--gold)}
+.ticker-tail.fail{color:var(--red)}
 
 /* === 二级细分 chip === */
 .chip-sub{font-size:12px;padding:5px 11px}
@@ -1336,61 +1338,178 @@ async function loadAllPerformance(codes){
 }
 
 // ③ 指数行情：东方财富 push2 接口（与天天基金同源，天天基金首页指数 ticker 用的就是这个）
-//    URL: https://push2.eastmoney.com/api/qt/ulist.np/get?secids=...&fields=...&cb=jsonp_xxx
-//    返回: jsonp_xxx({"rc":0,"data":{"diff":[{f2,f3,f4,f12,f14},...]}})
-//    secid 前缀：1=上交所，0=深交所，100=港股 / 海外指数
-//    字段：f2=最新价，f3=涨跌幅%，f4=涨跌额，f12=代码，f14=名称（fltt=2 表示数值已按 2 位小数缩放）
-const INDEX_FALLBACK_AS_OF = 'A/H 2026-06-01 收盘 · 美股最近收盘';
+//    URL: https://push2delay.eastmoney.com/api/qt/ulist.np/get?secids=...&fields=...&cb=jsonp_xxx
+//    返回: jsonp_xxx({"rc":0,"data":{"diff":[{f2,f3,f4,f12,f14,f80,f86,f124},...]}})
+//    secid 前缀：1=上交所，0=深交所，100/124=港股 / 海外指数
+//    字段：f2=最新价，f3=涨跌幅%，f4=涨跌额，f12=代码，f14=名称，f80/f86/f124=行情日期/时间
 const INDEX_SYMBOLS = [
-  {secid:'1.000001',  name:'上证指数',   fallback:{val:4057.74,  chg:-10.83, pct:-0.27}},
-  {secid:'1.000300',  name:'沪深300',    fallback:{val:4844.26,  chg:-47.86, pct:-0.98}},
-  {secid:'0.399006',  name:'创业板指',   fallback:{val:3950.94,  chg:-87.01, pct:-2.15}},
-  {secid:'1.000688',  name:'科创50',     fallback:{val:1663.69,  chg:null,   pct:-5.00}},
-  {secid:'100.HSI',   name:'恒生指数',   fallback:{val:25398.18, chg:215.79, pct:0.86}},
-  {secid:'124.HSTECH',name:'恒生科技',   fallback:{val:4964.92,  chg:null,   pct:1.65}},
-  {secid:'100.SPX',   name:'标普500',    fallback:{val:7563.63,  chg:43.27,  pct:0.58}},
-  {secid:'100.NDX',   name:'纳斯达克',   fallback:{val:26917.47, chg:242.74, pct:0.91}},
-  {secid:'100.DJI',   name:'道琼斯指数', fallback:{val:50668.97, chg:24.69,  pct:0.05}}
+  {secid:'1.000001',  name:'上证指数',   market:'CN'},
+  {secid:'1.000300',  name:'沪深300',    market:'CN'},
+  {secid:'0.399006',  name:'创业板指',   market:'CN'},
+  {secid:'1.000688',  name:'科创50',     market:'CN'},
+  {secid:'100.HSI',   name:'恒生指数',   market:'HK'},
+  {secid:'124.HSTECH',name:'恒生科技',   market:'HK'},
+  {secid:'100.SPX',   name:'标普500',    market:'US'},
+  {secid:'100.NDX',   name:'纳斯达克',   market:'US'},
+  {secid:'100.DJIA',  name:'道琼斯指数', market:'US'}
 ];
 
-function fallbackIndexQuote(symbol){
-  const fb = symbol.fallback || {};
-  return { name:symbol.name, val:fb.val ?? null, chg:fb.chg ?? null, pct:fb.pct ?? null, fallback:true };
-}
-function fallbackIndexQuotes(){
-  return INDEX_SYMBOLS.map(fallbackIndexQuote);
+function emptyIndexQuote(symbol, reason){
+  return {
+    name: symbol.name,
+    secid: symbol.secid,
+    market: symbol.market,
+    val: null,
+    chg: null,
+    pct: null,
+    quoteDate: null,
+    quoteTime: null,
+    source: '东方财富 push2',
+    stale: true,
+    error: reason || '行情获取失败'
+  };
 }
 
-function loadIndexQuotes(){
-  const symbols = INDEX_SYMBOLS;
-  return new Promise(resolve=>{
-    const cbName = 'jsonp_idx_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
-    const url = 'https://push2.eastmoney.com/api/qt/ulist.np/get'
-      + '?fltt=2&invt=2&fields=f2,f3,f4,f12,f14'
-      + '&secids='+symbols.map(s=>s.secid).join(',')
-      + '&cb='+cbName+'&_='+Date.now();
+function fallbackIndexQuote(symbol, reason){
+  return emptyIndexQuote(symbol, reason || '东方财富接口暂不可用，未使用旧行情兜底');
+}
+function fallbackIndexQuotes(reason){
+  return INDEX_SYMBOLS.map(s=>fallbackIndexQuote(s, reason));
+}
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function formatYmd(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function previousWorkday(d){
+  const out = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  do{ out.setDate(out.getDate()-1); }while(out.getDay()===0 || out.getDay()===6);
+  return out;
+}
+function getBeijingNow(){
+  return new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Shanghai'}));
+}
+function getExpectedCNMarketDate(now){
+  const bj = now || getBeijingNow();
+  const base = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate());
+  const day = base.getDay();
+  if(day===0 || day===6) return formatYmd(previousWorkday(base));
+  const minutes = bj.getHours()*60 + bj.getMinutes();
+  return minutes >= 15*60 + 10 ? formatYmd(base) : formatYmd(previousWorkday(base));
+}
+function isQuoteStale(quoteDate, expectedDate){
+  return !!(quoteDate && expectedDate && quoteDate < expectedDate);
+}
+function parseYmd(raw){
+  const s = String(raw == null ? '' : raw).replace(/\D/g, '');
+  if(s.length < 8) return null;
+  return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8);
+}
+function datePartsInTimeZone(d, timeZone){
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timeZone || 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(d).reduce((acc, p)=>{ acc[p.type] = p.value; return acc; }, {});
+  return {
+    date: parts.year+'-'+parts.month+'-'+parts.day,
+    time: parts.hour+':'+parts.minute+':'+parts.second
+  };
+}
+function parseEpoch(raw){
+  const n = Number(raw);
+  if(!isFinite(n) || n <= 0) return null;
+  const ms = n > 1e12 ? n : n * 1000;
+  const d = new Date(ms);
+  if(isNaN(d.getTime())) return null;
+  return datePartsInTimeZone(d, 'Asia/Shanghai');
+}
+function parseEastmoneyQuoteTime(it){
+  const from124 = parseEpoch(it && it.f124);
+  const from86 = parseEpoch(it && it.f86);
+  const quoteDate = parseYmd(it && it.f80) || (from124 && from124.date) || (from86 && from86.date);
+  const quoteTime = (from124 && from124.time) || (from86 && from86.time) || null;
+  return {quoteDate, quoteTime};
+}
+function formatQuoteStamp(q){
+  if(!q || !q.quoteDate) return null;
+  return q.quoteDate + (q.quoteTime ? ' '+q.quoteTime : '');
+}
+
+function loadIndexJsonp(url, cbName, timeoutMs){
+  return new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
     let done = false;
-    const finish = (out)=>{ if(done) return; done=true; DS.indexQuotes = out; try{ delete window[cbName]; }catch(_){} resolve(out); };
-    window[cbName] = function(resp){
-      try{
-        const diff = resp && resp.data && resp.data.diff;
-        if(!Array.isArray(diff)){ finish(fallbackIndexQuotes()); return; }
-        // 按代码回查，保持 ticker 显示顺序与 symbols 一致
-        const byCode = {};
-        diff.forEach(it=>{ if(it && it.f12!=null) byCode[String(it.f12)] = it; });
-        const out = symbols.map(s=>{
-          const code = s.secid.split('.')[1];
-          const it = byCode[code];
-          if(!it){ return fallbackIndexQuote(s); }
-          const val = parseFloat(it.f2), pct = parseFloat(it.f3), chg = parseFloat(it.f4);
-          if(isNaN(val)) return fallbackIndexQuote(s);
-          return { name:s.name, val, chg:isNaN(chg)?null:chg, pct:isNaN(pct)?null:pct };
-        });
-        finish(out);
-      }catch(_){ finish(fallbackIndexQuotes()); }
+    const cleanup = ()=>{
+      clearTimeout(timer);
+      try{ s.parentNode && s.parentNode.removeChild(s); }catch(_){}
+      try{ delete window[cbName]; }catch(_){ window[cbName] = undefined; }
     };
-    jsonpLoad(url, 5000).catch(()=>finish(fallbackIndexQuotes()));
+    const finish = (err, data)=>{
+      if(done) return;
+      done = true;
+      cleanup();
+      err ? reject(err) : resolve(data);
+    };
+    const timer = setTimeout(()=>finish(new Error('timeout '+url)), timeoutMs || 8000);
+    window[cbName] = data=>finish(null, data);
+    s.src = url;
+    s.async = true;
+    s.onerror = ()=>finish(new Error('load fail '+url));
+    document.head.appendChild(s);
   });
+}
+
+async function loadIndexQuotes(){
+  const symbols = INDEX_SYMBOLS;
+  const cbName = 'jQuery1124'+Math.floor(Math.random()*1e16)+'_'+Date.now();
+  const url = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get'
+    + '?fltt=2&invt=2&ut=b2884a393a59ad64002292a3e90d46a5'
+    + '&fields=f2,f3,f4,f12,f14,f80,f86,f124,f104,f105,f106'
+    + '&secids='+symbols.map(s=>s.secid).join(',')
+    + '&cb='+cbName+'&_='+Date.now();
+  try{
+    const resp = await loadIndexJsonp(url, cbName, 8000);
+    if(window.console && console.debug) console.debug('[index-quotes] eastmoney push2 response', resp);
+    const diff = resp && resp.data && resp.data.diff;
+    if(!Array.isArray(diff)){
+      DS.indexQuotes = fallbackIndexQuotes('指数行情获取失败，请点击刷新重试');
+      return DS.indexQuotes;
+    }
+    const expectedDate = getExpectedCNMarketDate();
+    // 按代码回查，保持 ticker 显示顺序与 symbols 一致
+    const byCode = {};
+    diff.forEach(it=>{ if(it && it.f12!=null) byCode[String(it.f12)] = it; });
+    DS.indexQuotes = symbols.map(s=>{
+      const code = s.secid.split('.')[1];
+      const it = byCode[code];
+      if(!it){ return fallbackIndexQuote(s, '接口未返回该指数'); }
+      const val = parseFloat(it.f2), pct = parseFloat(it.f3), chg = parseFloat(it.f4);
+      if(isNaN(val)) return fallbackIndexQuote(s, '接口返回价格为空');
+      const qt = parseEastmoneyQuoteTime(it);
+      return {
+        name: s.name,
+        secid: s.secid,
+        market: s.market,
+        val,
+        chg: isNaN(chg) ? null : chg,
+        pct: isNaN(pct) ? null : pct,
+        quoteDate: qt.quoteDate,
+        quoteTime: qt.quoteTime,
+        source: '东方财富 push2',
+        stale: s.market === 'CN' ? isQuoteStale(qt.quoteDate, expectedDate) : false,
+        error: null
+      };
+    });
+    return DS.indexQuotes;
+  }catch(err){
+    if(window.console && console.warn) console.warn('[index-quotes] load failed', err);
+    DS.indexQuotes = fallbackIndexQuotes('东方财富接口暂不可用，未使用旧行情兜底');
+    return DS.indexQuotes;
+  }
 }
 
 function enableTickerMarquee(){
@@ -1427,23 +1546,47 @@ function renderTicker(){
     return;
   }
   const html = items.map(q=>{
-    if(q.val==null) return '<span class="ticker-item ticker-flat"><span class="ticker-item-name">'+q.name+'</span><span class="ticker-item-val">--</span></span>';
+    if(q.val==null) return '<span class="ticker-item ticker-flat"><span class="ticker-item-name">'+escapeHtml(q.name)+'</span><span class="ticker-item-val">--</span></span>';
     const cls = q.pct>0 ? 'ticker-up' : q.pct<0 ? 'ticker-down' : 'ticker-flat';
     const sign = q.pct>0?'+':'';
     const pctText = q.pct==null ? '' : '<span class="ticker-item-chg">'+sign+q.pct.toFixed(2)+'%</span>';
     return '<span class="ticker-item '+cls+'">'+
-      '<span class="ticker-item-name">'+q.name+'</span>'+
+      '<span class="ticker-item-name">'+escapeHtml(q.name)+'</span>'+
       '<span class="ticker-item-val">'+q.val.toFixed(2)+'</span>'+
       pctText+'</span>';
   }).join('');
   wrap.dataset.baseHtml = html;
   wrap.innerHTML = html;
   enableTickerMarquee();
-  const t = new Date();
-  const hasFallback = items.some(q=>q.fallback);
-  document.getElementById('tickerTail').textContent = hasFallback
-    ? '收盘兜底 · '+INDEX_FALLBACK_AS_OF
-    : '东方财富 push2 · '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
+  const tail = document.getElementById('tickerTail');
+  tail.classList.remove('warn','fail');
+  const hasLive = items.some(q=>q.val!=null);
+  const staleCN = items.filter(q=>q.market==='CN' && q.stale && q.quoteDate);
+  if(!hasLive){
+    tail.textContent = '指数行情获取失败，请点击刷新重试';
+    tail.classList.add('fail');
+    return;
+  }
+  if(staleCN.length){
+    const staleDate = staleCN.map(q=>q.quoteDate).sort()[0];
+    tail.textContent = '行情可能滞后 · 接口日期 '+staleDate;
+    tail.classList.add('warn');
+    return;
+  }
+  const cnQuotes = items.filter(q=>q.market==='CN' && q.val!=null && q.quoteDate);
+  const datedQuotes = cnQuotes.length ? cnQuotes : items.filter(q=>q.val!=null && q.quoteDate);
+  const latest = datedQuotes.slice().sort((a,b)=>String(formatQuoteStamp(b)||'').localeCompare(String(formatQuoteStamp(a)||'')))[0];
+  const expectedDate = getExpectedCNMarketDate();
+  const bj = getBeijingNow();
+  const afterCNAuction = bj.getHours()*60 + bj.getMinutes() >= 15*60 + 10;
+  if(latest && latest.market==='CN' && latest.quoteDate===expectedDate && afterCNAuction){
+    tail.textContent = '东方财富 push2 · '+latest.quoteDate+' 收盘';
+  }else if(latest){
+    tail.textContent = '东方财富 push2 · '+formatQuoteStamp(latest);
+  }else{
+    tail.textContent = '东方财富 push2 · 未返回行情日期';
+    tail.classList.add('warn');
+  }
 }
 
 function updateDataSourceUI(success, fail, total){
@@ -2951,17 +3094,35 @@ window.__startApp = function(){
   bindDrawerEvents();
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.getElementById('drawerMask').addEventListener('click', closeDrawer);
-  // 手动刷新：清除业绩 / 行情缓存后重载，强制拉取当日最新数据（保留 7 天的市场索引缓存）
+  // 手动刷新：清除业绩 / 指数行情缓存后重拉，强制请求最新公开数据（保留 7 天的市场索引缓存）
   const refreshBtn = document.getElementById('refreshBtn');
-  if(refreshBtn) refreshBtn.addEventListener('click', ()=>{
+  if(refreshBtn) refreshBtn.addEventListener('click', async ()=>{
     if(refreshBtn.dataset.refreshing==='1') return;
     refreshBtn.dataset.refreshing='1';
     refreshBtn.disabled = true;
     refreshBtn.title = '正在刷新公开数据…';
     showToast('正在清除缓存并重新拉取公开数据。','info');
     refreshBtn.style.transition='transform .6s'; refreshBtn.style.transform='rotate(360deg)';
-    try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('fg_perf')===0 || k.indexOf('fg_rank')===0) localStorage.removeItem(k); }); }catch(_){}
-    setTimeout(()=>location.reload(), 220);
+    try{
+      Object.keys(localStorage).forEach(k=>{
+        if(k.indexOf('fg_perf')===0 || k.indexOf('fg_rank')===0 || k.indexOf('fg_index')===0 || k.indexOf('fg_idx')===0){
+          localStorage.removeItem(k);
+        }
+      });
+    }catch(_){}
+    try{
+      Object.keys(sessionStorage).forEach(k=>{
+        if(k.indexOf('fg_index')===0 || k.indexOf('fg_idx')===0) sessionStorage.removeItem(k);
+      });
+    }catch(_){}
+    DS.indexQuotes = [];
+    try{
+      await loadIndexQuotes();
+    }catch(_){
+      DS.indexQuotes = fallbackIndexQuotes('指数行情获取失败，请点击刷新重试');
+    }
+    renderTicker();
+    setTimeout(()=>location.reload(), 120);
   });
   // 数据健康面板
   document.getElementById('healthBtn').addEventListener('click', openHealthPanel);
