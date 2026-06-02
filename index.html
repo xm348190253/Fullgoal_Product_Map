@@ -176,6 +176,8 @@ body{background-image:var(--page-grad);min-height:100vh;padding-bottom:60px;tran
 .ptable thead th .sort-arrow{font-size:10px;color:var(--accent);margin-left:4px}
 .ptable tbody tr{border-bottom:1px solid var(--border-soft);cursor:pointer;transition:background .14s ease}
 .ptable tbody tr:hover{background:var(--row-hover)}
+.ptable tbody tr.selected{background:rgba(78,205,196,0.10)}
+.ptable tbody tr.selected td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
 .ptable tbody td{padding:11px 14px;color:var(--text-1);font-variant-numeric:tabular-nums}
 .ptable tbody td.num{text-align:right}
 .ptable tbody tr.flagship td:first-child{position:relative;padding-left:28px}
@@ -624,7 +626,12 @@ function perfCacheFresh(t){
 // 全局错误兜底：任何未捕获异常 / Promise 拒绝 → 轻量 toast 提示，不白屏
 // 尽早注册，以便捕获后续脚本执行与异步渲染中的运行时错误
 // ============================================================
+const __toastSeen = {};
 function showToast(msg, kind){
+  const key = (kind||'info') + ':' + msg;
+  const now = Date.now();
+  if(__toastSeen[key] && now - __toastSeen[key] < 3500) return;
+  __toastSeen[key] = now;
   let host = document.getElementById('zoToastHost');
   if(!host){
     if(!document.body){ return; }
@@ -1445,9 +1452,16 @@ function updateDataSourceUI(success, fail, total){
   const refresh = document.getElementById('dsRefresh');
   const now = new Date();
   DS.lastRefresh = now;
+  const done = total>0 && (success + fail) >= total;
   if(success>=total && total>0){
     DS.status='live'; dot.className='ds-dot live';
     status.textContent='业绩已加载 '+success+' / '+total;
+  } else if(done && success>0 && fail>0){
+    DS.status='partial'; dot.className='ds-dot partial';
+    status.textContent='部分数据刷新失败，已显示最近可用数据 '+success+' / '+total;
+  } else if(done && success===0 && fail>0){
+    DS.status='fail'; dot.className='ds-dot fail';
+    status.textContent='数据刷新失败，已显示最近可用数据或 --';
   } else if(success>0){
     DS.status='partial'; dot.className='ds-dot partial';
     status.textContent='业绩加载中 '+success+' / '+total;
@@ -1619,6 +1633,20 @@ function filteredProducts(){
     return true;
   });
 }
+function currentResultHasSelected(list){
+  return !!STATE.selectedCode && (list||filteredProducts()).some(p=>p.code===STATE.selectedCode);
+}
+function highlightSelectedRow(){
+  document.querySelectorAll('#ptableBody tr[data-code]').forEach(tr=>{
+    tr.classList.toggle('selected', !!STATE.selectedCode && tr.dataset.code===STATE.selectedCode);
+  });
+}
+function reconcileSelectedProduct(list){
+  if(!STATE.selectedCode) return;
+  if(currentResultHasSelected(list)) return;
+  closeDrawer();
+  showToast('当前产品不在筛选结果中。','warn');
+}
 // 业绩字段统一从 perfMap 读取（兜底 PRODUCTS 自带的 annualReturn / scale）
 function getPerf(p){
   const pf = DS.perfMap[p.code] || {};
@@ -1768,6 +1796,17 @@ function bindSubChipsEvents(){
 }
 function renderKpi(){
   const list = filteredProducts();
+  if(!list.length){
+    document.getElementById('kpiScale').textContent = '--';
+    document.getElementById('kpiCount').textContent = '0';
+    document.getElementById('kpiSharpe').textContent = '--';
+    document.getElementById('kpiHealth').textContent = '--';
+    document.getElementById('kpiScaleSub').textContent = '当前筛选无结果';
+    document.getElementById('kpiCountSub').textContent = '请调整筛选或搜索关键词';
+    document.getElementById('kpiSharpeSub').textContent = '无可计算产品';
+    document.getElementById('kpiHealthSub').textContent = '无可检查产品';
+    return;
+  }
   // 总管理规模：按"基金家族"去重后求和（A+C+E... 合并后只算一次）
   const seenFamily = new Set();
   const familySums = [];
@@ -1827,6 +1866,15 @@ function renderKpi(){
 }
 
 function bubbleSize(s){ return s>0 ? (10 + Math.sqrt(s)*2.0) : 8; }
+function emptyChartGraphic(text){
+  return {
+    type:'text',
+    left:'center',
+    top:'middle',
+    silent:true,
+    style:{ text:text, fill:ct().label, fontSize:13, fontWeight:500, textAlign:'center' }
+  };
+}
 function renderBubble(){
   // 风险收益矩阵：X = 最大回撤(负值，越靠右回撤越浅)，Y = 近一年收益。"右上方"即低回撤+高收益=最优。
   // 气泡大小 = 家族合并规模；颜色 = 投资大类
@@ -1871,6 +1919,7 @@ function renderBubble(){
   const T=ct();
   bubbleChart.setOption({
     backgroundColor:'transparent',
+    graphic: data.length ? [] : [emptyChartGraphic('未找到符合条件的产品\n请调整筛选或搜索关键词')],
     // graphic 已移除，恢复 top:28 给散点更多绘图空间
     grid:{ left:56, right:30, top:28, bottom:64, containLabel:true },
     legend:{ bottom:4, left:'center', itemWidth:10, itemHeight:10, textStyle:{color:T.legend,fontSize:12}, icon:'circle' },
@@ -1983,6 +2032,7 @@ function renderTree(){
   const T=ct();
   treeChart.setOption({
     backgroundColor:'transparent',
+    graphic: familyUnits.length ? [] : [emptyChartGraphic('未找到符合条件的产品\n请调整筛选或搜索关键词')],
     tooltip:{ backgroundColor:T.tipBg, borderColor:T.tipBorder, borderWidth:1, extraCssText:TIP_GLASS,
       textStyle:{color:T.tipText,fontSize:12}, padding:12,
       formatter: info=>{
@@ -2115,7 +2165,7 @@ function renderTable(){
     const shareTag = (p.shareClass && p.shareClass!=='_' && p.shareClass!=='A')
       ? '<span class="src-badge q" title="份额变体">'+p.shareClass+'</span>' : '';
     const l3Tag = '<span class="cell-sub-tag" title="三级细分">'+(p.l3||'--')+'</span>';
-    return '<tr data-code="'+p.code+'">'+
+    return '<tr data-code="'+p.code+'" class="'+(STATE.selectedCode===p.code?'selected':'')+'">'+
       '<td><span class="fav-star'+(isFav(p.code)?' on':'')+'" data-fav="'+p.code+'" title="加入 / 移出自选">'+(isFav(p.code)?'★':'☆')+'</span>'+
         '<span class="cell-status-dot" style="background:'+sm.color+'" title="'+escapeHtml(p.status.label)+'"></span>'+
         '<span class="cell-name">'+p.name+'</span><span class="cell-code">'+p.code+'</span>'+shareTag+sanityFlag+'</td>'+
@@ -2139,6 +2189,7 @@ function renderTable(){
     }
   });
   updateTableHint(list);
+  highlightSelectedRow();
 }
 // 数据时效标识：取当前列表已加载产品里最新的净值日期（jzrq），让销售清楚「这是哪天的数」
 function updateTableHint(list){
@@ -2153,11 +2204,12 @@ function updateTableHint(list){
     : '点击表头排序 · 点击行查看详情';
 }
 function bindTableEvents(){
+  const defaultSortAsc = key => ['name','manager','l1','l2','l3','status'].includes(key);
   document.querySelectorAll('#ptable thead th').forEach(th=>{
     if (!th.dataset.sort) return;
     th.addEventListener('click', ()=>{
       if (STATE.sortKey === th.dataset.sort) STATE.sortAsc = !STATE.sortAsc;
-      else { STATE.sortKey = th.dataset.sort; STATE.sortAsc = false; }
+      else { STATE.sortKey = th.dataset.sort; STATE.sortAsc = defaultSortAsc(th.dataset.sort); }
       renderTable();
     });
   });
@@ -2178,16 +2230,17 @@ function bindTableEvents(){
 
 // ---------- 工具栏：搜索 / 自选 / 清除筛选 / 导出 CSV ----------
 function anyFilterActive(){
-  return STATE.l1!=='ALL' || STATE.l2!=='ALL' || STATE.l3!=='ALL' || !!(STATE.search||'').trim() || STATE.favOnly;
+  return STATE.l1!=='ALL' || STATE.l2!=='ALL' || STATE.l3!=='ALL' || !!(STATE.search||'').trim() || STATE.favOnly || STATE.showAllShares;
 }
 function updateClearBtn(){
   const btn = document.getElementById('clearFilters'); if(!btn) return;
   btn.style.display = anyFilterActive() ? '' : 'none';
 }
 function clearAllFilters(){
-  STATE.l1='ALL'; STATE.l2='ALL'; STATE.l3='ALL'; STATE.search=''; STATE.favOnly=false;
+  STATE.l1='ALL'; STATE.l2='ALL'; STATE.l3='ALL'; STATE.search=''; STATE.favOnly=false; STATE.showAllShares=false; STATE.sortKey='scale'; STATE.sortAsc=false;
   const sb=document.getElementById('searchBox'); if(sb) sb.value='';
   const ft=document.getElementById('favToggle'); if(ft){ ft.classList.remove('active'); ft.textContent='☆ 自选'; }
+  const tShr=document.getElementById('toggleShares'); if(tShr) tShr.checked=false;
   document.querySelectorAll('#chipBar .chip[data-l1]').forEach(c=>c.classList.toggle('active', c.dataset.l1==='ALL'));
   renderSubChips();
   renderAll();
@@ -2215,7 +2268,10 @@ function exportCsv(){
   const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}); // BOM(U+FEFF)：让 Excel 正确识别中文 UTF-8
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = '富国基金产品全景_'+(latest||new Date().toISOString().slice(0,10))+'.csv';
+  const d = new Date();
+  const ymd = d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const filterTag = STATE.l3!=='ALL' ? STATE.l3 : STATE.l2!=='ALL' ? STATE.l2 : STATE.l1!=='ALL' ? STATE.l1 : '全部产品';
+  a.download = '富国基金产品筛选结果_'+filterTag+'_'+ymd+'.csv';
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 200);
   showToast('已导出 '+list.length+' 只产品到 CSV。','info');
@@ -2734,6 +2790,7 @@ function openDrawer(code){
   drawerBody.scrollTop = 0;
   document.getElementById('drawer').classList.add('show');
   document.getElementById('drawerMask').classList.add('show');
+  highlightSelectedRow();
   renderMiniChart(p);
 }
 function bindDrawerEvents(){
@@ -2822,6 +2879,7 @@ function closeDrawer(){
   document.getElementById('drawer').classList.remove('show');
   document.getElementById('drawerMask').classList.remove('show');
   STATE.selectedCode = null;
+  highlightSelectedRow();
   if (miniChart) { miniChart.dispose(); miniChart=null; }
 }
 function refreshChipCounts(){
@@ -2835,7 +2893,11 @@ function refreshChipCounts(){
     if(span) span.textContent = passList.filter(p=>p.l1===l1).length;
   });
 }
-function renderAll(){ refreshChipCounts(); renderKpi(); renderBubble(); renderTree(); renderTable(); updatePoolStat(); updateHealthBadge(); updateClearBtn(); }
+function renderAll(){
+  const list = filteredProducts();
+  reconcileSelectedProduct(list);
+  refreshChipCounts(); renderKpi(); renderBubble(); renderTree(); renderTable(); updatePoolStat(); updateHealthBadge(); updateClearBtn();
+}
 
 // ---------- 数据健康面板 ----------
 function updateHealthBadge(){
@@ -2892,6 +2954,11 @@ window.__startApp = function(){
   // 手动刷新：清除业绩 / 行情缓存后重载，强制拉取当日最新数据（保留 7 天的市场索引缓存）
   const refreshBtn = document.getElementById('refreshBtn');
   if(refreshBtn) refreshBtn.addEventListener('click', ()=>{
+    if(refreshBtn.dataset.refreshing==='1') return;
+    refreshBtn.dataset.refreshing='1';
+    refreshBtn.disabled = true;
+    refreshBtn.title = '正在刷新公开数据…';
+    showToast('正在清除缓存并重新拉取公开数据。','info');
     refreshBtn.style.transition='transform .6s'; refreshBtn.style.transform='rotate(360deg)';
     try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('fg_perf')===0 || k.indexOf('fg_rank')===0) localStorage.removeItem(k); }); }catch(_){}
     setTimeout(()=>location.reload(), 220);
