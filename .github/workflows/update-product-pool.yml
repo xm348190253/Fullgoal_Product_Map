@@ -1,0 +1,30 @@
+name: Update Fullgoal Product Pool
+
+on:
+  schedule:
+    - cron: '20 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-product-pool:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Update product pool JSON
+        run: node scripts/update_fullgoal_product_pool.js
+
+      - name: Commit updated product pool
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: update fullgoal product pool'
+          file_pattern: data/fullgoal_product_pool_latest.json
